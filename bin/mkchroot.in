@@ -72,7 +72,6 @@ else
 fi
 
 basestrap_args=(-GMcd ${pacman_conf:+-C "$pacman_conf"})
-[[ -n ${mirror} ]] && basestrap_args+=(-U "${mirror}")
 
 umask 0022
 
@@ -110,6 +109,8 @@ default_locale "set" "$working_dir"
 
 chroot_args=(${pacman_conf:+-C "$pacman_conf"} ${makepkg_conf:+-M "$makepkg_conf"} ${cache_dir:+-c "$cache_dir"})
 ${nosetarch} && chroot_args+=(${nosetarch:+-s})
+
+[[ -n ${mirror} ]] && chroot_args+=(-U "${mirror}")
 
 exec chroot-run \
     ${chroot_args[*]} \

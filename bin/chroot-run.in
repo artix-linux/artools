@@ -29,6 +29,7 @@ usage() {
     echo ' options:'
     echo '    -C <file>     Location of a pacman config file'
     echo '    -M <file>     Location of a makepkg config file'
+    echo '    -U <url>      Set a specific mirror'
     echo '    -c <dir>      Set pacman cache'
     echo '    -f <file>     Copy file from the host to the chroot'
     echo '    -s            Do not run setarch'
@@ -41,12 +42,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='hC:M:c:r:w:f:s'
+opts='hC:M:U:c:r:w:f:s'
 
 while getopts ${opts} arg; do
     case "${arg}" in
         C) pacman_conf="$OPTARG" ;;
         M) makepkg_conf="$OPTARG" ;;
+        U) mirror="$OPTARG" ;;
         c) cache_dir="$OPTARG" ;;
         f) files+=("$OPTARG") ;;
         s) nosetarch=true ;;
@@ -87,6 +89,8 @@ copy_hostconf () {
     done
 
     sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${cache_dirs[@]})|g" -i "$1/etc/pacman.conf"
+
+    default_mirror "$working_dir" "$mirror"
 }
 
 chroot_extra_mount() {

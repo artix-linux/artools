@@ -29,7 +29,6 @@ copymirrorlist=true
 usage() {
     echo "usage: ${0##*/} [options] root [packages...]"
     echo " -C <config>      Use an alternate config file for pacman"
-    echo ' -U <url>         Use a specific mirror'
     echo " -c               Use the package cache on the host, rather than the target"
     echo " -d               Allow installation to a non-mountpoint directory"
     echo " -G               Avoid copying the host's pacman keyring to the target"
@@ -46,12 +45,11 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts=':C:U:cdGiM'
+opts=':C:cdGiM'
 
 while getopts ${opts} arg; do
     case "${arg}" in
         C) pacman_conf=$OPTARG ;;
-        U) mirror="$OPTARG" ;;
         d) directory=true ;;
         c) hostcache=true ;;
         i) interactive=true ;;
@@ -75,8 +73,6 @@ ${interactive} && pacman_args+=(--noconfirm)
 
 [[ -n $pacman_conf ]] && pacman_args+=(--config="$pacman_conf")
 
-# [[ -n ${mirror} ]] && pm_args+=(-U "${mirror}")
-
 [[ -d $newroot ]] || die "%s is not a directory" "$newroot"
 
 if ! mountpoint -q "$newroot" && ! ${directory}; then
@@ -85,8 +81,6 @@ fi
 
 # create obligatory directories
 create_min_fs "$newroot"
-
-[[ -n ${mirror} ]] && set_build_mirror "$newroot" "${mirror}"
 
 # mount API filesystems
 chroot_api_mount "$newroot" || die "failed to setup API filesystems in new root"
