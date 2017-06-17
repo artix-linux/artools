@@ -69,10 +69,10 @@ gen_fn(){
 
 make_profile_yaml(){
     prepare_check "$1"
-    load_pkgs "${root_list}" "${target_arch}" "${edition}" "${initsys}" "${kernel}"
+    load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
     write_netgroup_yaml "$1" "$(gen_fn "Packages-Root")"
     if [[ -f "${desktop_list}" ]]; then
-        load_pkgs "${desktop_list}" "${target_arch}" "${edition}" "${initsys}" "${kernel}"
+        load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
         write_netgroup_yaml "$1" "$(gen_fn "Packages-Desktop")"
     fi
     ${calamares} && write_calamares_yaml "$1"

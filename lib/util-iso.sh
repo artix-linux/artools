@@ -398,14 +398,14 @@ compress_images(){
 
 prepare_images(){
     local timer=$(get_timer)
-    load_pkgs "${root_list}" "${target_arch}" "${edition}" "${initsys}" "${kernel}"
+    load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
     run_safe "make_image_root"
     if [[ -f "${desktop_list}" ]] ; then
-        load_pkgs "${desktop_list}" "${target_arch}" "${edition}" "${initsys}" "${kernel}"
+        load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
         run_safe "make_image_desktop"
     fi
     if [[ -f ${live_list} ]]; then
-        load_pkgs "${live_list}" "${target_arch}" "${edition}" "${initsys}" "${kernel}"
+        load_pkgs "${live_list}" "${target_arch}" "${initsys}" "${kernel}"
         run_safe "make_image_live"
     fi
     run_safe "make_image_boot"

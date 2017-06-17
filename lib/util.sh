@@ -208,13 +208,13 @@ init_buildiso(){
 
     os_id=$(get_osid)
 
-    [[ -z ${dist_branding} ]] && dist_branding="MJRO"
+    [[ -z ${dist_branding} ]] && dist_branding="CRMX"
 
     iso_label="${dist_branding}${dist_release//.}"
 
     [[ -z ${initsys} ]] && initsys="openrc"
 
-    [[ -z ${kernel} ]] && kernel="linux49"
+    [[ -z ${kernel} ]] && kernel="linux"
 
     [[ -z ${gpgkey} ]] && gpgkey=''
 }
@@ -257,13 +257,6 @@ load_config(){
     init_deployiso
 
     return 0
-}
-
-get_edition(){
-    local result=$(find ${run_dir} -maxdepth 2 -name "$1") path
-    [[ -z $result ]] && die "%s is not a valid profile or build list!" "$1"
-    path=${result%/*}
-    echo ${path##*/}
 }
 
 user_own(){

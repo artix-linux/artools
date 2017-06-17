@@ -22,8 +22,7 @@ import ${LIBDIR}/util-iso.sh
 prepare_build(){
     timer_start=$(get_timer)
     profile=$1
-    edition=$(get_edition "${profile}")
-    local profile_dir=${run_dir}/${edition}/${profile}
+    local profile_dir=${run_dir}/${profile}
 
     load_profile "${profile_dir}"
 
@@ -43,7 +42,7 @@ prepare_build(){
     mkchroot_args+=(-C ${pacman_conf} -U "${build_mirror}")
     work_dir=${chroots_iso}/${profile}/${target_arch}
 
-    iso_dir="${cache_dir_iso}/${edition}/${profile}/${dist_release}"
+    iso_dir="${cache_dir_iso}/${profile}/${dist_release}"
 
     iso_root=${chroots_iso}/${profile}/iso
     mnt_dir=${chroots_iso}/${profile}/mnt

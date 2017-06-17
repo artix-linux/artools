@@ -22,8 +22,7 @@ import ${LIBDIR}/util-profile.sh
 
 prepare_check(){
     local profile="$1"
-    edition=$(get_edition ${profile})
-    local profile_dir=${run_dir}/${edition}/${profile}
+    local profile_dir=${run_dir}/${profile}
 
     load_profile "${profile_dir}"
 
