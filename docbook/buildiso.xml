@@ -6,6 +6,7 @@
 This file is part of artools.
 
 Copyright 2015 Manjaro Developers
+Copyright 2017 Artoo
 
 artools is free software; you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published by
@@ -83,12 +84,6 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
                 <term><option>-a i686|x86_64</option></term>
 
                 <listitem><para>Architecture that the iso will be built. Can be i686 or x86_64.</para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><option>-b stable|testing|unstable</option></term>
-
-                <listitem><para>Branch where the mirrors in the iso will point.</para></listitem>
             </varlistentry>
 
             <varlistentry>

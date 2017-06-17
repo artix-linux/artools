@@ -6,6 +6,7 @@
 This file is part of artools.
 
 Copyright 2015 Manjaro Developers
+Copyright 2017 Artoo
 
 artools is free software; you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published by
@@ -76,15 +77,9 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><option>-a i686|x86_64|multilib|arm|armv6h|armv7h|aarch64</option></term>
+                <term><option>-a i686|x86_64|multilib</option></term>
 
                 <listitem><para>Architecture that the iso will be built. Can be i686, x86_64 or multilib.</para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><option>-b stable|testing|unstable</option></term>
-
-                <listitem><para>Branch to build against..</para></listitem>
             </varlistentry>
 
             <varlistentry>
