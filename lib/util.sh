@@ -119,7 +119,7 @@ init_common(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    [[ -z ${build_mirror} ]] && build_mirror='http://mirror.netzspielplatz.de/manjaro/packages'
+    [[ -z ${build_mirror} ]] && build_mirror='http://mirror.netcologne.de/archlinux'
 
     log_dir='/var/log/artools'
 
@@ -129,7 +129,7 @@ init_common(){
 init_buildtree(){
     tree_dir=${cache_dir}/pkgtree
 
-    tree_dir_abs=${tree_dir}/packages-archlinux
+    tree_dir_abs=${tree_dir}/archlinux
 
     [[ -z ${repo_tree[@]} ]] && repo_tree=('packages')
 
@@ -336,4 +336,10 @@ check_root() {
     else
         exec su root -c "$(printf ' %q' "${orig_argv[@]}")"
     fi
+}
+
+set_build_mirror(){
+    local mnt="$1" mirror="$2"
+    [[ -f $mnt/etc/pacman.d/mirrorlist ]] && mv $mnt/etc/pacman.d/mirrorlist $mnt/etc/pacman.d/mirrorlist.bak
+    echo "Server = $mirror"'$repo/$arch' > $mnt/etc/pacman.d/mirrorlist
 }

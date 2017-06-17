@@ -102,7 +102,7 @@ prepare_build(){
 
     local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
 
-    work_dir="${chroots_pkg}//${target_arch}"
+    work_dir="${chroots_pkg}/${target_arch}"
     pkg_dir="${cache_dir_pkg}/${target_arch}"
 
     local makepkg_conf=$(get_makepkg_conf "${target_arch}")

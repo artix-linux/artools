@@ -86,9 +86,7 @@ fi
 # create obligatory directories
 create_min_fs "$newroot"
 
-# if [[ ! -f $newroot/etc/pacman-mirrors.conf ]]; then
-#     pacman-mirrors "${pm_args[@]}"
-# fi
+[[ -n ${mirror} ]] && set_build_mirror "$newroot" "${mirror}"
 
 # mount API filesystems
 chroot_api_mount "$newroot" || die "failed to setup API filesystems in new root"
