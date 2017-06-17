@@ -1,0 +1,128 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-mount.sh
+
+working_dir=''
+files=()
+keep_mirrors=false
+nosetarch=false
+
+usage() {
+    echo "Usage: ${0##*/} [options] working-dir [run arguments]"
+    echo "A wrapper around chroot. Provides support for pacman."
+    echo
+    echo ' options:'
+    echo '    -C <file>     Location of a pacman config file'
+    echo '    -M <file>     Location of a makepkg config file'
+    echo '    -c <dir>      Set pacman cache'
+    echo '    -f <file>     Copy file from the host to the chroot'
+    echo '    -s            Do not run setarch'
+    echo '    -r <list>     Bind mountargs ro'
+    echo '    -w <list>     Bind mountargs rw'
+    echo '                  List format [src1:target1 ... srcN:targetN]'
+    echo '    -h            This message'
+    exit 1
+}
+
+orig_argv=("$0" "$@")
+
+opts='hC:M:c:r:w:f:s'
+
+while getopts ${opts} arg; do
+    case "${arg}" in
+        C) pacman_conf="$OPTARG" ;;
+        M) makepkg_conf="$OPTARG" ;;
+        c) cache_dir="$OPTARG" ;;
+        f) files+=("$OPTARG") ;;
+        s) nosetarch=true ;;
+        r) bindmounts_ro=("$OPTARG") ;;
+        w) bindmounts_rw=("$OPTARG") ;;
+        h|?) usage ;;
+        *) error "invalid argument '$arg'"; usage ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+(( $# < 1 )) && die 'You must specify a directory.'
+
+check_root
+
+working_dir=$(readlink -f "$1")
+shift 1
+
+[[ -z $working_dir ]] && die 'Please specify a working directory.'
+
+if [[ -z $cache_dir ]]; then
+    cache_dirs=($(pacman -v 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
+else
+    cache_dirs=("$cache_dir")
+fi
+
+copy_hostconf () {
+    cp -a /etc/pacman.d/gnupg "$1/etc/pacman.d"
+
+    [[ -n $pacman_conf ]] && cp $pacman_conf "$1/etc/pacman.conf"
+
+    [[ -n $makepkg_conf ]] && cp $makepkg_conf "$1/etc/makepkg.conf"
+
+    local file
+    for file in "${files[@]}"; do
+        mkdir -p "$(dirname "$working_dir$file")"
+        cp -T "$file" "$working_dir$file"
+    done
+
+    sed -r "s|^#?\\s*CacheDir.+|CacheDir = $(echo -n ${cache_dirs[@]})|g" -i "$1/etc/pacman.conf"
+}
+
+chroot_extra_mount() {
+    chroot_mount "/etc/resolv.conf" "$1/etc/resolv.conf" -B
+    chroot_mount "${cache_dirs[0]}" "$1${cache_dirs[0]}" -B
+
+    for cache_dir in ${cache_dirs[@]:1}; do
+        chroot_mount "$cache_dir" "$1${cache_dir}" -Br
+    done
+
+    for m in ${bindmounts_ro[@]}; do
+        chroot_mount "${m%%:*}" "$1${m##*:}" -Br
+    done
+
+    for m in ${bindmounts_rw[@]}; do
+        chroot_mount "${m%%:*}" "$1${m##*:}" -B
+    done
+}
+
+umask 0022
+
+# Sanity check
+if [[ ! -f "$working_dir/.artools" ]]; then
+    die "'%s' does not appear to be a Manjaro chroot." "$working_dir"
+elif [[ $(cat "$working_dir/.artools") != $version ]]; then
+    die "chroot '%s' is not at version %s. Please rebuild." "$working_dir" "$version"
+fi
+
+chroot_api_mount "${working_dir}" || die "failed to setup API filesystems in chroot %s" "${working_dir}"
+
+chroot_extra_mount "${working_dir}"
+
+copy_hostconf "${working_dir}"
+
+eval $(grep '^CARCH=' "$working_dir/etc/makepkg.conf")
+
+${nosetarch} && unset CARCH
+
+${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"

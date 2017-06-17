@@ -5,7 +5,7 @@ User manual
 
 ### 1. artools.conf
 
-artools.conf is the central configuration file for manjaro-tools.
+artools.conf is the central configuration file for artools.
 By default, the config is installed in
 
 ~~~
@@ -18,7 +18,7 @@ A user artools.conf can be placed in
 $HOME/.config/artools/artools.conf
 ~~~
 
-If the userconfig is present, manjaro-tools will load the userconfig values, however, if variables have been set in the systemwide
+If the userconfig is present, artools will load the userconfig values, however, if variables have been set in the systemwide
 
 ~~~
 /etc/artools/artools.conf

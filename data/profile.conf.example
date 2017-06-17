@@ -1,0 +1,42 @@
+##########################################
+###### use this file in the profile ######
+##########################################
+
+# use multilib packages; x86_64 only
+# multilib="true"
+
+# use extra packages as defined in pkglist to activate a full profile
+# extra="false"
+
+################ install ################
+
+# default displaymanager: none
+# supported; lightdm, sddm, gdm, lxdm, mdm
+# displaymanager="none"
+
+# Set to false to disable autologin in the livecd
+# autologin="true"
+
+# configure calamares for netinstall
+# netinstall="false"
+
+# configure calamares to use chrootcfg instead of unpackfs; default: unpackfs
+# chrootcfg="false"
+
+# unset defaults to given values,
+# names must match openrc service names
+# enable_openrc=('acpid' 'bluetooth' 'elogind' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
+
+# unset defaults to given values
+# addgroups="video,power,disk,storage,optical,network,lp,scanner,wheel"
+
+################# live-session #################
+
+# unset defaults to given value
+# hostname="cromnix"
+
+# unset defaults to given value
+# username="cromnix"
+
+# unset defaults to given value
+# password="cromnix"

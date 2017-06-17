@@ -1,0 +1,116 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-chroot.sh
+
+working_dir=''
+files=()
+
+build_locales=false
+keep_mirrors=false
+keep_flag=''
+nosetarch=false
+
+usage() {
+    echo "Usage: ${0##*/} [options] working-dir package-list..."
+    echo ' options:'
+    echo '    -C <file>     Location of a pacman config file'
+    echo '    -M <file>     Location of a makepkg config file'
+    echo '    -U <url>      Set a specific mirror'
+    echo '    -c <dir>      Set pacman cache'
+    echo '    -f <file>     Copy file from the host to the chroot'
+    echo '    -s            Do not run setarch'
+    echo '    -h            This message'
+    exit 1
+}
+
+orig_argv=("$0" "$@")
+
+opts='hC:M:U:c:f:s'
+
+while getopts ${opts} arg; do
+    case "${arg}" in
+        C) pacman_conf="$OPTARG" ;;
+        M) makepkg_conf="$OPTARG" ;;
+        U) mirror="$OPTARG" ;;
+        c) cache_dir="$OPTARG" ;;
+        f) files+=("$OPTARG") ;;
+        s) nosetarch=true ;;
+        h|?) usage ;;
+        *) error "invalid argument '%s'" "$arg"; usage ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+(( $# < 2 )) && die 'You must specify a directory and one or more packages.'
+
+check_root
+
+working_dir="$(readlink -f $1)"
+shift 1
+
+[[ -z $working_dir ]] && die 'Please specify a working directory.'
+
+if [[ -z $cache_dir ]]; then
+    cache_dirs=($(pacman -v $cache_conf 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
+else
+    cache_dirs=(${cache_dir})
+fi
+
+basestrap_args=(-GMcd ${pacman_conf:+-C "$pacman_conf"})
+[[ -n ${mirror} ]] && basestrap_args+=(-U "${mirror}")
+
+umask 0022
+
+#[[ -e $working_dir ]] && die "Working directory '%s' already exists" "$working_dir"
+
+#mkdir -p "$working_dir"
+
+[[ ! -d $working_dir ]] && mkdir -p "$working_dir"
+
+lock 9 "${working_dir}.lock" "Locking chroot"
+
+if is_btrfs "$working_dir"; then
+    rmdir "$working_dir"
+    if ! btrfs subvolume create "$working_dir"; then
+        die "Couldn't create subvolume for '%s'" "$working_dir"
+    fi
+    chmod 0755 "$working_dir"
+fi
+
+for f in "${files[@]}"; do
+    mkdir -p "$(dirname "$working_dir$f")"
+    cp "$f" "$working_dir$f"
+done
+
+_env=()
+while read -r varname; do
+    _env+=("$varname=${!varname}")
+done < <(declare -x | sed -r 's/^declare -x ([^=]*)=.*/\1/' | grep -i '_proxy$')
+env -i "${_env[@]}" \
+basestrap "${basestrap_args[@]}" "$working_dir" ${cache_dirs[@]/#/--cachedir=} "$@" || die 'Failed to install all packages'
+
+echo "$version" > "$working_dir/.artools"
+
+default_locale "set" "$working_dir"
+
+chroot_args=(${pacman_conf:+-C "$pacman_conf"} ${makepkg_conf:+-M "$makepkg_conf"} ${cache_dir:+-c "$cache_dir"})
+${nosetarch} && chroot_args+=(${nosetarch:+-s})
+
+exec chroot-run \
+    ${chroot_args[*]} \
+    "$working_dir" locale-gen
