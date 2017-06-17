@@ -110,7 +110,7 @@ default_locale "set" "$working_dir"
 chroot_args=(${pacman_conf:+-C "$pacman_conf"} ${makepkg_conf:+-M "$makepkg_conf"} ${cache_dir:+-c "$cache_dir"})
 ${nosetarch} && chroot_args+=(${nosetarch:+-s})
 
-[[ -n ${mirror} ]] && chroot_args+=(-U "${mirror}")
+[[ -n ${mirror} ]] && default_mirror "$working_dir" "$mirror"
 
 exec chroot-run \
     ${chroot_args[*]} \
