@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+if [ $# -eq 0 ]; then
+    echo "
+    usage: testiso <isofile> [id|ic|sd|sc|vd|vc]
+
+    id    boot iso as IDE disk
+    ic    boot iso as IDE cd-rom
+    sd    boot iso as SCSI disk
+    sc    boot iso as SCSI cd-rom
+    vd    boot iso as virtio disk
+    vc    boot iso as virtio cd-rom
+    "
+    exit 1
+fi
+
+case "${2}" in
+    id) IF="ide"; MEDIA="disk";;
+    ic) IF="ide"; MEDIA="cdrom";;
+    sd) IF="scsi"; MEDIA="disk";;
+    sc) IF="scsi"; MEDIA="cdrom";;
+    vd) IF="virtio"; MEDIA="disk";;
+    vc) IF="virtio"; MEDIA="cdrom";;
+    *) IF="scsi"; MEDIA="cdrom";;
+esac
+
+echo qemu -m 256 -drive file=${1},if=${IF},media=${MEDIA},boot=on
+qemu -m 256 -drive file=${1},if=${IF},media=${MEDIA},boot=on

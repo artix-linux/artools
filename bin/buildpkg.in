@@ -1,0 +1,179 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+shopt -s nullglob
+
+LIBDIR='@libdir@'
+DATADIR='@datadir@'
+SYSCONFDIR='@sysconfdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-chroot.sh
+import ${LIBDIR}/util-pkg.sh
+import ${LIBDIR}/util-pkg-chroot.sh
+
+show_pkg(){
+    check_build "$1"
+    cd $1
+        source PKGBUILD
+        for n in ${pkgname[@]}; do
+            msg2 "%s" "$n"
+        done
+    cd ..
+}
+
+display_settings(){
+    show_version
+    show_config
+
+#     msg "PROFILE:"
+#     msg2 "build_lists: %s" "$(show_build_lists ${list_dir_pkg})"
+#     msg2 "build_list_pkg: %s" "${build_list_pkg}"
+    msg2 "is_build_list: %s" "${is_build_list}"
+
+    msg "OPTIONS:"
+    msg2 "arch: %s" "${target_arch}"
+    msg2 "chroots_pkg: %s" "${chroots_pkg}"
+
+    msg "ARGS:"
+    msg2 "create_first: %s" "${create_first}"
+    msg2 "delete_first: %s" "${delete_first}"
+    msg2 "clean_first: %s" "${clean_first}"
+    msg2 "update_first: %s" "${update_first}"
+    msg2 "purge: %s" "${purge}"
+    msg2 "namcap: %s" "${namcap}"
+    msg2 "sign: %s" "${sign}"
+
+    msg "PATHS:"
+    msg2 "pkg_dir: %s" "${pkg_dir}"
+
+    if ${create_first};then
+        msg "PKG:"
+        msg2 "packages: %s" "${packages[*]}"
+    fi
+
+    msg "BUILD QUEUE:"
+    run show_pkg "${build_list_pkg}"
+}
+
+load_user_info
+
+load_config "${MT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
+
+create_first=false
+delete_first=false
+clean_first=false
+update_first=false
+purge=false
+namcap=false
+pretend=false
+is_build_list=false
+sign=false
+is_multilib=false
+
+mkchroot_args=()
+mkchrootpkg_args=()
+
+install_pkgs=()
+
+prepare_build(){
+    local pac_arch='default'
+
+    if [[ "${target_arch}" == 'multilib' ]];then
+        pac_arch='multilib'
+        is_multilib=true
+    fi
+
+    local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+
+    work_dir="${chroots_pkg}/${target_arch}"
+    pkg_dir="${cache_dir_pkg}/${target_arch}"
+
+    local makepkg_conf=$(get_makepkg_conf "${target_arch}")
+
+    [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
+
+    mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf} -U "${build_mirror}")
+
+    mkchrootpkg_args+=(-r ${work_dir})
+
+    prepare_dir "${work_dir}"
+
+    eval_build_list "${list_dir_pkg}" "${build_list_pkg}"
+
+    packages=('cromnix-dev')
+    ${is_multilib} && packages+=('cromnix-dev-multilib')
+
+    timer_start=$(get_timer)
+}
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -p <pkg>           Build list or pkg [default: ${build_list_pkg}]"
+    echo "    -a <arch>          Arch [default: ${target_arch}]"
+    echo '    -r <dir>           Chroots directory'
+    echo "                       [default: ${chroots_pkg}]"
+    echo '    -i <pkgs>          Install packages into the working copy of the chroot'
+    echo '    -o                 Create chroot'
+    echo '    -d                 Delete chroot'
+    echo '    -c                 Clean chroot copy'
+    echo '    -u                 Update chroot copy'
+    echo '    -w                 Clean up cache and sources'
+    echo '    -n                 Install and run namcap check'
+    echo '    -s                 Sign packages'
+    echo '    -q                 Query settings and pretend build'
+    echo '    -h                 This help'
+    echo ''
+    echo ''
+    exit $1
+}
+
+orig_argv=("$0" "$@")
+
+opts='p:a:r:i:odcuwnsqh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+        p) build_list_pkg="$OPTARG" ;;
+        a) target_arch="$OPTARG" ;;
+        r) chroots_pkg="$OPTARG" ;;
+        i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
+        o) create_first=true ;;
+        d) delete_first=true ;;
+        c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
+        u) update_first=true ; mkchrootpkg_args+=(-u) ;;
+        w) purge=true ;;
+        n) namcap=true; mkchrootpkg_args+=(-n) ;;
+        s) sign=true ;;
+        q) pretend=true ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+check_root
+
+prepare_build
+
+${pretend} && display_settings && exit
+
+${delete_first} && delete_chroot "${work_dir}/root" "${work_dir}"
+
+${create_first} && create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
+
+run make_pkg "${build_list_pkg}"

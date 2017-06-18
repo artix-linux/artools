@@ -1,0 +1,189 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+DATADIR='@datadir@'
+SYSCONFDIR='@sysconfdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-iso.sh
+
+prepare_build(){
+    timer_start=$(get_timer)
+    profile=$1
+    local profile_dir=${run_dir}/${profile}
+
+    load_profile "${profile_dir}"
+
+    local user_conf=${profile_dir}/user-repos.conf pac_arch='default' pacman_conf
+    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
+    if [[ -f ${user_conf} ]];then
+        info "detected: %s" "user-repos.conf"
+        check_user_repos_conf "${user_conf}"
+        pacman_conf=${tmp_dir}/custom-pacman.conf
+        cat ${DATADIR}/pacman-$pac_arch.conf ${user_conf} > "$pacman_conf"
+    else
+        pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+    fi
+
+    iso_file=$(gen_iso_fn).iso
+
+    mkchroot_args+=(-C ${pacman_conf} -U "${build_mirror}")
+    work_dir=${chroots_iso}/${profile}/${target_arch}
+
+    iso_dir="${cache_dir_iso}/${profile}/${dist_release}"
+
+    iso_root=${chroots_iso}/${profile}/iso
+    mnt_dir=${chroots_iso}/${profile}/mnt
+    prepare_dir "${mnt_dir}"
+
+    prepare_dir "${iso_dir}"
+    user_own "${iso_dir}"
+}
+
+show_profile(){
+    local prof="$1"
+    prepare_build "$prof"
+    msg2 "iso_file: %s" "${iso_file}"
+    if ${verbose};then
+        msg2 "autologin: %s" "${autologin}"
+
+        [[ ${target_arch} == 'x86_64' ]] && msg2 "multilib: %s" "${multilib}"
+
+        msg2 "extra: %s" "${extra}"
+
+        msg2 "netinstall: %s" "${netinstall}"
+        msg2 "chrootcfg: %s" "${chrootcfg}"
+        ${netinstall} && msg2 "netgroups: %s" "$(get_yaml)"
+
+        msg2 "hostname: %s" "${hostname}"
+        msg2 "username: %s" "${username}"
+        msg2 "password: %s" "${password}"
+        msg2 "login_shell: %s" "${login_shell}"
+        msg2 "addgroups: %s" "${addgroups}"
+
+        msg2 "enable_live: %s" "${enable_live[*]}"
+        msg2 "enable_openrc: %s" "${enable_openrc[*]}"
+    fi
+    reset_profile
+}
+
+display_settings(){
+    show_version
+    show_config
+
+#     msg "PROFILE:"
+#     msg2 "build_lists: %s" "$(show_build_lists ${list_dir_iso})"
+#     msg2 "build_list_iso: %s" "${build_list_iso}"
+    msg2 "is_build_list: %s" "${is_build_list}"
+
+    msg "OPTIONS:"
+    msg2 "arch: %s" "${target_arch}"
+    msg2 "initsys: %s" "${initsys}"
+    msg2 "kernel: %s" "${kernel}"
+    [[ -n ${gpgkey} ]] && msg2 "gpgkey: %s" "${gpgkey}"
+
+    msg "ARGS:"
+    msg2 "clean_first: %s" "${clean_first}"
+    msg2 "images_only: %s" "${images_only}"
+    msg2 "iso_only: %s" "${iso_only}"
+    msg2 "persist: %s" "${persist}"
+
+    msg "DIST SETTINGS:"
+    msg2 "dist_name: %s" "${dist_name}"
+    msg2 "dist_release: %s" "${dist_release}"
+    msg2 "dist_codename: %s" "${dist_codename}"
+
+    msg "ISO INFO:"
+    msg2 "iso_label: %s" "${iso_label}"
+
+    msg "BUILD QUEUE:"
+    run show_profile "${build_list_iso}"
+}
+
+load_user_info
+
+load_config "${MT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+
+load_run_dir
+
+clean_first=true
+pretend=false
+images_only=false
+iso_only=false
+verbose=false
+persist=false
+
+mkchroot_args=()
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -p <profile>       Buildset or profile [default: ${build_list_iso}]"
+    echo "    -a <arch>          Arch [default: ${target_arch}]"
+    echo '    -r <dir>           Chroots directory'
+    echo "                       [default: ${chroots_iso}]"
+    echo '    -t <dir>           Target directory'
+    echo "                       [default: ${cache_dir_iso}]"
+    echo '    -k <name>          Kernel to use'
+    echo "                       [default: ${kernel}]"
+    echo '    -i <name>          Init system to use'
+    echo "                       [default: ${initsys}]"
+    echo '    -g <key>           The gpg key for sfs signing'
+    echo "                       [default: ${gpgkey}]"
+    echo '    -m                 Set SquashFS image mode to persistence'
+    echo '    -c                 Disable clean work dir'
+    echo '    -x                 Build images only'
+    echo '    -z                 Generate iso only'
+    echo '                       Requires pre built images (-x)'
+    echo '    -v                 Verbose output to log file, show profile detail (-q)'
+    echo '    -q                 Query settings and pretend build'
+    echo '    -h                 This help'
+    echo ''
+    echo ''
+    exit $1
+}
+
+orig_argv=("$0" "$@")
+
+opts='p:a:r:t:k:i:g:czxmvqh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+        p) build_list_iso="$OPTARG" ;;
+        a) target_arch="$OPTARG" ;;
+        r) chroots_iso="$OPTARG" ;;
+        t) cache_dir_iso="$OPTARG" ;;
+        k) kernel="$OPTARG" ;;
+        i) initsys="$OPTARG" ;;
+        g) gpgkey="$OPTARG" ;;
+        c) clean_first=false ;;
+        x) images_only=true ;;
+        z) iso_only=true ;;
+        m) persist=true ;;
+        v) verbose=true ;;
+        q) pretend=true ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '${arg}'"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+check_root
+
+check_requirements
+
+${pretend} && display_settings && exit 1
+
+run build "${build_list_iso}"
