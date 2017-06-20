@@ -114,5 +114,5 @@ ${nosetarch} && chroot_args+=(${nosetarch:+-s})
 
 exec chroot-run \
     ${chroot_args[*]} \
-    "$working_dir"
+    "$working_dir" echo "cromnix chroot"
     #locale-gen
