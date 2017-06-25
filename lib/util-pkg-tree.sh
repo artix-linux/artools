@@ -38,12 +38,12 @@ clone_tree(){
 sync_tree_cromnix(){
     cd ${tree_dir}
         for repo in ${repo_tree[@]};do
-            if [[ -d packages-${repo} ]];then
-                cd packages-${repo}
+            if [[ -d ${repo} ]];then
+                cd ${repo}
                     sync_tree "${repo}"
                 cd ..
             else
-                clone_tree "${repo}" "${host_tree}/packages-${repo}"
+                clone_tree "${repo}" "${host_tree}/${repo}"
             fi
         done
     cd ..
