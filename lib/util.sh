@@ -135,7 +135,7 @@ init_buildtree(){
 
     [[ -z ${host_tree} ]] && host_tree='https://github.com/cromnix'
 
-    [[ -z ${host_tree_abs} ]] && host_tree_abs='https://projects.archlinux.org/git/svntogit'
+    [[ -z ${host_tree_abs} ]] && host_tree_abs='git://projects.archlinux.org/svntogit'
 }
 
 init_buildpkg(){
