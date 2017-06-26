@@ -119,7 +119,7 @@ init_common(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/cromnix/repos'
+    [[ -z ${build_mirror} ]] && build_mirror='http://mirror.netcologne.de/archlinux'
 
     log_dir='/var/log/artools'
 

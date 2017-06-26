@@ -114,8 +114,8 @@ prepare_build(){
 
     eval_build_list "${list_dir_pkg}" "${build_list_pkg}"
 
-    packages=('cromnix-dev')
-    ${is_multilib} && packages+=('cromnix-dev-multilib')
+    packages=('base-devel')
+    ${is_multilib} && packages+=('multilib-devel')
 
     timer_start=$(get_timer)
 }
