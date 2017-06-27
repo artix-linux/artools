@@ -64,7 +64,7 @@ default_locale(){
 }
 
 default_mirror(){
-    local mnt="$1" mirror="$2"'/$repo/$arch'
+    local mnt="$1" mirror="$2"'/$repo/os/$arch'
     [[ -f $mnt/etc/pacman.d/mirrorlist ]] && mv "$mnt"/etc/pacman.d/mirrorlist "$mnt"/etc/pacman.d/mirrorlist.bak
     echo "Server = $mirror" > $mnt/etc/pacman.d/mirrorlist
 }
