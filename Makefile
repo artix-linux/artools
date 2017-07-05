@@ -45,8 +45,7 @@ LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
 
 SHARED_PKG = \
-	data/makepkg.conf \
-	data/base-devel-udev
+	data/makepkg.conf
 
 LIST_ISO = \
 	$(wildcard data/iso.list.d/*.list)
