@@ -119,7 +119,7 @@ init_common(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    [[ -z ${build_mirror} ]] && build_mirror='http://mirror.netcologne.de/archlinux'
+    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/cromnix/fork'
 
     log_dir='/var/log/artools'
 
@@ -131,7 +131,7 @@ init_buildtree(){
 
     tree_dir_abs=${tree_dir}/archlinux
 
-    [[ -z ${repo_tree[@]} ]] && repo_tree=('packages')
+    [[ -z ${repo_tree[@]} ]] && repo_tree=('artix')
 
     [[ -z ${host_tree} ]] && host_tree='https://github.com/cromnix'
 
