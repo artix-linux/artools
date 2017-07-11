@@ -73,8 +73,8 @@ display_settings(){
     msg2 "kernel: %s" "${kernel}"
 
     msg "ARGS:"
-    msg2 "validate: %s" "${validate}"
-    msg2 "calamares: %s" "${calamares}"
+#     msg2 "validate: %s" "${validate}"
+#     msg2 "calamares: %s" "${calamares}"
     msg2 "group: %s" "${group}"
 
     msg "CHECK QUEUE:"
@@ -102,9 +102,9 @@ usage() {
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -k <name>          Kernel to use[default: ${kernel}]"
     echo "    -i <name>          Init system to use [default: ${initsys}]"
-    echo '    -c                 Check also calamares yaml files generated for the profile'
+#     echo '    -c                 Check also calamares yaml files generated for the profile'
     echo '    -g                 Enable pacman group accepted for -p'
-    echo '    -v                 Validate by schema'
+#     echo '    -v                 Validate by schema'
     echo '    -q                 Query settings'
     echo '    -h                 This help'
     echo ''
@@ -114,7 +114,9 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:i:k:gcvqh'
+# opts='p:a:i:k:gcvqh'
+
+opts='p:a:i:k:gqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -122,9 +124,9 @@ while getopts "${opts}" arg; do
         a) target_arch="$OPTARG" ;;
         i) initsys="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
-        c) calamares=true ;;
+#         c) calamares=true ;;
         g) group=true ;;
-        v) validate=true ;;
+#         v) validate=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;

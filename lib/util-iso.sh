@@ -205,7 +205,7 @@ assemble_iso(){
 # Build ISO
 make_iso() {
     msg "Start [Build ISO]"
-    touch "${iso_root}/.miso"
+    touch "${iso_root}/.artix"
     for sfs_dir in $(find "${work_dir}" -maxdepth 1 -type d); do
         if [[ "${sfs_dir}" != "${work_dir}" ]]; then
             make_sfs "${sfs_dir}"
@@ -340,7 +340,7 @@ make_image_boot() {
 
 configure_grub(){
     local conf="$1"
-    local default_args="misobasedir=${os_id} misolabel=${iso_label}" boot_args=('quiet')
+    local default_args="artixbasedir=${os_id} artixlabel=${iso_label}" boot_args=('quiet')
 
     sed -e "s|@DIST_NAME@|${dist_name}|g" \
         -e "s|@ARCH@|${target_arch}|g" \

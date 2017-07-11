@@ -52,7 +52,6 @@ LIST_ISO = \
 
 BIN_ISO = \
 	bin/buildiso \
-	bin/testiso \
 	bin/deployiso
 
 LIBS_ISO = \
@@ -70,7 +69,7 @@ CPIOINST = \
 	$(wildcard initcpio/install/*)
 
 CPIO = \
-	initcpio/script/miso_shutdown
+	initcpio/script/artix_shutdown
 
 MAN_XML = \
 	buildpkg.xml \
