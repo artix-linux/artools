@@ -145,7 +145,7 @@ init_buildpkg(){
 
     make_conf_dir="${SYSCONFDIR}/make.conf.d"
 
-    [[ -d ${MT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${MT_USERCONFDIR}/pkg.list.d
+    [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
 
     [[ -z ${build_list_pkg} ]] && build_list_pkg='default'
 
@@ -192,7 +192,7 @@ init_buildiso(){
 
     list_dir_iso="${SYSCONFDIR}/iso.list.d"
 
-    [[ -d ${MT_USERCONFDIR}/iso.list.d ]] && list_dir_iso=${MT_USERCONFDIR}/iso.list.d
+    [[ -d ${AT_USERCONFDIR}/iso.list.d ]] && list_dir_iso=${AT_USERCONFDIR}/iso.list.d
 
     [[ -z ${build_list_iso} ]] && build_list_iso='default'
 
@@ -280,9 +280,9 @@ load_user_info(){
         USER_HOME=$HOME
     fi
 
-    MT_USERCONFDIR="${XDG_CONFIG_HOME:-$USER_HOME/.config}/artools"
+    AT_USERCONFDIR="${XDG_CONFIG_HOME:-$USER_HOME/.config}/artools"
     PAC_USERCONFDIR="${XDG_CONFIG_HOME:-$USER_HOME/.config}/pacman"
-    prepare_dir "${MT_USERCONFDIR}"
+    prepare_dir "${AT_USERCONFDIR}"
 }
 
 show_version(){
@@ -291,7 +291,7 @@ show_version(){
 }
 
 show_config(){
-    if [[ -f ${MT_USERCONFDIR}/artools.conf ]]; then
+    if [[ -f ${AT_USERCONFDIR}/artools.conf ]]; then
         msg2 "config: %s" "~/.config/artools/artools.conf"
     else
         msg2 "config: %s" "${artools_conf}"

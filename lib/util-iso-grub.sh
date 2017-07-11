@@ -22,8 +22,8 @@ prepare_initramfs(){
     cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${os_id}.conf
     local _kernver=$(cat $mnt/usr/lib/modules/*/version)
     if [[ -n ${gpgkey} ]]; then
-        su ${OWNER} -c "gpg --export ${gpgkey} >${MT_USERCONFDIR}/gpgkey"
-        exec 17<>${MT_USERCONFDIR}/gpgkey
+        su ${OWNER} -c "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
+        exec 17<>${AT_USERCONFDIR}/gpgkey
     fi
     ARTIX_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
         /usr/bin/mkinitcpio -k ${_kernver} \

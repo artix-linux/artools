@@ -137,12 +137,6 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><option>-x</option></term>
-
-                <listitem><para>Udev base-devel group (no systemd).</para></listitem>
-            </varlistentry>
-
-            <varlistentry>
                 <term><option>-q</option></term>
 
                 <listitem><para>Query settings and pretend build.</para></listitem>
