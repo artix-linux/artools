@@ -83,7 +83,7 @@ prepare_grub(){
     grub-mkimage -d ${grub}/${platform} -o ${efi}/${img} -O ${platform} -p ${prefix} iso9660
 
     prepare_dir ${grub}/themes
-    cp -r ${theme}/themes/${os_id}-live ${grub}/themes/
+    cp -r ${theme}/themes/${os_id} ${grub}/themes/
     cp ${data}/unicode.pf2 ${grub}
     cp -r ${theme}/{locales,tz} ${grub}
 
