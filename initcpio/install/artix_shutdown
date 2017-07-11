@@ -5,7 +5,7 @@ build() {
 
     add_runscript
 
-    add_file /etc/initcpio/miso_shutdown /shutdown
+    add_file /etc/initcpio/artix_shutdown /shutdown
 }
 
 help() {

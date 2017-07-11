@@ -4,32 +4,32 @@ run_hook () {
     [[ -n "${img_label}" ]] && img_dev="/dev/disk/by-label/${img_label}"
     [[ -z "${img_flags}" ]] && img_flags="defaults"
     if [[ -n "${img_dev}" && -n "${img_loop}" ]]; then
-        mount_handler="miso_loop_mount_handler"
+        mount_handler="artix_loop_mount_handler"
     fi
 }
 
-miso_loop_mount_handler () {
+artix_loop_mount_handler () {
     newroot="${1}"
 
     local _dev_loop
 
     msg ":: Setup a loop device from ${img_loop} located at device ${img_dev}"
-    _mnt_dev "${img_dev}" "/run/miso/img_dev" "-r" "${img_flags}"
+    _mnt_dev "${img_dev}" "/run/artix/img_dev" "-r" "${img_flags}"
     if [[ "${copytoram}" != "y" ]]; then
-        echo $(readlink -f ${img_dev}) >> /run/miso/used_block_devices
+        echo $(readlink -f ${img_dev}) >> /run/artix/used_block_devices
     fi
 
-    if _dev_loop=$(losetup --find --show --read-only "/run/miso/img_dev/${img_loop}"); then
-        misodevice="${_dev_loop}"
+    if _dev_loop=$(losetup --find --show --read-only "/run/artix/img_dev/${img_loop}"); then
+        artixdevice="${_dev_loop}"
     else
-        echo "ERROR: Setting loopback device for file '/run/miso/img_dev/${img_loop}'"
+        echo "ERROR: Setting loopback device for file '/run/artix/img_dev/${img_loop}'"
         launch_interactive_shell
     fi
 
-    miso_mount_handler ${newroot}
+    artix_mount_handler ${newroot}
 
     if [[ "${copytoram}" == "y" ]]; then
         losetup -d ${_dev_loop} 2>/dev/null
-        umount /run/miso/img_dev
+        umount /run/artix/img_dev
     fi
 }
