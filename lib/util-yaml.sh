@@ -179,9 +179,9 @@ write_umount_conf(){
 get_yaml(){
     local args=() yaml
     if ${chrootcfg};then
-        args+=("${profile}/chrootcfg")
+        args+=("chrootcfg")
     else
-        args+=("${profile}/packages")
+        args+=("packages")
     fi
     args+=("${initsys}")
     for arg in ${args[@]};do
