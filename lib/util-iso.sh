@@ -352,7 +352,7 @@ configure_grub(){
 
 configure_grub_theme(){
     local conf="$1"
-    sed -e "s|@ISO_NAME@|${os_id}|" -i "$conf"
+    sed -e "s|@DIST@|${os_id}|" -i "$conf"
 }
 
 make_grub(){

@@ -24,8 +24,9 @@ prepare_initramfs(){
         su ${OWNER} -c "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
         exec 17<>${AT_USERCONFDIR}/gpgkey
     fi
+    local _kernel=$(cat $mnt/usr/lib/modules/*/version)
     ARTIX_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
-        /usr/bin/mkinitcpio -k ${kernel} \
+        /usr/bin/mkinitcpio -k ${_kernel} \
         -c /etc/mkinitcpio-${os_id}.conf \
         -g /boot/initramfs.img
 
