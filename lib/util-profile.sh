@@ -146,7 +146,7 @@ write_live_session_conf(){
 
 # $1: file name
 load_pkgs(){
-    local pkglist="$1" arch="$2" ed="$3" init="$4" _kv="$5"
+    local pkglist="$1" arch="$2" init="$3" _kv="$4"
     info "Loading Packages: [%s] ..." "${pkglist##*/}"
 
     local _init="s|>openrc||g" #_init_rm="s|>runit.*||g"
