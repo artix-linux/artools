@@ -28,14 +28,9 @@ write_finished_conf(){
 }
 
 get_preset(){
-    local p=${tmp_dir}/${kernel}.preset kvmaj kvmin digit
+    local p=${tmp_dir}/${kernel}.preset
     cp ${DATADIR}/linux.preset $p
-    digit=${kernel##linux}
-    kvmaj=${digit:0:1}
-    kvmin=${digit:1}
-
-    sed -e "s|@kvmaj@|$kvmaj|g" \
-        -e "s|@kvmin@|$kvmin|g" \
+    sed -e "s|@kernel@|$kernel|g" \
         -e "s|@arch@|${target_arch}|g"\
         -i $p
     echo $p

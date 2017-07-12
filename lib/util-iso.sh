@@ -144,7 +144,7 @@ make_sfs() {
     fi
 
     msg2 "Creating SquashFS image, this may take some time..."
-    local used_kernel=${kernel:5:1} mksfs_args=()
+    local mksfs_args=()
     if ${persist};then
         mksfs_args+=(${work_dir}/${name}.img)
     else
@@ -375,12 +375,6 @@ check_requirements(){
     eval_build_list "${list_dir_iso}" "${build_list_iso}"
 
     [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
-
-#     local iso_kernel=${kernel:5:1} host_kernel=$(uname -r)
-#     if [[ ${iso_kernel} < "4" ]] \
-#     || [[ ${host_kernel%%*.} < "4" ]];then
-#         die "The host and iso kernels must be version>=4.0!"
-#     fi
 
     for sig in TERM HUP QUIT; do
         trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"

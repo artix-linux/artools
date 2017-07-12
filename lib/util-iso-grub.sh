@@ -20,13 +20,12 @@ prepare_initcpio(){
 prepare_initramfs(){
     local mnt="$1"
     cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${os_id}.conf
-    local _kernver=$(cat $mnt/usr/lib/modules/*/version)
     if [[ -n ${gpgkey} ]]; then
         su ${OWNER} -c "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
         exec 17<>${AT_USERCONFDIR}/gpgkey
     fi
     ARTIX_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
-        /usr/bin/mkinitcpio -k ${_kernver} \
+        /usr/bin/mkinitcpio -k ${kernel} \
         -c /etc/mkinitcpio-${os_id}.conf \
         -g /boot/initramfs.img
 
@@ -40,8 +39,8 @@ prepare_initramfs(){
 
 prepare_boot_extras(){
     local src="$1" dest="$2"
-    cp $src/boot/intel-ucode.img $dest/intel_ucode.img
-    cp $src/usr/share/licenses/intel-ucode/LICENSE $dest/intel_ucode.LICENSE
+#     cp $src/boot/intel-ucode.img $dest/intel_ucode.img
+#     cp $src/usr/share/licenses/intel-ucode/LICENSE $dest/intel_ucode.LICENSE
     cp $src/boot/memtest86+/memtest.bin $dest/memtest
     cp $src/usr/share/licenses/common/GPL2/license.txt $dest/memtest.COPYING
 }
