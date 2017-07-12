@@ -124,6 +124,12 @@ init_common(){
     log_dir='/var/log/artools'
 
     tmp_dir='/tmp'
+
+    host="sourceforge.net"
+
+    [[ -z ${project} ]] && project="cromnix"
+
+    [[ -z ${account} ]] && account="[SetUser]"
 }
 
 init_buildtree(){
@@ -152,11 +158,6 @@ init_buildpkg(){
     cache_dir_pkg=${cache_dir}/pkg
 }
 
-get_codename(){
-    source /etc/lsb-release
-    echo "${DISTRIB_CODENAME}"
-}
-
 get_release(){
     source /etc/lsb-release
     echo "${DISTRIB_RELEASE}"
@@ -167,10 +168,10 @@ get_distname(){
     echo "${DISTRIB_ID%Linux}"
 }
 
-get_distid(){
-    source /etc/lsb-release
-    echo "${DISTRIB_ID}"
-}
+# get_distid(){
+#     source /etc/lsb-release
+#     echo "${DISTRIB_ID}"
+# }
 
 get_disturl(){
     source /usr/lib/os-release
@@ -202,30 +203,20 @@ init_buildiso(){
 
     [[ -z ${dist_release} ]] && dist_release=$(get_release)
 
-    dist_codename=$(get_codename)
-
     dist_name=$(get_distname)
 
     os_id=$(get_osid)
 
-    [[ -z ${dist_branding} ]] && dist_branding="CRMX"
-
-    iso_label="${dist_branding}${dist_release//.}"
+    [[ -z ${dist_branding} ]] && dist_branding="ARTIX"
 
     [[ -z ${initsys} ]] && initsys="openrc"
 
-    [[ -z ${kernel} ]] && kernel="linux"
+    [[ -z ${kernel} ]] && kernel="linux-lts"
 
     [[ -z ${gpgkey} ]] && gpgkey=''
 }
 
 init_deployiso(){
-
-    host="sourceforge.net"
-
-    [[ -z ${project} ]] && project="[SetProject]"
-
-    [[ -z ${account} ]] && account="[SetUser]"
 
     [[ -z ${limit} ]] && limit=100
 
@@ -233,9 +224,9 @@ init_deployiso(){
 
     [[ -z ${piece_size} ]] && piece_size=21
 
-    [[ -z ${iso_mirrors[@]} ]] && iso_mirrors=('heanet' 'jaist' 'netcologne' 'iweb' 'kent')
+    [[ -z ${iso_mirrors[@]} ]] && iso_mirrors=('netcologne' 'iweb' 'heanet' 'jaist' 'kent')
 
-    torrent_meta="$(get_distid)"
+    torrent_meta="$(get_osname)"
 }
 
 load_config(){
