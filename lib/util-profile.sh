@@ -41,11 +41,11 @@ load_profile(){
 
     [[ -z ${multilib} ]] && multilib="true"
 
-    [[ -z ${hostname} ]] && hostname="cromnix"
+    [[ -z ${hostname} ]] && hostname="artix"
 
-    [[ -z ${username} ]] && username="cromnix"
+    [[ -z ${username} ]] && username="artix"
 
-    [[ -z ${password} ]] && password="cromnix"
+    [[ -z ${password} ]] && password="artix"
 
     [[ -z ${login_shell} ]] && login_shell='/bin/bash'
 
@@ -65,14 +65,9 @@ load_profile(){
 
     [[ -z ${chrootcfg} ]] && chrootcfg='false'
 
-    enable_live=('cromnix-live' 'pacman-init')
-    if ${netinstall};then
-        enable_live+=('mirrors-live-net')
-    else
-        enable_live+=('mirrors-live')
-    fi
+    enable_live=('artix-live' 'pacman-init')
 
-    netgroups="https://raw.githubusercontent.com/manjaro/calamares-netgroups/master"
+    netgroups="https://raw.githubusercontent.com/cromnix/iso-profiles/master/shared/netgroups"
 
     basic='true'
     [[ -z ${extra} ]] && extra='false'
