@@ -19,8 +19,7 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-publish-pkg.sh
 
 show_profile(){
-#     prepare_transfer "$1"
-# #     info "Profile: [$1]"
+    info "Repository: [%s]" "$1"
     msg2 "src_dir: ${src_dir}"
     msg2 "target_dir: ${target_dir}"
 }
@@ -35,11 +34,14 @@ display_settings(){
 #     msg2 "is_build_list: %s" "${is_build_list}"
 
     msg "OPTIONS:"
-    msg2 "limit: %s kB/s" "${limit}"
+    msg2 "repository: %s" "${repository}"
+    msg2 "package: %s" "${package}"
 
     msg "ARGS:"
     msg2 "pull: %s" "${pull}"
     msg2 "push: %s" "${push}"
+    msg2 "add_pkg: %s" "${add_pkg}"
+    msg2 "del_pkg: %s" "${del_pkg}"
     msg2 "verbose: %s" "${verbose}"
 
     msg "REMOTE:"
@@ -48,8 +50,7 @@ display_settings(){
     msg2 "project: %s" "${project}"
 
     msg "SYNC:"
-    msg2 "src_dir: ${src_dir}"
-    msg2 "target_dir: ${target_dir}"
+    show_profile "${repository}"
 }
 
 load_user_info
@@ -63,13 +64,18 @@ push=false
 pull=false
 verbose=false
 repository='system'
+package=""
+add_pkg=false
+del_pkg=false
 
-rsync_args=(-rtxis --progress --delete)
+rsync_args=(-rtxis --progress --delete -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -r                 Repository to sync [default:${repository}]"
-    echo "    -l                 Limit bandwidth in kB/s [default:${limit}]"
+    echo "    -p                 Package to add or delete in repo"
+    echo "    -x                 Add package to repo db"
+    echo "    -y                 Delete package from repo db"
     echo "    -u                 Source folder to upload"
     echo '    -d                 Remote folder to download'
     echo '    -q                 Query settings and pretend upload'
@@ -80,12 +86,16 @@ usage() {
     exit $1
 }
 
-opts='r:l:duvqh'
+orig_argv=("$0" "$@")
+
+opts='r:xyduvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        l) limit="$OPTARG" ;;
+        p) package="$OPTARG" ;;
         r) repository="$OPTARG" ;;
+        x) add_pkg=true ;;
+        y) del_pkg=true ;;
         d) pull=true ;;
         u) push=true; rsync_args+=(-L) ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
@@ -99,8 +109,12 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
-rsync_args+=(--bwlimit=${limit})
+check_root
+
+prepare_transfer "${repository}"
 
 ${pretend} && display_settings && exit 1
+
+[[ -n "${package}" ]] && update_repo "${repository}" "${package}"
 
 sync_dir "${repository}"

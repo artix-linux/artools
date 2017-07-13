@@ -247,6 +247,8 @@ load_config(){
 
     init_deployiso
 
+    init_deploypkg
+
     return 0
 }
 

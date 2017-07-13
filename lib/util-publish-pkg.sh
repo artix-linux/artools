@@ -14,32 +14,42 @@ connect(){
     echo "${account},${project}@frs.${host}:${home}"
 }
 
-repo_push(){
+prepare_transfer(){
+    prepare_dir "${repo_dir}"
     local home="/home/frs/project/${project}/fork" repo="$1"
-    msg "Start upload [%s] ..." "$repo"
-    src_dir="${repo_dir}/$repo/"
-    target_dir="$(connect)/fork/$repo/"
+    if ${pull};then
+        src_dir="$(connect)/fork/$repo/"
+        target_dir="${repo_dir}/$repo/"
+    elif ${push};then
+        src_dir="${repo_dir}/$repo/"
+        target_dir="$(connect)/fork/$repo/"
+    fi
+}
+
+repo_push(){
     rsync "${rsync_args[@]}" "${src_dir}" "${target_dir}"
-    msg "Done upload [%s]" "$repo"
 }
 
 repo_pull(){
-    local home="/home/frs/project/${project}/fork" repo="$1"
-    msg "Start download [%s] ..." "$repo"
-    src_dir="$(connect)/fork/$repo/"
-    target_dir="${repo_dir}/$repo/"
     rsync "${rsync_args[@]}" "${src_dir}" "${target_dir}"
-    msg "Done download [%s]" "$repo"
 }
 
 add_repo_pkg(){
     repo="$1" pkg="$2"
-    repo-add $repo/os/x86_64/$repo.db.tar.xz $repo/os/x86_64/$pkg*.pkg.tar.xz
+    repo-add "$repo/os/${target_arch}/$repo.db.tar.xz" "$repo/os/${target_arch}/$pkg*.pkg.tar.xz"
 }
 
 del_repo_pkg(){
     repo="$1" pkg="$2"
-    repo-add $repo/os/x86_64/$repo.db.tar.xz $repo/os/x86_64/$pkg
+    repo-add "$repo/os/${target_arch}/$repo.db.tar.xz" "$repo/os/${target_arch}/$pkg"
+}
+
+update_repo(){
+    local repo="$1" pkg="$2"
+    $add_pkg && add_repo_pkg "$repo" "$pkg"
+    $del_pkg && del_repo_pkg "$repo" "$pkg"
+    show_elapsed_time "${FUNCNAME}" "${timer_start}"
+    exit 0
 }
 
 sync_dir(){
