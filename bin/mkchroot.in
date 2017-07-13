@@ -105,7 +105,7 @@ basestrap "${basestrap_args[@]}" "$working_dir" ${cache_dirs[@]/#/--cachedir=} "
 
 echo "$version" > "$working_dir/.artools"
 
-# default_locale "set" "$working_dir"
+default_locale "set" "$working_dir"
 
 chroot_args=(${pacman_conf:+-C "$pacman_conf"} ${makepkg_conf:+-M "$makepkg_conf"} ${cache_dir:+-c "$cache_dir"})
 ${nosetarch} && chroot_args+=(${nosetarch:+-s})
@@ -114,5 +114,4 @@ ${nosetarch} && chroot_args+=(${nosetarch:+-s})
 
 exec chroot-run \
     ${chroot_args[*]} \
-    "$working_dir" echo "cromnix chroot"
-    #locale-gen
+    "$working_dir" locale-gen

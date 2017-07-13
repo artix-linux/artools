@@ -110,7 +110,7 @@ umask 0022
 
 # Sanity check
 if [[ ! -f "$working_dir/.artools" ]]; then
-    die "'%s' does not appear to be a Manjaro chroot." "$working_dir"
+    die "'%s' does not appear to be an artix chroot." "$working_dir"
 elif [[ $(cat "$working_dir/.artools") != $version ]]; then
     die "chroot '%s' is not at version %s. Please rebuild." "$working_dir" "$version"
 fi

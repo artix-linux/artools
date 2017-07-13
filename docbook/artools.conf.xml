@@ -123,15 +123,15 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             <varlistentry>
                 <term><varname>repo_tree=</varname></term>
 
-                <listitem><para>Manjaro package tree. Default is
-                "('core' 'extra' 'community' 'multilib' 'openrc')".
+                <listitem><para>Artix package tree. Default is
+                "('artix')".
                 </para></listitem>
             </varlistentry>
 
             <varlistentry>
                 <term><varname>host_tree=</varname></term>
 
-                <listitem><para>Host tree. Default is "https://github.com/manjaro".
+                <listitem><para>Host tree. Default is "https://github.com/cromnix/artix".
                 </para></listitem>
             </varlistentry>
 

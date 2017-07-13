@@ -33,7 +33,7 @@ configure_lsb(){
     if [[ -e $conf ]] ; then
         msg2 "Configuring lsb-release"
         sed -i -e "s/^.*DISTRIB_RELEASE.*/DISTRIB_RELEASE=${dist_release}/" $conf
-        sed -i -e "s/^.*DISTRIB_CODENAME.*/DISTRIB_CODENAME=${dist_codename}/" $conf
+#         sed -i -e "s/^.*DISTRIB_CODENAME.*/DISTRIB_CODENAME=${dist_codename}/" $conf
     fi
 }
 
