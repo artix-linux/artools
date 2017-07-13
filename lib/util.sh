@@ -119,11 +119,17 @@ init_common(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/cromnix/repos'
+    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/cromnix/fork'
 
     log_dir='/var/log/artools'
 
     tmp_dir='/tmp'
+
+    host="sourceforge.net"
+
+    [[ -z ${project} ]] && project="cromnix"
+
+    [[ -z ${account} ]] && account="[SetUser]"
 }
 
 init_buildtree(){
@@ -131,11 +137,11 @@ init_buildtree(){
 
     tree_dir_abs=${tree_dir}/archlinux
 
-    [[ -z ${repo_tree[@]} ]] && repo_tree=('packages')
+    [[ -z ${repo_tree[@]} ]] && repo_tree=('artix')
 
     [[ -z ${host_tree} ]] && host_tree='https://github.com/cromnix'
 
-    [[ -z ${host_tree_abs} ]] && host_tree_abs='https://projects.archlinux.org/git/svntogit'
+    [[ -z ${host_tree_abs} ]] && host_tree_abs='git://projects.archlinux.org/svntogit'
 }
 
 init_buildpkg(){
@@ -145,16 +151,11 @@ init_buildpkg(){
 
     make_conf_dir="${SYSCONFDIR}/make.conf.d"
 
-    [[ -d ${MT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${MT_USERCONFDIR}/pkg.list.d
+    [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
 
     [[ -z ${build_list_pkg} ]] && build_list_pkg='default'
 
     cache_dir_pkg=${cache_dir}/pkg
-}
-
-get_codename(){
-    source /etc/lsb-release
-    echo "${DISTRIB_CODENAME}"
 }
 
 get_release(){
@@ -167,10 +168,10 @@ get_distname(){
     echo "${DISTRIB_ID%Linux}"
 }
 
-get_distid(){
-    source /etc/lsb-release
-    echo "${DISTRIB_ID}"
-}
+# get_distid(){
+#     source /etc/lsb-release
+#     echo "${DISTRIB_ID}"
+# }
 
 get_disturl(){
     source /usr/lib/os-release
@@ -192,7 +193,7 @@ init_buildiso(){
 
     list_dir_iso="${SYSCONFDIR}/iso.list.d"
 
-    [[ -d ${MT_USERCONFDIR}/iso.list.d ]] && list_dir_iso=${MT_USERCONFDIR}/iso.list.d
+    [[ -d ${AT_USERCONFDIR}/iso.list.d ]] && list_dir_iso=${AT_USERCONFDIR}/iso.list.d
 
     [[ -z ${build_list_iso} ]] && build_list_iso='default'
 
@@ -202,30 +203,20 @@ init_buildiso(){
 
     [[ -z ${dist_release} ]] && dist_release=$(get_release)
 
-    dist_codename=$(get_codename)
-
     dist_name=$(get_distname)
 
     os_id=$(get_osid)
 
-    [[ -z ${dist_branding} ]] && dist_branding="CRMX"
-
-    iso_label="${dist_branding}${dist_release//.}"
+    [[ -z ${dist_branding} ]] && dist_branding="ARTIX"
 
     [[ -z ${initsys} ]] && initsys="openrc"
 
-    [[ -z ${kernel} ]] && kernel="linux"
+    [[ -z ${kernel} ]] && kernel="linux-lts"
 
     [[ -z ${gpgkey} ]] && gpgkey=''
 }
 
 init_deployiso(){
-
-    host="sourceforge.net"
-
-    [[ -z ${project} ]] && project="[SetProject]"
-
-    [[ -z ${account} ]] && account="[SetUser]"
 
     [[ -z ${limit} ]] && limit=100
 
@@ -233,9 +224,9 @@ init_deployiso(){
 
     [[ -z ${piece_size} ]] && piece_size=21
 
-    [[ -z ${iso_mirrors[@]} ]] && iso_mirrors=('heanet' 'jaist' 'netcologne' 'iweb' 'kent')
+    [[ -z ${iso_mirrors[@]} ]] && iso_mirrors=('netcologne' 'iweb' 'heanet' 'jaist' 'kent')
 
-    torrent_meta="$(get_distid)"
+    torrent_meta="$(get_osname)"
 }
 
 load_config(){
@@ -280,9 +271,9 @@ load_user_info(){
         USER_HOME=$HOME
     fi
 
-    MT_USERCONFDIR="${XDG_CONFIG_HOME:-$USER_HOME/.config}/artools"
+    AT_USERCONFDIR="${XDG_CONFIG_HOME:-$USER_HOME/.config}/artools"
     PAC_USERCONFDIR="${XDG_CONFIG_HOME:-$USER_HOME/.config}/pacman"
-    prepare_dir "${MT_USERCONFDIR}"
+    prepare_dir "${AT_USERCONFDIR}"
 }
 
 show_version(){
@@ -291,7 +282,7 @@ show_version(){
 }
 
 show_config(){
-    if [[ -f ${MT_USERCONFDIR}/artools.conf ]]; then
+    if [[ -f ${AT_USERCONFDIR}/artools.conf ]]; then
         msg2 "config: %s" "~/.config/artools/artools.conf"
     else
         msg2 "config: %s" "${artools_conf}"

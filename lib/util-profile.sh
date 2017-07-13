@@ -15,14 +15,14 @@ write_repo_conf(){
     for r in ${repos[@]}; do
         path=${r%/repo_info}
         name=${path##*/}
-        echo "run_dir=$path" > ${MT_USERCONFDIR}/$name.conf
+        echo "run_dir=$path" > ${AT_USERCONFDIR}/$name.conf
     done
 }
 
 load_run_dir(){
     local gitrepo='iso-profiles'
-    [[ -f ${MT_USERCONFDIR}/$gitrepo.conf ]] || write_repo_conf
-    [[ -r ${MT_USERCONFDIR}/$gitrepo.conf ]] && source ${MT_USERCONFDIR}/$gitrepo.conf
+    [[ -f ${AT_USERCONFDIR}/$gitrepo.conf ]] || write_repo_conf
+    [[ -r ${AT_USERCONFDIR}/$gitrepo.conf ]] && source ${AT_USERCONFDIR}/$gitrepo.conf
     return 0
 }
 
@@ -41,11 +41,11 @@ load_profile(){
 
     [[ -z ${multilib} ]] && multilib="true"
 
-    [[ -z ${hostname} ]] && hostname="cromnix"
+    [[ -z ${hostname} ]] && hostname="artix"
 
-    [[ -z ${username} ]] && username="cromnix"
+    [[ -z ${username} ]] && username="artix"
 
-    [[ -z ${password} ]] && password="cromnix"
+    [[ -z ${password} ]] && password="artix"
 
     [[ -z ${login_shell} ]] && login_shell='/bin/bash'
 
@@ -65,14 +65,9 @@ load_profile(){
 
     [[ -z ${chrootcfg} ]] && chrootcfg='false'
 
-    enable_live=('cromnix-live' 'pacman-init')
-    if ${netinstall};then
-        enable_live+=('mirrors-live-net')
-    else
-        enable_live+=('mirrors-live')
-    fi
+    enable_live=('artix-live' 'pacman-init')
 
-    netgroups="https://raw.githubusercontent.com/manjaro/calamares-netgroups/master"
+    netgroups="https://raw.githubusercontent.com/cromnix/iso-profiles/master/shared/netgroups"
 
     basic='true'
     [[ -z ${extra} ]] && extra='false'
@@ -151,14 +146,10 @@ write_live_session_conf(){
 
 # $1: file name
 load_pkgs(){
-    local pkglist="$1" arch="$2" ed="$3" init="$4" _kv="$5"
+    local pkglist="$1" arch="$2" init="$3" _kv="$4"
     info "Loading Packages: [%s] ..." "${pkglist##*/}"
 
-    local _init="s|>systemd||g" _init_rm="s|>openrc.*||g"
-    if [[ $init == "openrc" ]];then
-        _init="s|>openrc||g"
-        _init_rm="s|>systemd.*||g"
-    fi
+    local _init="s|>openrc||g" #_init_rm="s|>runit.*||g"
 
     local _basic="s|>basic.*||g"
     if ${basic};then
@@ -197,7 +188,6 @@ load_pkgs(){
             | sed "$_blacklist" \
             | sed "$_purge" \
             | sed "$_init" \
-            | sed "$_init_rm" \
             | sed "$_arch" \
             | sed "$_arch_rm" \
             | sed "$_multi" \

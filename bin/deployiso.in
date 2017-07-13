@@ -61,7 +61,7 @@ display_settings(){
 
 load_user_info
 
-load_config "${MT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 run_dir=${cache_dir_iso}
 

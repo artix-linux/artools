@@ -103,10 +103,7 @@ display_settings(){
     msg "DIST SETTINGS:"
     msg2 "dist_name: %s" "${dist_name}"
     msg2 "dist_release: %s" "${dist_release}"
-    msg2 "dist_codename: %s" "${dist_codename}"
-
-    msg "ISO INFO:"
-    msg2 "iso_label: %s" "${iso_label}"
+    msg2 "dist_branding: %s" "${dist_branding}"
 
     msg "BUILD QUEUE:"
     run show_profile "${build_list_iso}"
@@ -114,7 +111,7 @@ display_settings(){
 
 load_user_info
 
-load_config "${MT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 load_run_dir
 

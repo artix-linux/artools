@@ -33,10 +33,10 @@
 ################# live-session #################
 
 # unset defaults to given value
-# hostname="cromnix"
+# hostname="artix"
 
 # unset defaults to given value
-# username="cromnix"
+# username="artix"
 
 # unset defaults to given value
-# password="cromnix"
+# password="artix"

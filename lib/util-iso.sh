@@ -144,7 +144,7 @@ make_sfs() {
     fi
 
     msg2 "Creating SquashFS image, this may take some time..."
-    local used_kernel=${kernel:5:1} mksfs_args=()
+    local mksfs_args=()
     if ${persist};then
         mksfs_args+=(${work_dir}/${name}.img)
     else
@@ -178,7 +178,7 @@ assemble_iso(){
     xorriso -as mkisofs \
         --modification-date=${mod_date} \
         --protective-msdos-label \
-        -volid "${iso_label}" \
+        -volid "${dist_branding}" \
         -appid "$(get_osname) Live/Rescue CD" \
         -publisher "$(get_osname) <$(get_disturl)>" \
         -preparer "Prepared by artools/${0##*/}" \
@@ -205,7 +205,7 @@ assemble_iso(){
 # Build ISO
 make_iso() {
     msg "Start [Build ISO]"
-    touch "${iso_root}/.miso"
+    touch "${iso_root}/.artix"
     for sfs_dir in $(find "${work_dir}" -maxdepth 1 -type d); do
         if [[ "${sfs_dir}" != "${work_dir}" ]]; then
             make_sfs "${sfs_dir}"
@@ -226,10 +226,10 @@ make_iso() {
 gen_iso_fn(){
     local vars=() name
     vars+=("${os_id}")
-    if ! ${chrootcfg};then
-        [[ -n ${profile} ]] && vars+=("${profile}")
-    fi
-    [[ ${initsys} == 'openrc' ]] && vars+=("${initsys}")
+#     if ! ${chrootcfg};then
+#         [[ -n ${profile} ]] && vars+=("${profile}")
+#     fi
+#     [[ ${initsys} == 'openrc' ]] && vars+=("${initsys}")
     vars+=("${dist_release}")
     vars+=("${target_arch}")
     for n in ${vars[@]};do
@@ -340,7 +340,7 @@ make_image_boot() {
 
 configure_grub(){
     local conf="$1"
-    local default_args="misobasedir=${os_id} misolabel=${iso_label}" boot_args=('quiet')
+    local default_args="artixbasedir=${os_id} artixlabel=${dist_branding}" boot_args=('quiet')
 
     sed -e "s|@DIST_NAME@|${dist_name}|g" \
         -e "s|@ARCH@|${target_arch}|g" \
@@ -352,7 +352,7 @@ configure_grub(){
 
 configure_grub_theme(){
     local conf="$1"
-    sed -e "s|@ISO_NAME@|${os_id}|" -i "$conf"
+    sed -e "s|@DIST@|${os_id}|" -i "$conf"
 }
 
 make_grub(){
@@ -375,12 +375,6 @@ check_requirements(){
     eval_build_list "${list_dir_iso}" "${build_list_iso}"
 
     [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
-
-    local iso_kernel=${kernel:5:1} host_kernel=$(uname -r)
-    if [[ ${iso_kernel} < "4" ]] \
-    || [[ ${host_kernel%%*.} < "4" ]];then
-        die "The host and iso kernels must be version>=4.0!"
-    fi
 
     for sig in TERM HUP QUIT; do
         trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"

@@ -20,8 +20,8 @@ copy_keyring(){
 
 create_min_fs(){
     msg "Creating install root at %s" "$1"
-    mkdir -m 0755 -p $1/var/{cache/pacman/pkg,lib/pacman,log} $1/{dev,run,etc}
-    mkdir -m 1777 -p $1/tmp
+    mkdir -m 0755 -p $1/var/{cache/pacman/pkg,lib/pacman,log} $1/{dev,etc}
+    mkdir -m 1777 -p $1/{tmp,run}
     mkdir -m 0555 -p $1/{sys,proc}
 }
 
@@ -64,7 +64,7 @@ default_locale(){
 }
 
 default_mirror(){
-    local mnt="$1" mirror="$2"'/$repo/$arch'
+    local mnt="$1" mirror="$2"'/$repo/os/$arch'
     [[ -f $mnt/etc/pacman.d/mirrorlist ]] && mv "$mnt"/etc/pacman.d/mirrorlist "$mnt"/etc/pacman.d/mirrorlist.bak
     echo "Server = $mirror" > $mnt/etc/pacman.d/mirrorlist
 }

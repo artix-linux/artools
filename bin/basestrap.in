@@ -65,7 +65,7 @@ check_root
 
 (( $# )) || die "No root directory specified"
 newroot=$1; shift
-pacman_args=("${@:-cromnix-base}")
+pacman_args=("${@:-base}")
 
 ${hostcache} && pacman_args+=(--cachedir="$newroot/var/cache/pacman/pkg")
 

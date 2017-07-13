@@ -12,36 +12,36 @@
 prepare_initcpio(){
     msg2 "Copying initcpio ..."
     local dest="$1"
-    cp /etc/initcpio/hooks/miso* $dest/etc/initcpio/hooks
-    cp /etc/initcpio/install/miso* $dest/etc/initcpio/install
-    cp /etc/initcpio/miso_shutdown $dest/etc/initcpio
+    cp /etc/initcpio/hooks/artix* $dest/etc/initcpio/hooks
+    cp /etc/initcpio/install/artix* $dest/etc/initcpio/install
+    cp /etc/initcpio/artix_shutdown $dest/etc/initcpio
 }
 
 prepare_initramfs(){
     local mnt="$1"
     cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${os_id}.conf
-    local _kernver=$(cat $mnt/usr/lib/modules/*/version)
     if [[ -n ${gpgkey} ]]; then
-        su ${OWNER} -c "gpg --export ${gpgkey} >${MT_USERCONFDIR}/gpgkey"
-        exec 17<>${MT_USERCONFDIR}/gpgkey
+        su ${OWNER} -c "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
+        exec 17<>${AT_USERCONFDIR}/gpgkey
     fi
-    MISO_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
-        /usr/bin/mkinitcpio -k ${_kernver} \
+    local _kernel=$(cat $mnt/usr/lib/modules/*/version)
+    ARTIX_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
+        /usr/bin/mkinitcpio -k ${_kernel} \
         -c /etc/mkinitcpio-${os_id}.conf \
         -g /boot/initramfs.img
 
     if [[ -n ${gpgkey} ]]; then
         exec 17<&-
     fi
-    if [[ -f ${MT_USERCONFDIR}/gpgkey ]]; then
-        rm ${MT_USERCONFDIR}/gpgkey
+    if [[ -f ${AT_USERCONFDIR}/gpgkey ]]; then
+        rm ${AT_USERCONFDIR}/gpgkey
     fi
 }
 
 prepare_boot_extras(){
     local src="$1" dest="$2"
-    cp $src/boot/intel-ucode.img $dest/intel_ucode.img
-    cp $src/usr/share/licenses/intel-ucode/LICENSE $dest/intel_ucode.LICENSE
+#     cp $src/boot/intel-ucode.img $dest/intel_ucode.img
+#     cp $src/usr/share/licenses/intel-ucode/LICENSE $dest/intel_ucode.LICENSE
     cp $src/boot/memtest86+/memtest.bin $dest/memtest
     cp $src/usr/share/licenses/common/GPL2/license.txt $dest/memtest.COPYING
 }
@@ -83,14 +83,14 @@ prepare_grub(){
     grub-mkimage -d ${grub}/${platform} -o ${efi}/${img} -O ${platform} -p ${prefix} iso9660
 
     prepare_dir ${grub}/themes
-    cp -r ${theme}/themes/${os_id}-live ${grub}/themes/
+    cp -r ${theme}/themes/${os_id} ${grub}/themes/
     cp ${data}/unicode.pf2 ${grub}
     cp -r ${theme}/{locales,tz} ${grub}
 
     local size=4M mnt="${mnt_dir}/efiboot" efi_img="$3/efi.img"
     msg2 "Creating fat image of %s ..." "${size}"
     truncate -s ${size} "${efi_img}"
-    mkfs.fat -n MISO_EFI "${efi_img}" &>/dev/null
+    mkfs.fat -n ARTIX_EFI "${efi_img}" &>/dev/null
     prepare_dir "${mnt}"
     mount_img "${efi_img}" "${mnt}"
     prepare_dir ${mnt}/efi/boot

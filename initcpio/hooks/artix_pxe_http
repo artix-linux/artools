@@ -1,0 +1,59 @@
+# vim: set ft=sh:
+
+run_hook() {
+    if [[ -n "${ip}" && -n "${artix_http_srv}" ]]; then
+
+        # booting with http is always copy-to-ram, so set here to make sure
+        # addresses are flushed and interface is set down
+        copytoram="y"
+
+        artix_http_srv=$(eval echo ${artix_http_srv})
+        [[ -z "${artix_http_spc}" ]] && artix_http_spc="75%"
+
+        mount_handler="artix_pxe_http_mount_handler"
+    fi
+}
+
+# Fetch a file with CURL
+#
+# $1 URL
+# $2 Destination directory inside httpspace/${artixbasedir}
+_curl_get() {
+    local _url="${1}"
+    local _dst="${2}"
+
+    msg ":: Downloading '${_url}'"
+    if ! curl -L -f -o "/run/artix/httpspace/${artixbasedir}${_dst}/${_url##*/}" --create-dirs "${_url}"; then
+        echo "ERROR: Downloading '${_url}'"
+        echo "   Falling back to interactive prompt"
+        echo "   You can try to fix the problem manually, log out when you are finished"
+        launch_interactive_shell
+    fi
+}
+
+artix_pxe_http_mount_handler () {
+    newroot="${1}"
+
+    msg ":: Mounting /run/artix/httpspace (tmpfs) filesystem, size='${artix_http_spc}'"
+    mkdir -p "/run/artix/httpspace"
+    mount -t tmpfs -o size="${artix_http_spc}",mode=0755 httpspace "/run/artix/httpspace"
+
+    local _src=${artix_http_srv}${artixbasedir}/${arch}
+
+    for sfs in livefs desktopfs rootfs;do
+        if [[ ! -z "$( curl -s --head "${_src}/${sfs}.sfs" | grep "OK" )" ]]; then
+            _curl_get "${_src}/${sfs}.sfs" "/${arch}"
+
+            if [[ "${checksum}" == "y" ]]; then
+                _curl_get "${_src}/${sfs}.md5" "/${arch}"
+            fi
+            if [[ "${verify}" == "y" ]]; then
+                _curl_get "${_src}/${sfs}.sfs.sig" "/${arch}"
+            fi
+        fi
+    done
+    mkdir -p "/run/artix/bootmnt"
+    mount -o bind /run/artix/httpspace /run/artix/bootmnt
+
+    artix_mount_handler ${newroot}
+}

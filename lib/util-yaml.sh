@@ -28,14 +28,9 @@ write_finished_conf(){
 }
 
 get_preset(){
-    local p=${tmp_dir}/${kernel}.preset kvmaj kvmin digit
+    local p=${tmp_dir}/${kernel}.preset
     cp ${DATADIR}/linux.preset $p
-    digit=${kernel##linux}
-    kvmaj=${digit:0:1}
-    kvmin=${digit:1}
-
-    sed -e "s|@kvmaj@|$kvmaj|g" \
-        -e "s|@kvmin@|$kvmin|g" \
+    sed -e "s|@kernel@|$kernel|g" \
         -e "s|@arch@|${target_arch}|g"\
         -i $p
     echo $p
@@ -99,11 +94,11 @@ write_unpack_conf(){
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "unpack:" >> "$conf"
-    echo "    - source: \"/run/miso/bootmnt/${os_id}/${target_arch}/rootfs.sfs\"" >> "$conf"
+    echo "    - source: \"/run/artix/bootmnt/${os_id}/${target_arch}/rootfs.sfs\"" >> "$conf"
     echo "      sourcefs: \"squashfs\"" >> "$conf"
     echo "      destination: \"\"" >> "$conf"
     if [[ -f "${desktop_list}" ]] ; then
-        echo "    - source: \"/run/miso/bootmnt/${os_id}/${target_arch}/desktopfs.sfs\"" >> "$conf"
+        echo "    - source: \"/run/artix/bootmnt/${os_id}/${target_arch}/desktopfs.sfs\"" >> "$conf"
         echo "      sourcefs: \"squashfs\"" >> "$conf"
         echo "      destination: \"\"" >> "$conf"
     fi
@@ -184,9 +179,9 @@ write_umount_conf(){
 get_yaml(){
     local args=() yaml
     if ${chrootcfg};then
-        args+=("${profile}/chrootcfg")
+        args+=("chrootcfg")
     else
-        args+=("${profile}/packages")
+        args+=("packages")
     fi
     args+=("${initsys}")
     for arg in ${args[@]};do
