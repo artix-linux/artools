@@ -39,10 +39,12 @@ BIN_PKG = \
 	bin/signpkgs \
 	bin/mkchrootpkg \
 	bin/buildpkg \
-	bin/buildtree
+	bin/buildtree \
+	bin/deploypkg
 
 LIBS_PKG = \
-	$(wildcard lib/util-pkg*.sh)
+	$(wildcard lib/util-pkg*.sh) \
+	lib/util-publish-pkg.sh
 
 SHARED_PKG = \
 	data/makepkg.conf
@@ -56,7 +58,7 @@ BIN_ISO = \
 
 LIBS_ISO = \
 	$(wildcard lib/util-iso*.sh) \
-	lib/util-publish.sh
+	lib/util-publish-iso.sh
 
 SHARED_ISO = \
 	data/mkinitcpio.conf \
@@ -76,6 +78,7 @@ MAN_XML = \
 	buildtree.xml \
 	buildiso.xml \
 	deployiso.xml \
+	deploypkg.xml \
 	check-yaml.xml \
 	artools.conf.xml \
 	profile.conf.xml

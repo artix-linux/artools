@@ -127,9 +127,13 @@ init_common(){
 
     host="sourceforge.net"
 
+    [[ -z ${host_mirrors[@]} ]] && host_mirrors=('netcologne' 'freefr' 'netix' 'kent' '10gbps-io')
+
     [[ -z ${project} ]] && project="cromnix"
 
     [[ -z ${account} ]] && account="[SetUser]"
+
+    [[ -z ${limit} ]] && limit=100
 }
 
 init_buildtree(){
@@ -167,11 +171,6 @@ get_distname(){
     source /etc/lsb-release
     echo "${DISTRIB_ID%Linux}"
 }
-
-# get_distid(){
-#     source /etc/lsb-release
-#     echo "${DISTRIB_ID}"
-# }
 
 get_disturl(){
     source /usr/lib/os-release
@@ -218,15 +217,16 @@ init_buildiso(){
 
 init_deployiso(){
 
-    [[ -z ${limit} ]] && limit=100
-
     [[ -z ${tracker_url} ]] && tracker_url='udp://mirror.strits.dk:6969'
 
     [[ -z ${piece_size} ]] && piece_size=21
 
-    [[ -z ${iso_mirrors[@]} ]] && iso_mirrors=('netcologne' 'iweb' 'heanet' 'jaist' 'kent')
-
     torrent_meta="$(get_osname)"
+}
+
+init_deploypkg(){
+
+    repo_dir="${cache_dir}/repos"
 }
 
 load_config(){

@@ -16,7 +16,7 @@ connect(){
 
 gen_webseed(){
     local webseed seed="$1"
-    for mirror in ${iso_mirrors[@]};do
+    for mirror in ${host_mirrors[@]};do
         webseed=${webseed:-}${webseed:+,}"http://${mirror}.dl.${seed}"
     done
     echo ${webseed}

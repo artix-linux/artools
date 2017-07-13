@@ -111,6 +111,34 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
                 </para></listitem>
             </varlistentry>
 
+            <varlistentry>
+                <term><varname>account=</varname></term>
+
+                <listitem><para>Default user to be used for upload.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>project=</varname></term>
+
+                <listitem><para>Default SF project name to be used for upload.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>limit=</varname></term>
+
+                <listitem><para>Default upload bandwidth limit in kb/s.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>host_mirrors=</varname></term>
+
+                <listitem><para>Array of host mirrors.
+                </para></listitem>
+            </varlistentry>
+
         </variablelist>
     </refsect1>
 
@@ -230,33 +258,12 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
         <variablelist>
 
-            <varlistentry>
-                <term><varname>account=</varname></term>
-
-                <listitem><para>Default user to be used for upload.
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>project=</varname></term>
-
-                <listitem><para>Default SF project name to be used for upload.
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>limit=</varname></term>
-
-                <listitem><para>Default upload bandwidth limit in kb/s.
-                </para></listitem>
-            </varlistentry>
-
              <varlistentry>
-            <term><varname>tracker_url=</varname></term>
+                <term><varname>tracker_url=</varname></term>
 
-            <listitem><para>Default tracker announce for the torrent.
+                <listitem><para>Default tracker announce for the torrent.
                     The tracker url can also contain comma separated urls.
-                    </para></listitem>
+                </para></listitem>
             </varlistentry>
 
             <varlistentry>
@@ -264,14 +271,6 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
                 <listitem><para>Default priece size for the torrent in 2^n.
                         </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>iso_mirrors=</varname></term>
-
-                <listitem><para>Array of iso mirrors that will be
-                used for webseeds.
-                </para></listitem>
             </varlistentry>
 
         </variablelist>
@@ -284,6 +283,7 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             <citerefentry project='artools'><refentrytitle>buildiso</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
             <citerefentry project='artools'><refentrytitle>deployiso</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
             <citerefentry project='artools'><refentrytitle>buildtree</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+            <citerefentry project='artools'><refentrytitle>deploypkg</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
             <citerefentry project='artools'><refentrytitle>buildpkg</refentrytitle><manvolnum>1</manvolnum></citerefentry>
         </para>
     </refsect1>

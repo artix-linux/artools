@@ -16,11 +16,11 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-publish-iso.sh
+import ${LIBDIR}/util-publish-pkg.sh
 
 show_profile(){
-    prepare_transfer "$1"
-    info "Profile: [$1]"
+#     prepare_transfer "$1"
+# #     info "Profile: [$1]"
     msg2 "src_dir: ${src_dir}"
     msg2 "target_dir: ${target_dir}"
 }
@@ -31,53 +31,47 @@ display_settings(){
 
 #     msg "PROFILE:"
 #     msg2 "build_lists: %s" "$(show_build_lists ${list_dir_iso})"
-#     msg2 "build_list_iso: %s" "${build_list_iso}"
-    msg2 "is_build_list: %s" "${is_build_list}"
+#     msg2 "build_list_iso: %s" "${build_list_pkg}"
+#     msg2 "is_build_list: %s" "${is_build_list}"
 
     msg "OPTIONS:"
     msg2 "limit: %s kB/s" "${limit}"
-    msg2 "dist_release: %s" "${dist_release}"
 
     msg "ARGS:"
-    msg2 "update: %s" "${update}"
+    msg2 "pull: %s" "${pull}"
+    msg2 "push: %s" "${push}"
     msg2 "verbose: %s" "${verbose}"
-    msg2 "torrent: %s" "${torrent}"
-
-    if ${torrent};then
-        msg2 "tracker_url: %s" "${tracker_url}"
-        msg2 "piece_size: %s" "${piece_size}"
-        msg2 "host_mirrors: %s" "${host_mirrors[*]}"
-        msg2 "torrent_meta: %s" "${torrent_meta}"
-    fi
 
     msg "REMOTE:"
     msg2 "account: %s" "${account}"
     msg2 "host: %s" "${host}"
     msg2 "project: %s" "${project}"
 
-    msg "UPLOAD QUEUE:"
-    run show_profile "${build_list_iso}"
+    msg "SYNC:"
+    msg2 "src_dir: ${src_dir}"
+    msg2 "target_dir: ${target_dir}"
 }
 
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-run_dir=${cache_dir_iso}
+run_dir=${repo_dir}
 
 pretend=false
-update=false
+push=false
+pull=false
 verbose=false
-torrent=false
+repository='system'
 
-rsync_args=(-aP --progress -e ssh)
+rsync_args=(-rtxis --progress --delete)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p                 Source folder to upload [default:${build_list_iso}]"
+    echo "    -r                 Repository to sync [default:${repository}]"
     echo "    -l                 Limit bandwidth in kB/s [default:${limit}]"
-    echo '    -u                 Update remote directory'
-    echo '    -t                 Create iso torrent'
+    echo "    -u                 Source folder to upload"
+    echo '    -d                 Remote folder to download'
     echo '    -q                 Query settings and pretend upload'
     echo '    -v                 Verbose output'
     echo '    -h                 This help'
@@ -86,15 +80,15 @@ usage() {
     exit $1
 }
 
-opts='p:l:uvtqh'
+opts='r:l:duvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-                p) build_list_iso="$OPTARG" ;;
-                l) limit="$OPTARG" ;;
-                u) update=true; rsync_args+=(-u) ;;
-                t) torrent=true ;;
-                v) verbose=true; rsync_args+=(-v --stats) ;;
+        l) limit="$OPTARG" ;;
+        r) repository="$OPTARG" ;;
+        d) pull=true ;;
+        u) push=true; rsync_args+=(-L) ;;
+        v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true; rsync_args+=(-n) ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -105,10 +99,8 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
-eval_build_list "${list_dir_iso}" "${build_list_iso}"
-
 rsync_args+=(--bwlimit=${limit})
 
 ${pretend} && display_settings && exit 1
 
-run sync_dir "${build_list_iso}"
+sync_dir "${repository}"
