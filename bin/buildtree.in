@@ -23,30 +23,33 @@ display_settings(){
     show_config
 
     msg "ARGS:"
-    msg2 "sync: %s" "${sync}"
-    msg2 "abs: %s" "${abs}"
+    msg2 "artix: %s" "${artix}"
+    msg2 "arch: %s" "${arch}"
     msg2 "clean: %s" "${clean}"
 
     msg "PATHS:"
     msg2 "tree_dir: %s" "${tree_dir}"
     msg2 "repo_tree: %s" "${repo_tree[*]}"
     msg2 "host_tree: %s" "${host_tree}"
-    msg2 "host_tree_abs: %s" "${host_tree_abs}"
+    msg2 "host_tree_abs: %s" "${host_tree_arch}"
+    msg2 "import_dir_repo: %s" "${import_dir_repo}"
 }
 
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-sync=false
+artix=false
 pretend=false
-abs=false
+arch=false
 clean=false
+import_arch=false
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -s            Sync cromnix tree"
-    echo "    -a            Sync arch abs"
+    echo "    -s            Sync artix tree"
+    echo "    -a            Sync arch tree"
+    echo '    -i            Import arch system packages'
     echo '    -c            Clean package tree'
     echo '    -q            Query settings'
     echo '    -h            This help'
@@ -57,12 +60,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='sacqh'
+opts='xaicqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        s) sync=true ;;
-        a) abs=true ;;
+        x) artix=true ;;
+        a) arch=true ;;
+        i) import_arch=true ;;
         c) clean=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
@@ -74,12 +78,14 @@ shift $(($OPTIND - 1))
 
 check_root
 
-prepare_dir "${tree_dir_abs}"
+prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1
 
 ${clean} && clean_dir "${tree_dir}"
 
-${sync} && sync_tree_cromnix
+${artix} && sync_tree_artix
 
-${abs} && sync_tree_abs
+${arch} && sync_tree_arch
+
+${import_arch} && import_from_arch

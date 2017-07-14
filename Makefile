@@ -31,6 +31,9 @@ LIST_PKG = \
 ARCH_CONF = \
 	$(wildcard data/make.conf.d/*.conf)
 
+LIST_IMPORT = \
+	$(wildcard data/import.list.d/*.list)
+
 BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
@@ -132,6 +135,9 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d
 	install -m0644 ${LIST_PKG} $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d
 
+	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
+	install -m0644 ${LIST_IMPORT} $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
+
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
 	install -m0644 ${ARCH_CONF} $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
 
@@ -201,6 +207,7 @@ uninstall_base:
 
 uninstall_pkg:
 	for f in ${LIST_PKG}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d/$$f; done
+	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${ARCH_CONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides

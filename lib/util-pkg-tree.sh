@@ -35,7 +35,7 @@ clone_tree(){
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
-sync_tree_cromnix(){
+sync_tree_artix(){
     cd ${tree_dir}
         for repo in ${repo_tree[@]};do
             if [[ -d ${repo} ]];then
@@ -49,17 +49,33 @@ sync_tree_cromnix(){
     cd ..
 }
 
-sync_tree_abs(){
-    local repo_tree_abs=('packages' 'community')
-    cd ${tree_dir_abs}
-        for repo in ${repo_tree_abs[@]};do
+sync_tree_arch(){
+    local repo_tree_arch=('packages' 'community')
+    cd ${tree_dir_arch}
+        for repo in ${repo_tree_arch[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     sync_tree "${repo}"
                 cd ..
             else
-                clone_tree "${repo}" "${host_tree_abs}/${repo}"
+                clone_tree "${repo}" "${host_tree_arch}/${repo}"
             fi
         done
     cd ..
+}
+
+read_import_list(){
+    local name="$1"
+    local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
+    import_list=$(sed "$_com_rm" "${list_dir_import}/$name.list" | sed "$_space" | sed "$_clean")
+}
+
+import_from_arch(){
+    read_import_list "system"
+    cd ${import_dir_repo}
+    git checkout system-import
+
+    for pkg in ${import_list[@]};do
+        rsync -avWx --progress --delete --no-R --no-implied-dirs --exclude={.git,repos} ${tree_dir_arch}/packages/$pkg/trunk/ ${import_dir_repo}/$pkg/
+    done
 }

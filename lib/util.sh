@@ -139,13 +139,19 @@ init_common(){
 init_buildtree(){
     tree_dir=${cache_dir}/pkgtree
 
-    tree_dir_abs=${tree_dir}/archlinux
+    tree_dir_arch=${tree_dir}/archlinux
 
     [[ -z ${repo_tree[@]} ]] && repo_tree=('artix')
 
-    [[ -z ${host_tree} ]] && host_tree='https://github.com/cromnix'
+    [[ -z ${host_tree} ]] && host_tree='https://github.com/artix-linux'
 
-    [[ -z ${host_tree_abs} ]] && host_tree_abs='git://projects.archlinux.org/svntogit'
+    [[ -z ${host_tree_arch} ]] && host_tree_arch='git://projects.archlinux.org/svntogit'
+
+    list_dir_import="${SYSCONFDIR}/import.list.d"
+
+    [[ -d ${AT_USERCONFDIR}/import.list.d ]] && list_dir_import=${AT_USERCONFDIR}/import.list.d
+
+    [[ -z ${import_dir_repo} ]] && import_dir_repo=${tree_dir}/artix
 }
 
 init_buildpkg(){
