@@ -71,11 +71,17 @@ read_import_list(){
 }
 
 import_from_arch(){
-        read_import_list "system"
-        cd ${repos_dir}/system
-        git checkout archlinux
-
+    for repo in ${repo_tree[@]};do
+        read_import_list "$repo"
+        if [[ -n ${import_list[@]} ]];then
+            cd ${repos_dir}/$repo
+            git checkout archlinux
+        fi
+        local arch_dir=packages
+        [[ $repo == "galaxy" ]] && arch_dir=community
         for pkg in ${import_list[@]};do
-            rsync -avWx --progress --delete --no-R --no-implied-dirs --exclude={.git,repos} ${tree_dir_arch}/packages/$pkg/trunk/ ${repos_dir}/$pkg/
+            rsync -avWx --progress --delete --no-R --no-implied-dirs ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${repos_dir}/$repo/$pkg/
         done
+        [[ -n ${import_list[@]} ]] && user_own ${repos_dir}/$repo -R
+    done
 }
