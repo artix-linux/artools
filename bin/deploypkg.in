@@ -57,8 +57,6 @@ load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-run_dir=${repo_dir}
-
 pretend=false
 push=false
 pull=false

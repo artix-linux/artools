@@ -16,13 +16,13 @@ connect(){
 
 prepare_transfer(){
     prepare_dir "${repo_dir}"
-    local home="/home/frs/project/${project}/fork" repo="$1"
+    local repo="$1"
     if ${pull};then
-        src_dir="$(connect)/fork/$repo/"
+        src_dir="$(connect)/repos/$repo/"
         target_dir="${repo_dir}/$repo/"
     elif ${push};then
         src_dir="${repo_dir}/$repo/"
-        target_dir="$(connect)/fork/$repo/"
+        target_dir="$(connect)/repos/$repo/"
     fi
 }
 
