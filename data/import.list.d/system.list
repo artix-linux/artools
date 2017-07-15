@@ -123,7 +123,6 @@ procinfo-ng
 psmisc
 pth
 reiserfsprogs
-rfkill
 run-parts
 sdparm
 sed
@@ -143,7 +142,6 @@ wireless-regdb
 wireless_tools
 wpa_actiond
 xfsprogs
-xinetd
 xz
 zd1211-firmware
 zlib
