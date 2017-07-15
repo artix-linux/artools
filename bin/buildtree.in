@@ -43,7 +43,6 @@ display_settings(){
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
     msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
     msg2 "host_tree_arch: %s" "${host_tree_arch}"
-    msg2 "repos_dir: %s" "${repos_dir}"
 
     if ${import_arch};then
         msg "IMPORT QUEUE:"
@@ -61,11 +60,14 @@ arch=false
 clean=false
 import_arch=false
 
+rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs)
+
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -x            Sync artix tree"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch system packages'
+    echo '    -v            Verbose import output'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -75,13 +77,14 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='xaiqh'
+opts='xaivqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         x) artix=true ;;
         a) arch=true ;;
         i) import_arch=true ;;
+        v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -92,6 +95,7 @@ shift $(($OPTIND - 1))
 
 check_root
 
+prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1

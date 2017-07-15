@@ -55,8 +55,9 @@ upload=false
 download=true
 verbose=false
 repository='system'
+verbose=false
 
-rsync_args=(-rxis --progress --delete -e ssh)
+rsync_args=(-rxisP --progress --delete -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"

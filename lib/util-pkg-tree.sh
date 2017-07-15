@@ -82,7 +82,7 @@ import_from_arch(){
         local arch_dir=packages
         [[ $repo == "galaxy" ]] && arch_dir=community
         for pkg in ${import_list[@]};do
-            rsync -avWx --progress --delete --no-R --no-implied-dirs ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
+            rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
         done
         [[ -n ${import_list[@]} ]] && user_own ${tree_dir_artix}/$repo -R
     done
