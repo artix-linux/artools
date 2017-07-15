@@ -54,7 +54,6 @@ pretend=false
 upload=false
 download=true
 verbose=false
-repository='system'
 verbose=false
 
 rsync_args=(-rxisP --progress --delete -e ssh)
@@ -92,8 +91,6 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
-check_root
-
-${pretend} && display_settings
+${pretend} && display_settings && exit 1
 
 sync_repo "${repository}"

@@ -235,6 +235,8 @@ init_deployiso(){
 
 init_deploypkg(){
 
+    repository='system'
+
     [[ -z ${repos_local} ]] && repos_local="${cache_dir}/repos"
 
     repos_remote="/${repos_local##*/}"
