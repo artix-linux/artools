@@ -71,20 +71,29 @@ read_import_list(){
     import_list=$(sed "$_com_rm" "${list_dir_import}/$name.list" | sed "$_space" | sed "$_clean")
 }
 
+is_dirty() {
+  [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && return 0
+}
+
 import_from_arch(){
     local timer=$(get_timer)
     for repo in ${repo_tree_artix[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
-            git checkout archlinux
+            su ${OWNER} -c "git checkout archlinux"
+            local arch_dir=packages
+            [[ $repo == "galaxy" ]] && arch_dir=community
+            msg "Import into '%s' from archlinux" "$repo"
+            for pkg in ${import_list[@]};do
+                msg2 "Update %s" "$pkg"
+                rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
+            done
+
+            $(is_dirty) && su ${OWNER} -c "git commit -m 'Archlinux import'"
+            git checkout master
+            user_own ${tree_dir_artix}/$repo -R
         fi
-        local arch_dir=packages
-        [[ $repo == "galaxy" ]] && arch_dir=community
-        for pkg in ${import_list[@]};do
-            rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
-        done
-        [[ -n ${import_list[@]} ]] && user_own ${tree_dir_artix}/$repo -R
     done
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }

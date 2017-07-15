@@ -34,14 +34,14 @@ repo_unlock(){
 
 repo_download(){
     local repo="$1"
-    repo_lock "$repo"
     rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
-    user_own "${repos_local}/$repo/" -R
-
+#     user_own "${repos_local}/$repo/" -R
+    [[ -f ${repos_local}/$repo/$repo.lock ]] && die "The '%s' repository is locked" "$repo"
 }
 
 repo_upload(){
     local repo="$1"
+    repo_lock "$repo"
     rsync "${rsync_args[@]}" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
     repo_unlock "$repo"
 }
