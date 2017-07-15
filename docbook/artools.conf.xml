@@ -152,14 +152,14 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
                 <term><varname>repo_tree=</varname></term>
 
                 <listitem><para>Artix package tree. Default is
-                "('artix')".
+                "('system' 'world' 'galaxy')".
                 </para></listitem>
             </varlistentry>
 
             <varlistentry>
                 <term><varname>host_tree=</varname></term>
 
-                <listitem><para>Host tree. Default is "https://github.com/cromnix/artix".
+                <listitem><para>Host tree. Default is "https://github.com/artix-linux".
                 </para></listitem>
             </varlistentry>
 
@@ -231,20 +231,17 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
         <varlistentry>
             <term><varname>initsys=</varname></term>
 
-            <listitem><para>Takes <option>systemd</option> (the default)
-            or <option>openrc</option>. Selecting and option will change
+            <listitem><para>Takes <option>openrc</option> (the default)
+            or <option>notyetimplemented</option>. Selecting and option will change
             how the hostname, the displaymanager and services will be configured.
-            For services also controls if buildiso will use enable_systemd and
-            enable_systemd_live or enable_openrc and enable_openrc_live to determine
-            the default services that will be enabled automatically.
             </para></listitem>
         </varlistentry>
 
         <varlistentry>
             <term><varname>kernel=</varname></term>
 
-            <listitem><para>Takes a string corresponding to a
-            manjaro kernel package (ex: linux318 for linux 3.18).
+            <listitem><para>Takes a string corresponding to an
+            artix kernel package.
             </para></listitem>
         </varlistentry>
 

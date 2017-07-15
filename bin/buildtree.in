@@ -25,6 +25,7 @@ display_settings(){
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
+    msg2 "import_arch: %s" "${import_arch}"
     msg2 "clean: %s" "${clean}"
 
     msg "PATHS:"
@@ -33,6 +34,11 @@ display_settings(){
     msg2 "host_tree: %s" "${host_tree}"
     msg2 "host_tree_abs: %s" "${host_tree_arch}"
     msg2 "import_dir_repo: %s" "${import_dir_repo}"
+
+    if ${import_arch};then
+        read_import_list "system"
+        msg2 "import_list: %s" "${import_list[@]}"
+    fi
 }
 
 load_user_info

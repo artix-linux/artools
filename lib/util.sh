@@ -119,7 +119,7 @@ init_common(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/cromnix/fork'
+    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/artix-linux/repos'
 
     log_dir='/var/log/artools'
 
@@ -129,11 +129,10 @@ init_common(){
 
     [[ -z ${host_mirrors[@]} ]] && host_mirrors=('netcologne' 'freefr' 'netix' 'kent' '10gbps-io')
 
-    [[ -z ${project} ]] && project="cromnix"
+    [[ -z ${project} ]] && project="artix-linux"
 
     [[ -z ${account} ]] && account="[SetUser]"
 
-    [[ -z ${limit} ]] && limit=100
 }
 
 init_buildtree(){
@@ -141,7 +140,7 @@ init_buildtree(){
 
     tree_dir_arch=${tree_dir}/archlinux
 
-    [[ -z ${repo_tree[@]} ]] && repo_tree=('artix')
+    [[ -z ${repo_tree[@]} ]] && repo_tree=('system' 'world' 'galaxy')
 
     [[ -z ${host_tree} ]] && host_tree='https://github.com/artix-linux'
 
@@ -151,7 +150,7 @@ init_buildtree(){
 
     [[ -d ${AT_USERCONFDIR}/import.list.d ]] && list_dir_import=${AT_USERCONFDIR}/import.list.d
 
-    [[ -z ${import_dir_repo} ]] && import_dir_repo=${tree_dir}/artix
+    [[ -z ${repos_dir} ]] && repos_dir=${tree_dir}/artix
 }
 
 init_buildpkg(){
@@ -222,6 +221,8 @@ init_buildiso(){
 }
 
 init_deployiso(){
+
+    [[ -z ${uplimit} ]] && uplimit=100
 
     [[ -z ${tracker_url} ]] && tracker_url='udp://mirror.strits.dk:6969'
 
