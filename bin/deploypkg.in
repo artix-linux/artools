@@ -18,30 +18,23 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-publish-pkg.sh
 
-show_profile(){
-    info "Repository: [%s]" "$1"
-    msg2 "src_dir: ${src_dir}"
-    msg2 "target_dir: ${target_dir}"
+show_transfer(){
+    local repo="$1"
+    msg2 "local: %s" "${repos_local}/$repo/"
+    msg2 "remote: %s" "${repos_remote}/$repo/"
 }
 
 display_settings(){
     show_version
     show_config
 
-#     msg "PROFILE:"
-#     msg2 "build_lists: %s" "$(show_build_lists ${list_dir_iso})"
-#     msg2 "build_list_iso: %s" "${build_list_pkg}"
-#     msg2 "is_build_list: %s" "${is_build_list}"
-
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
     msg2 "package: %s" "${package}"
 
     msg "ARGS:"
-    msg2 "pull: %s" "${pull}"
-    msg2 "push: %s" "${push}"
-    msg2 "add_pkg: %s" "${add_pkg}"
-    msg2 "del_pkg: %s" "${del_pkg}"
+    msg2 "download: %s" "${download}"
+    msg2 "upload: %s" "${upload}"
     msg2 "verbose: %s" "${verbose}"
 
     msg "REMOTE:"
@@ -50,7 +43,7 @@ display_settings(){
     msg2 "project: %s" "${project}"
 
     msg "SYNC:"
-    show_profile "${repository}"
+    show_transfer "${repository}"
 }
 
 load_user_info
@@ -58,24 +51,18 @@ load_user_info
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 pretend=false
-push=false
-pull=false
+upload=false
+download=true
 verbose=false
 repository='system'
-package=""
-add_pkg=false
-del_pkg=false
 
-rsync_args=(-rtxis --progress --delete -e ssh)
+rsync_args=(-rxis --progress --delete -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -r                 Repository to sync [default:${repository}]"
-    echo "    -p                 Package to add or delete in repo"
-    echo "    -x                 Add package to repo db"
-    echo "    -y                 Delete package from repo db"
-    echo "    -u                 Source folder to upload"
-    echo '    -d                 Remote folder to download'
+    echo "    -u                 Upload repository"
+    echo '    -d                 Download repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -v                 Verbose output'
     echo '    -h                 This help'
@@ -86,16 +73,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:xyduvqh'
+opts='r:duvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        p) package="$OPTARG" ;;
         r) repository="$OPTARG" ;;
-        x) add_pkg=true ;;
-        y) del_pkg=true ;;
-        d) pull=true ;;
-        u) push=true; rsync_args+=(-L) ;;
+        d) download=false ;;
+        u) upload=true; rsync_args+=(-L) ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true; rsync_args+=(-n) ;;
         h|?) usage 0 ;;
@@ -109,10 +93,6 @@ timer_start=$(get_timer)
 
 check_root
 
-prepare_transfer "${repository}"
+${pretend} && display_settings
 
-${pretend} && display_settings && exit 1
-
-[[ -n "${package}" ]] && update_repo "${repository}" "${package}"
-
-sync_dir "${repository}"
+sync_repo "${repository}"

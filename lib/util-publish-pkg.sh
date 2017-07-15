@@ -9,52 +9,38 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-connect(){
-    local home="/home/frs/project/${project}"
-    echo "${account},${project}@frs.${host}:${home}"
-}
-
-prepare_transfer(){
-    prepare_dir "${repo_dir}"
+repo_lock(){
     local repo="$1"
-    if ${pull};then
-        src_dir="$(connect)/repos/$repo/"
-        target_dir="${repo_dir}/$repo/"
-    elif ${push};then
-        src_dir="${repo_dir}/$repo/"
-        target_dir="$(connect)/repos/$repo/"
+    if [[ ! -f ${repos_local}/$repo/$repo.lock ]];then
+        touch ${repos_local}/$repo/$repo.lock
+        rsync "${rsync_args[@]}" --exclude="os" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
     fi
 }
 
-repo_push(){
-    rsync "${rsync_args[@]}" "${src_dir}" "${target_dir}"
-}
-
-repo_pull(){
-    rsync "${rsync_args[@]}" "${src_dir}" "${target_dir}"
-}
-
-add_repo_pkg(){
-    repo="$1" pkg="$2"
-    repo-add "$repo/os/${target_arch}/$repo.db.tar.xz" "$repo/os/${target_arch}/$pkg*.pkg.tar.xz"
-}
-
-del_repo_pkg(){
-    repo="$1" pkg="$2"
-    repo-add "$repo/os/${target_arch}/$repo.db.tar.xz" "$repo/os/${target_arch}/$pkg"
-}
-
-update_repo(){
-    local repo="$1" pkg="$2"
-    $add_pkg && add_repo_pkg "$repo" "$pkg"
-    $del_pkg && del_repo_pkg "$repo" "$pkg"
-    show_elapsed_time "${FUNCNAME}" "${timer_start}"
-    exit 0
-}
-
-sync_dir(){
+repo_unlock(){
     local repo="$1"
-    $pull && repo_pull "$repo"
-    $push && repo_push "$repo"
+    if [[ -f ${repos_local}/$repo/$repo.lock ]];then
+        rm ${repos_local}/$repo/$repo.lock
+        rsync "${rsync_args[@]}" --exclude="os" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
+        die "The '%s' repository is currently locked." "$repo"
+    fi
+}
+
+repo_download(){
+    local repo="$1"
+    rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
+}
+
+repo_upload(){
+    local repo="$1"
+    repo_lock "$repo"
+    rsync "${rsync_args[@]}" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
+    repo_unlock "$repo"
+}
+
+sync_repo(){
+    local repo="$1"
+    ${download} && repo_download "$repo"
+    ${upload} && repo_upload "$repo"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

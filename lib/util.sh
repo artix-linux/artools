@@ -132,25 +132,27 @@ init_common(){
     [[ -z ${project} ]] && project="artix-linux"
 
     [[ -z ${account} ]] && account="[SetUser]"
-
 }
 
 init_buildtree(){
+
     tree_dir=${cache_dir}/pkgtree
 
-    tree_dir_arch=${tree_dir}/archlinux
+    [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${tree_dir}/artix
 
-    [[ -z ${repo_tree[@]} ]] && repo_tree=('system' 'world' 'galaxy')
+    [[ -z ${repo_tree_artix[@]} ]] && repo_tree_artix=('system' 'world' 'galaxy')
 
-    [[ -z ${host_tree} ]] && host_tree='https://github.com/artix-linux'
+    [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
+
+    [[ -z ${tree_dir_arch} ]] && tree_dir_arch=${tree_dir}/archlinux
+
+    [[ -z ${repo_tree_arch} ]] && repo_tree_arch=('packages' 'community')
 
     [[ -z ${host_tree_arch} ]] && host_tree_arch='git://projects.archlinux.org/svntogit'
 
     list_dir_import="${SYSCONFDIR}/import.list.d"
 
     [[ -d ${AT_USERCONFDIR}/import.list.d ]] && list_dir_import=${AT_USERCONFDIR}/import.list.d
-
-    [[ -z ${repos_dir} ]] && repos_dir=${tree_dir}/artix
 }
 
 init_buildpkg(){
@@ -233,7 +235,9 @@ init_deployiso(){
 
 init_deploypkg(){
 
-    repo_dir="${cache_dir}/repos"
+    [[ -z ${repos_local} ]] && repos_local="${cache_dir}/repos"
+
+    repos_remote="/${repos_local##*/}"
 }
 
 load_config(){
@@ -329,4 +333,9 @@ check_root() {
     else
         exec su root -c "$(printf ' %q' "${orig_argv[@]}")"
     fi
+}
+
+connect(){
+    local home="/home/frs/project/${project}"
+    echo "${account},${project}@frs.${host}:${home}"
 }

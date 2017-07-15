@@ -35,12 +35,13 @@ display_settings(){
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
     msg2 "import_arch: %s" "${import_arch}"
-    msg2 "clean: %s" "${clean}"
 
     msg "PATHS:"
-    msg2 "tree_dir: %s" "${tree_dir}"
-    msg2 "repo_tree: %s" "${repo_tree[*]}"
-    msg2 "host_tree: %s" "${host_tree}"
+    msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
+    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
+    msg2 "host_tree_artix: %s" "${host_tree_artix}"
+    msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
+    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
     msg2 "host_tree_arch: %s" "${host_tree_arch}"
     msg2 "repos_dir: %s" "${repos_dir}"
 
@@ -65,7 +66,6 @@ usage() {
     echo "    -x            Sync artix tree"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch system packages'
-    echo '    -c            Clean package tree'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -75,14 +75,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='xaicqh'
+opts='xaiqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         x) artix=true ;;
         a) arch=true ;;
         i) import_arch=true ;;
-        c) clean=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -96,8 +95,6 @@ check_root
 prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1
-
-${clean} && clean_dir "${tree_dir}"
 
 ${artix} && sync_tree_artix
 
