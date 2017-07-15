@@ -18,6 +18,15 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg-tree.sh
 
+show_imports(){
+    for repo in ${repo_tree[@]};do
+        read_import_list "$repo"
+        for p in ${import_list[@]};do
+            msg2 "%s: %s" ""$repo "$p"
+        done
+    done
+}
+
 display_settings(){
     show_version
     show_config
@@ -32,14 +41,12 @@ display_settings(){
     msg2 "tree_dir: %s" "${tree_dir}"
     msg2 "repo_tree: %s" "${repo_tree[*]}"
     msg2 "host_tree: %s" "${host_tree}"
-    msg2 "host_tree_abs: %s" "${host_tree_arch}"
+    msg2 "host_tree_arch: %s" "${host_tree_arch}"
     msg2 "repos_dir: %s" "${repos_dir}"
 
     if ${import_arch};then
-        read_import_list "system"
-        for p in ${import_list[@]};do
-            msg2 "system: %s" "$p"
-        done
+        msg "IMPORT QUEUE:"
+        show_imports "${build_list_pkg}"
     fi
 }
 
@@ -55,7 +62,7 @@ import_arch=false
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -s            Sync artix tree"
+    echo "    -x            Sync artix tree"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch system packages'
     echo '    -c            Clean package tree'
