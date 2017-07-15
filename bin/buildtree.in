@@ -33,11 +33,13 @@ display_settings(){
     msg2 "repo_tree: %s" "${repo_tree[*]}"
     msg2 "host_tree: %s" "${host_tree}"
     msg2 "host_tree_abs: %s" "${host_tree_arch}"
-    msg2 "import_dir_repo: %s" "${import_dir_repo}"
+    msg2 "repos_dir: %s" "${repos_dir}"
 
     if ${import_arch};then
         read_import_list "system"
-        msg2 "import_list: %s" "${import_list[@]}"
+        for p in ${import_list[@]};do
+            msg2 "system: %s" "$p"
+        done
     fi
 }
 

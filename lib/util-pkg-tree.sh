@@ -71,11 +71,11 @@ read_import_list(){
 }
 
 import_from_arch(){
-    read_import_list "system"
-    cd ${repos_dir}/system
-    git checkout archlinux
+        read_import_list "system"
+        cd ${repos_dir}/system
+        git checkout archlinux
 
-    for pkg in ${import_list[@]};do
-        rsync -avWx --progress --delete --no-R --no-implied-dirs --exclude={.git,repos} ${tree_dir_arch}/packages/$pkg/trunk/ ${repos_dir}/$pkg/
-    done
+        for pkg in ${import_list[@]};do
+            rsync -avWx --progress --delete --no-R --no-implied-dirs --exclude={.git,repos} ${tree_dir_arch}/packages/$pkg/trunk/ ${repos_dir}/$pkg/
+        done
 }

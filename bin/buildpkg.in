@@ -27,7 +27,9 @@ show_pkg(){
     check_build "$1"
     cd $1
         source PKGBUILD
-        msg2 "%s" "${pkgname[@]}"
+        for n in ${pkgname[@]}; do
+            msg2 "%s" "$n"
+        done
     cd ..
 }
 
