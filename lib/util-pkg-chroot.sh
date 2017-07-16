@@ -72,6 +72,7 @@ move_to_cache(){
     mv $src ${pkg_dir}/
     ${sign} && sign_pkg "${src##*/}"
 #     [[ -n $PKGDEST ]] && rm "$src"
+    user_own "${pkg_dir}" -R
 }
 
 post_build(){
@@ -91,7 +92,7 @@ post_build(){
 build_pkg(){
     ${purge} && clean_up
 #     setarch "${target_arch}"
-    mkchrootpkg "${mkchrootpkg_args[@]}"
+    mkchrootpkg "${mkchrootpkg_args[@]}" || die
     post_build
 }
 

@@ -47,6 +47,7 @@ prepare_build(){
     iso_root=${chroots_iso}/${profile}/iso
     mnt_dir=${chroots_iso}/${profile}/mnt
     prepare_dir "${mnt_dir}"
+    prepare_dir "${iso_dir}"
 }
 
 show_profile(){
@@ -173,8 +174,6 @@ while getopts "${opts}" arg; do
 done
 
 shift $(($OPTIND - 1))
-
-prepare_dir "${iso_dir}"
 
 check_root
 

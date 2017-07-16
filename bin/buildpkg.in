@@ -112,6 +112,8 @@ prepare_build(){
 
     prepare_dir "${pkg_dir}"
 
+    prepare_dir "${work_dir}"
+
     eval_build_list "${list_dir_pkg}" "${build_list_pkg}"
 
     packages=('base-devel')
@@ -166,13 +168,11 @@ done
 
 shift $(($OPTIND - 1))
 
+check_root
+
 prepare_build
 
 ${pretend} && display_settings && exit
-
-check_root
-
-prepare_dir "${work_dir}"
 
 ${delete_first} && delete_chroot "${work_dir}/root" "${work_dir}"
 
