@@ -42,14 +42,11 @@ prepare_build(){
     mkchroot_args+=(-C ${pacman_conf} -U "${build_mirror}")
     work_dir=${chroots_iso}/${profile}/${target_arch}
 
-    iso_dir="${cache_dir_iso}/${profile}/${dist_release}"
+    iso_dir="${cache_dir_iso}/${profile}"
 
     iso_root=${chroots_iso}/${profile}/iso
     mnt_dir=${chroots_iso}/${profile}/mnt
     prepare_dir "${mnt_dir}"
-
-    prepare_dir "${iso_dir}"
-    user_own "${iso_dir}"
 }
 
 show_profile(){
@@ -176,6 +173,8 @@ while getopts "${opts}" arg; do
 done
 
 shift $(($OPTIND - 1))
+
+prepare_dir "${iso_dir}"
 
 check_root
 

@@ -47,7 +47,6 @@ sync_tree_artix(){
             fi
         done
     cd ..
-    user_own ${tree_dir_artix} -R
 }
 
 sync_tree_arch(){
@@ -62,7 +61,6 @@ sync_tree_arch(){
             fi
         done
     cd ..
-    user_own ${tree_dir_arch} -R
 }
 
 read_import_list(){
@@ -81,7 +79,7 @@ import_from_arch(){
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
-            su ${OWNER} -c "git checkout archlinux"
+            git checkout archlinux
             local arch_dir=packages
             [[ $repo == "galaxy" ]] && arch_dir=community
             msg "Import into '%s' from archlinux" "$repo"
@@ -90,9 +88,8 @@ import_from_arch(){
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
             done
 
-            $(is_dirty) && su ${OWNER} -c "git commit -m 'Archlinux import'"
+            $(is_dirty) && git commit -m "Archlinux import $(date %Y%m%d)"
             git checkout master
-            user_own ${tree_dir_artix}/$repo -R
         fi
     done
     show_elapsed_time "${FUNCNAME}" "${timer}"

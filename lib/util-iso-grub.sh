@@ -21,7 +21,7 @@ prepare_initramfs(){
     local mnt="$1"
     cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${os_id}.conf
     if [[ -n ${gpgkey} ]]; then
-        su ${OWNER} -c "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
+        user_run "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
         exec 17<>${AT_USERCONFDIR}/gpgkey
     fi
     local _kernel=$(cat $mnt/usr/lib/modules/*/version)

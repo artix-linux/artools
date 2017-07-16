@@ -98,8 +98,6 @@ done
 
 shift $(($OPTIND - 1))
 
-check_root
-
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
 

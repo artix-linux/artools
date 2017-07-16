@@ -9,9 +9,21 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+repo_add_pkg(){
+    repo="$1" arch="$2" pkg="$3"
+    repo-add ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${cache_dir_pkg}/$arch/$pkg*.pkg.tar.xz
+    ln -sv ${cache_dir_pkg}/$arch/$pkg*.pkg.tar.xz{,.sig} ${repos_local}/$repo/os/$arch/
+}
+
+repo_del_pkg(){
+    repo="$1" arch="$2" pkg="$3"
+    repo-remove ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $pkg
+    rm -v ${repos_local}/$repo/os/${arch}/$pkg*.pkg.tar.xz{,.sig}
+}
+
 update_lock(){
     local repo="$1"
-    rsync "${rsync_args[@]}" --exclude="os" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
+    rsync "${rsync_args[@]}" --exclude='os' "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
 }
 
 repo_lock(){
@@ -35,7 +47,6 @@ repo_unlock(){
 repo_download(){
     local repo="$1"
     rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
-#     user_own "${repos_local}/$repo/" -R
     [[ -f ${repos_local}/$repo/$repo.lock ]] && die "The '%s' repository is locked" "$repo"
 }
 
@@ -44,11 +55,4 @@ repo_upload(){
     repo_lock "$repo"
     rsync "${rsync_args[@]}" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
     repo_unlock "$repo"
-}
-
-sync_repo(){
-    local repo="$1"
-    ${download} && repo_download "$repo"
-    ${upload} && repo_upload "$repo"
-    show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

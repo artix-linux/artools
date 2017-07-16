@@ -34,16 +34,17 @@ error_function() {
 # $1: function
 run_log(){
     local func="$1"
-    local tmpfile=${tmp_dir}/$func.ansi.log logfile=${log_dir}/$(gen_iso_fn).$func.log
+    local logfile=${log_dir}/$(gen_iso_fn).$func.log
+#     local tmpfile=${tmp_dir}/$func.ansi.log
     logpipe=$(mktemp -u "${tmp_dir}/$func.pipe.XXXXXXXX")
     mkfifo "$logpipe"
-    tee "$tmpfile" < "$logpipe" &
+    tee "$logfile" < "$logpipe" &
     local teepid=$!
     $func &> "$logpipe"
     wait $teepid
     rm "$logpipe"
-    cat $tmpfile | perl -pe 's/\e\[?.*?[\@-~]//g' > $logfile
-    rm "$tmpfile"
+#     cat $tmpfile | perl -pe 's/\e\[?.*?[\@-~]//g' > $logfile
+#     rm "$tmpfile"
 }
 
 run_safe() {
@@ -88,7 +89,7 @@ make_sig () {
     msg2 "Creating signature file..."
     cd "$idir"
     user_own "$idir"
-    su ${OWNER} -c "gpg --detach-sign --default-key ${gpgkey} $file.sfs"
+    user_run "gpg --detach-sign --default-key ${gpgkey} $file.sfs"
     chown -R root "$idir"
     cd ${OLDPWD}
 }
@@ -370,7 +371,6 @@ make_grub(){
 }
 
 check_requirements(){
-    prepare_dir "${log_dir}"
 
     eval_build_list "${list_dir_iso}" "${build_list_iso}"
 

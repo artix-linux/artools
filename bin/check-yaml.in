@@ -29,7 +29,6 @@ prepare_check(){
     yaml_dir=${cache_dir_netinstall}/${profile}/${target_arch}
 
     prepare_dir "${yaml_dir}"
-    user_own "${yaml_dir}"
 }
 
 show_profile(){
@@ -94,7 +93,7 @@ calamares=false
 pretend=false
 group=false
 validate=false
-cache_dir_netinstall="${cache_dir}/netinstall"
+cache_dir_netinstall="${workspace_dir}/netinstall"
 
 usage() {
     echo "Usage: ${0##*/} [options]"
@@ -135,7 +134,7 @@ done
 
 shift $(($OPTIND - 1))
 
-check_root
+#check_root
 
 eval_build_list "${list_dir_iso}" "${build_list_iso}"
 

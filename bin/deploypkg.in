@@ -31,8 +31,11 @@ display_settings(){
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
     msg2 "package: %s" "${package}"
+    msg2 "target_arch: %s" "${target_arch}"
 
     msg "ARGS:"
+    msg2 "add_pkg: %s" "${add_pkg}"
+    msg2 "del_pkg: %s" "${del_pkg}"
     msg2 "download: %s" "${download}"
     msg2 "upload: %s" "${upload}"
     msg2 "verbose: %s" "${verbose}"
@@ -52,17 +55,24 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 
 pretend=false
 upload=false
-download=true
+download=false
 verbose=false
 verbose=false
+add_pkg=false
+del_pkg=false
+package=''
 
 rsync_args=(-rxisP --progress --delete -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
+    echo "    -a                 Repository arch [default:${target_arch}]"
     echo "    -r                 Repository to sync [default:${repository}]"
     echo "    -u                 Upload repository"
     echo '    -d                 Download repository'
+    echo "    -p                 Package name to add/delete"
+    echo '    -x                 Add package to repository'
+    echo '    -y                 Delete package from repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -v                 Verbose output'
     echo '    -h                 This help'
@@ -73,12 +83,16 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:duvqh'
+opts='p:a:r:xyduvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
+        a) target_arch="$OPTARG" ;;
         r) repository="$OPTARG" ;;
-        d) download=false ;;
+        p) package="$OPTARG" ;;
+        x) add_pkg=true ;;
+        y) del_pkg=true ;;
+        d) download=true ;;
         u) upload=true; rsync_args+=(-L) ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true; rsync_args+=(-n) ;;
@@ -91,6 +105,12 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
+prepare_dir "${repos_local}"
+
 ${pretend} && display_settings && exit 1
 
-sync_repo "${repository}"
+${add_pkg} && repo_add_pkg "${repository}" "${target_arch}" "${package}"
+${del_pkg} && repo_del_pkg "${repository}" "${target_arch}" "${package}"
+
+${download} && repo_download "${repository}"
+${upload} && repo_upload "${repository}"
