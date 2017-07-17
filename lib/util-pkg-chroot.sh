@@ -70,6 +70,7 @@ move_to_cache(){
     [[ ! -f $src ]] && die
     msg2 "Moving [%s] -> [%s]" "${src##*/}" "${pkg_dir}"
     mv $src ${pkg_dir}/
+    user_own "${pkg_dir}" -R
     ${sign} && sign_pkg "${src##*/}"
 #     [[ -n $PKGDEST ]] && rm "$src"
     user_own "${pkg_dir}" -R
