@@ -313,6 +313,7 @@ main() {
 
     [[ ! -f PKGBUILD && -z "${install_pkgs[*]}" ]] && die 'This must be run in a directory containing a PKGBUILD.'
     [[ -n $makepkg_user && -z $(id -u "$makepkg_user") ]] && die 'Invalid makepkg user.'
+    makepkg_user=${makepkg_user:-${SUDO_USER:-$USER}}
 
     check_root
 
