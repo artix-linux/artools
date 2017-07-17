@@ -107,7 +107,7 @@ timer_start=$(get_timer)
 
 prepare_dir "${repos_local}"
 
-${pretend} && display_settings && exit 1
+${pretend} && display_settings #&& exit 1
 
 ${add_pkg} && repo_add_pkg "${repository}" "${target_arch}" "${package}"
 ${del_pkg} && repo_del_pkg "${repository}" "${target_arch}" "${package}"

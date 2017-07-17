@@ -63,12 +63,11 @@ load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-run_dir=${cache_dir_iso}
-
 pretend=false
 update=false
 verbose=false
 torrent=false
+profile=''
 
 rsync_args=(-aP --progress -e ssh)
 
@@ -90,11 +89,11 @@ opts='p:l:uvtqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-                p) build_list_iso="$OPTARG" ;;
-                l) limit="$OPTARG" ;;
-                u) update=true; rsync_args+=(-u) ;;
-                t) torrent=true ;;
-                v) verbose=true; rsync_args+=(-v --stats) ;;
+        p) profile="$OPTARG" ;;
+        l) limit="$OPTARG" ;;
+        u) update=true; rsync_args+=(-u) ;;
+        t) torrent=true ;;
+        v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true; rsync_args+=(-n) ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -105,10 +104,8 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
-eval_build_list "${list_dir_iso}" "${build_list_iso}"
-
 rsync_args+=(--bwlimit=${limit})
 
-${pretend} && display_settings && exit 1
+${pretend} && display_settings #&& exit 1
 
-run sync_dir "${build_list_iso}"
+sync_dir "${profile}"

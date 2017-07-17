@@ -32,16 +32,16 @@ make_torrent(){
 }
 
 prepare_transfer(){
-    profile="$1"
-    target_dir="${profile}/${dist_release}"
-    src_dir="${run_dir}/${target_dir}"
+    prof="$1"
+    target_dir="/iso/$prof/"
+    src_dir="${cache_dir_iso}/$prof/"
     ${torrent} && make_torrent
 }
 
 sync_dir(){
     prepare_transfer "$1"
     msg "Start upload [%s] ..." "$1"
-    rsync "${rsync_args[@]}" ${src_dir}/ $(connect)/${target_dir}/
+    rsync "${rsync_args[@]}" ${src_dir} $(connect)${target_dir}
     msg "Done upload [%s]" "$1"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

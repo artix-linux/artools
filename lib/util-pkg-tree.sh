@@ -9,6 +9,28 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+sync_tree_branches(){
+    local branches=(master artix archlinux testing)
+    for b in ${branches[@]};do
+        git checkout $b &> /dev/null
+        local local_head=$(git log --pretty=%H ...refs/heads/$b^ | head -n 1)
+        local remote_head=$(git ls-remote origin -h refs/heads/$b | cut -f1)
+        local timer=$(get_timer) repo="$1"
+        msg "Checking [%s] (%s) ..." "$repo" "$b"
+        msg2 "local: %s" "${local_head}"
+        msg2 "remote: %s" "${remote_head}"
+        if [[ "${local_head}" == "${remote_head}" ]]; then
+            info "nothing to do"
+        else
+            info "needs sync"
+            git pull origin $b
+        fi
+        msg "Done [%s]" "$repo"
+    done
+    git checkout master &> /dev/null
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
 sync_tree(){
     local master=$(git log --pretty=%H ...refs/heads/master^ | head -n 1)
     local master_remote=$(git ls-remote origin -h refs/heads/master | cut -f1)
@@ -40,7 +62,7 @@ sync_tree_artix(){
         for repo in ${repo_tree_artix[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
-                    sync_tree "${repo}"
+                    sync_tree_branches "${repo}"
                 cd ..
             else
                 clone_tree "${repo}" "${host_tree_artix}/${repo}"
@@ -70,7 +92,8 @@ read_import_list(){
 }
 
 is_dirty() {
-  [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && return 0
+    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
+    return 0
 }
 
 import_from_arch(){
@@ -79,17 +102,15 @@ import_from_arch(){
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
-            git checkout archlinux
+            git checkout archlinux &> /dev/null
             local arch_dir=packages
             [[ $repo == "galaxy" ]] && arch_dir=community
-            msg "Import into '%s' from archlinux" "$repo"
+            msg "Import into [%s] branch (archlinux)" "$repo"
             for pkg in ${import_list[@]};do
-                msg2 "Update %s" "$pkg"
+                msg2 "Importing [%s] ..." "$pkg"
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
+                $(is_dirty) && git commit -m "Archlinux $pkg import $(date %Y%m%d)"
             done
-
-            $(is_dirty) && git commit -m "Archlinux import $(date %Y%m%d)"
-            git checkout master
         fi
     done
     show_elapsed_time "${FUNCNAME}" "${timer}"
