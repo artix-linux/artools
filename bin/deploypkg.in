@@ -62,7 +62,7 @@ add_pkg=false
 del_pkg=false
 package=''
 
-rsync_args=(-rxisP --progress --delete -e ssh)
+rsync_args=(-rtxisP --progress --delete -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
