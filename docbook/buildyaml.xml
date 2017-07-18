@@ -22,10 +22,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with artools; If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<refentry id="check-yaml" xmlns:xi="http://www.w3.org/2001/XInclude">
+<refentry id="buildyaml" xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <refentryinfo>
-        <title>check-yaml-+</title>
+        <title>buildyaml-+</title>
         <productname>artools</productname>
 
         <authorgroup>
@@ -39,18 +39,18 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
     </refentryinfo>
 
     <refmeta>
-        <refentrytitle>check-yaml</refentrytitle>
+        <refentrytitle>buildyaml</refentrytitle>
         <manvolnum>1</manvolnum>
     </refmeta>
 
     <refnamediv>
-        <refname>check-yaml</refname>
-        <refpurpose>check-yaml is used to generate and validate yaml files used by calamares. </refpurpose>
+        <refname>buildyaml</refname>
+        <refpurpose>buildyaml is used to generate and validate yaml files used by calamares. </refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
         <cmdsynopsis>
-            <command>check-yaml</command>
+            <command>buildyaml</command>
             <arg choice="opt" rep="repeat">OPTIONS</arg>
         </cmdsynopsis>
     </refsynopsisdiv>
@@ -58,9 +58,9 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
     <refsect1>
         <title>Description</title>
 
-        <para><command>check-yaml</command> is used to generate and validate yaml files used by calamares.</para>
+        <para><command>buildyaml</command> is used to generate and validate yaml files used by calamares.</para>
 
-        <para>check-yaml is a script to generate and validate yaml files by yaml schemas. Buildiso generates these files also, but check-yaml is a standalone version without the need to build the entire iso.</para>
+        <para>buildyaml is a script to generate and validate yaml files by yaml schemas. Buildiso generates these files also, but buildyaml is a standalone version without the need to build the entire iso.</para>
 
     </refsect1>
 
