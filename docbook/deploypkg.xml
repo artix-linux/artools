@@ -73,14 +73,25 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             <varlistentry>
                 <term><option>-r REPOSITORY...</option></term>
 
-                <listitem><para>Name of the repo name of the directory
-                to sync.</para></listitem>
+                <listitem><para>Name of the repo to sync.</para></listitem>
             </varlistentry>
 
             <varlistentry>
-                <term><option>-l</option></term>
+                <term><option>-p PACKAGE...</option></term>
 
-                <listitem><para>Limit bandwidth in kB/s.</para></listitem>
+                <listitem><para>Name of the package to add or delete.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-x</option></term>
+
+                <listitem><para>Add a package to the repo db.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-y</option></term>
+
+                <listitem><para>Delete a package from the repo.</para></listitem>
             </varlistentry>
 
             <varlistentry>

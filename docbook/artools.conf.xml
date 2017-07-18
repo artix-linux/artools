@@ -80,10 +80,9 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>cache_dir=</varname></term>
+                <term><varname>workspace_dir=</varname></term>
 
-                <listitem><para>Cache dir where buildpkg and buildise will cache
-                packages. Default is "/var/cache/artools".
+                <listitem><para>Workspace dir where packages, iso, repos or build tree. Default is "/home/$OWNER/artools-workspace".
                 </para></listitem>
             </varlistentry>
 
@@ -97,17 +96,10 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>log_dir=</varname></term>
-
-                <listitem><para>Log dir where buildiso log the build process. Default is  "/var/log/artools".
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
                 <term><varname>build_mirror=</varname></term>
 
                 <listitem><para>Default mirror to be used when building
-                packages.
+                packages or iso.
                 </para></listitem>
             </varlistentry>
 
@@ -122,13 +114,6 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
                 <term><varname>project=</varname></term>
 
                 <listitem><para>Default SF project name to be used for upload.
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>limit=</varname></term>
-
-                <listitem><para>Default upload bandwidth limit in kb/s.
                 </para></listitem>
             </varlistentry>
 
@@ -149,7 +134,7 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
         <variablelist>
             <varlistentry>
-                <term><varname>repo_tree=</varname></term>
+                <term><varname>repo_tree_artix=</varname></term>
 
                 <listitem><para>Artix package tree. Default is
                 "('system' 'world' 'galaxy')".
@@ -157,17 +142,24 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>host_tree=</varname></term>
+                <term><varname>host_tree_artix=</varname></term>
 
                 <listitem><para>Host tree. Default is "https://github.com/artix-linux".
                 </para></listitem>
             </varlistentry>
 
+            <varlistentry>
+                <term><varname>repo_tree_arch=</varname></term>
+
+                <listitem><para>Archlinux package tree. Default is
+                "('packages' 'community')".
+                </para></listitem>
+            </varlistentry>
 
             <varlistentry>
-                <term><varname>host_tree_abs=</varname></term>
+                <term><varname>host_tree_arch=</varname></term>
 
-                <listitem><para>Host tree for abs. Default is
+                <listitem><para>Host tree for archlinux. Default is
                 "https://projects.archlinux.org/git/svntogit".
                 </para></listitem>
             </varlistentry>
@@ -268,6 +260,29 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
                 <listitem><para>Default priece size for the torrent in 2^n.
                         </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>limit=</varname></term>
+
+                <listitem><para>Default upload bandwidth limit in kb/s.
+                </para></listitem>
+            </varlistentry>
+
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Options for deploypkg</title>
+
+        <para>The following options are understood:</para>
+
+        <variablelist>
+            <varlistentry>
+                <term><varname>repos_local=</varname></term>
+
+                <listitem><para>The local repository root. Default is "${workspace_dir}/repos".
+                </para></listitem>
             </varlistentry>
 
         </variablelist>
