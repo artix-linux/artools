@@ -67,7 +67,7 @@ load_profile(){
 
     enable_live=('artix-live' 'pacman-init')
 
-    netgroups="https://raw.githubusercontent.com/cromnix/iso-profiles/master/shared/netgroups"
+    netgroups="https://raw.githubusercontent.com/artix-linux/iso-profiles/master/shared/netgroups"
 
     basic='true'
     [[ -z ${extra} ]] && extra='false'

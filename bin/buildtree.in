@@ -18,36 +18,61 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg-tree.sh
 
+show_imports(){
+    for repo in ${repo_tree_artix[@]};do
+        read_import_list "$repo"
+        for p in ${import_list[@]};do
+            msg2 "%s: %s" ""$repo "$p"
+        done
+    done
+}
+
 display_settings(){
     show_version
     show_config
 
+    msg "REPOS:"
+    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
+    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
+
     msg "ARGS:"
-    msg2 "sync: %s" "${sync}"
-    msg2 "abs: %s" "${abs}"
-    msg2 "clean: %s" "${clean}"
+    msg2 "verbose: %s" "${verbose}"
+    msg2 "artix: %s" "${artix}"
+    msg2 "arch: %s" "${arch}"
+    msg2 "import_arch: %s" "${import_arch}"
 
     msg "PATHS:"
-    msg2 "tree_dir: %s" "${tree_dir}"
-    msg2 "repo_tree: %s" "${repo_tree[*]}"
-    msg2 "host_tree: %s" "${host_tree}"
-    msg2 "host_tree_abs: %s" "${host_tree_abs}"
+    msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
+    msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
+#     msg2 "host_tree_artix: %s" "${host_tree_artix}"
+#     msg2 "host_tree_arch: %s" "${host_tree_arch}"
+
+    if ${verbose}; then
+        if ${import_arch};then
+            msg "IMPORT QUEUE:"
+            show_imports
+        fi
+    fi
 }
 
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-sync=false
+artix=false
 pretend=false
-abs=false
-clean=false
+arch=false
+import_arch=false
+verbose=false
+
+rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -s            Sync cromnix tree"
-    echo "    -a            Sync arch abs"
-    echo '    -c            Clean package tree'
+    echo "    -x            Sync artix tree"
+    echo "    -a            Sync arch tree"
+    echo '    -i            Import arch system packages'
+    echo '    -v            Verbose import output'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -57,13 +82,14 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='sacqh'
+opts='xaivqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        s) sync=true ;;
-        a) abs=true ;;
-        c) clean=true ;;
+        x) artix=true ;;
+        a) arch=true ;;
+        i) import_arch=true ;;
+        v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -72,14 +98,13 @@ done
 
 shift $(($OPTIND - 1))
 
-check_root
-
-prepare_dir "${tree_dir_abs}"
+prepare_dir "${tree_dir_artix}"
+prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1
 
-${clean} && clean_dir "${tree_dir}"
+${artix} && sync_tree_artix
 
-${sync} && sync_tree_cromnix
+${arch} && sync_tree_arch
 
-${abs} && sync_tree_abs
+${import_arch} && import_from_arch

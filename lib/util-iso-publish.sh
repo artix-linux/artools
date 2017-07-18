@@ -9,14 +9,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-connect(){
-    local home="/home/frs/project"
-    echo "${account},${project}@frs.${host}:${home}/${project}"
-}
-
 gen_webseed(){
     local webseed seed="$1"
-    for mirror in ${iso_mirrors[@]};do
+    for mirror in ${host_mirrors[@]};do
         webseed=${webseed:-}${webseed:+,}"http://${mirror}.dl.${seed}"
     done
     echo ${webseed}
@@ -37,16 +32,16 @@ make_torrent(){
 }
 
 prepare_transfer(){
-    profile="$1"
-    target_dir="${profile}/${dist_release}"
-    src_dir="${run_dir}/${target_dir}"
+    prof="$1"
+    target_dir="/iso/$prof/"
+    src_dir="${cache_dir_iso}/$prof/"
     ${torrent} && make_torrent
 }
 
 sync_dir(){
     prepare_transfer "$1"
     msg "Start upload [%s] ..." "$1"
-    rsync ${rsync_args[*]} ${src_dir}/ $(connect)/${target_dir}/
+    rsync "${rsync_args[@]}" ${src_dir} $(connect)${target_dir}
     msg "Done upload [%s]" "$1"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

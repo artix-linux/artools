@@ -55,10 +55,11 @@ _mnt_sfs() {
     local mnt="${2}"
     local img_fullname="${img##*/}"
     local sfs_dev
+    local oper=$( [[ -n "${ip}" && -n "${miso_http_srv}" ]] && echo "mv" || echo "cp" )
 
     if [[ "${copytoram}" == "y" ]]; then
         msg -n ":: Copying squashfs image to RAM..."
-        if ! cp "${img}" "/run/artix/copytoram/${img_fullname}" ; then
+        if ! "${oper}" "${img}" "/run/artix/copytoram/${img_fullname}" ; then
             echo "ERROR: while copy '${img}' to '/run/artix/copytoram/${img_fullname}'"
             launch_interactive_shell
         fi

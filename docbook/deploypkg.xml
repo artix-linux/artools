@@ -1,0 +1,145 @@
+<?xml version='1.0'?> <!--*-nxml-*-->
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<!--
+This file is part of artools.
+
+Copyright 2015 Manjaro Developers
+Copyright 2017 Artoo
+
+artools is free software; you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation; either version 2.1 of the License, or
+(at your option) any later version.
+
+artools is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with artools; If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="deploypkg" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <refentryinfo>
+        <title>deploypkg-+</title>
+        <productname>artools</productname>
+
+        <authorgroup>
+            <author>
+                <contrib></contrib>
+                <firstname></firstname>
+                <surname></surname>
+                <email></email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>deploypkg</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>deploypkg</refname>
+        <refpurpose>deploypkg is used to sync package repositories. </refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>deploypkg</command>
+            <arg choice="opt" rep="repeat">OPTIONS</arg>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para><command>deploypkg</command> is used to sync package repositories. </para>
+
+        <para>deploypkg is a script to sync a specific repoitory with SF.</para>
+
+    </refsect1>
+
+    <refsect1>
+        <title>Options</title>
+
+        <para>The following options are understood:</para>
+
+        <variablelist>
+            <varlistentry>
+                <term><option>-r REPOSITORY...</option></term>
+
+                <listitem><para>Name of the repo to sync.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-p PACKAGE...</option></term>
+
+                <listitem><para>Name of the package to add or delete.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-x</option></term>
+
+                <listitem><para>Add a package to the repo db.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-y</option></term>
+
+                <listitem><para>Delete a package from the repo.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-u</option></term>
+
+                <listitem><para>Upload a repo.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-d</option></term>
+
+                <listitem><para>Download a repo.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-v</option></term>
+
+                <listitem><para>Verbose output.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-q</option></term>
+
+                <listitem><para>Query settings and pretend upload.</para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-h</option></term>
+
+                <listitem><para>Help.</para></listitem>
+            </varlistentry>
+        </variablelist>
+
+    </refsect1>
+
+    <!--<refsect1>
+        <title>Exit status</title>
+
+        <para>On success, 0 is returned, a non-zero failure code
+        otherwise.</para>
+    </refsect1>
+    -->
+
+    <refsect1>
+        <title>See Also</title>
+        <para>
+            <citerefentry project='artools'><refentrytitle>artools.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>,
+        </para>
+    </refsect1>
+
+</refentry>

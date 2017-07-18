@@ -60,7 +60,6 @@ write_pacman_group_yaml(){
     prepare_dir "${cache_dir_netinstall}/pacman"
     write_netgroup_yaml "$1" "${cache_dir_netinstall}/pacman/$1.yaml"
 #     ${validate} && check_yaml "${cache_dir_netinstall}/pacman/$1.yaml"
-    user_own "${cache_dir_netinstall}/pacman" "-R"
 }
 
 gen_fn(){
@@ -76,7 +75,6 @@ make_profile_yaml(){
         write_netgroup_yaml "$1" "$(gen_fn "Packages-Desktop")"
     fi
 #     ${calamares} && write_calamares_yaml "$1"
-    user_own "${cache_dir_netinstall}/$1" "-R"
     reset_profile
     unset yaml_dir
 }

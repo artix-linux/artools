@@ -9,6 +9,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+repo_add_pkg(){
+    repo="$1" arch="$2" pkg="$3" ext="db.tar.xz"
+    repo-add "$repo/os/$arch/$repo.$ext" "$repo/os/$arch/$pkg"
+}
+
+repo_del_pkg(){
+    repo="$1" arch="$2" pkg="$3" ext="db.tar.xz"
+    repo-remove "$repo/os/$arch/$repo.$ext" "$repo/os/$arch/$pkg"
+}
+
 in_array() {
     local needle=$1; shift
     local item

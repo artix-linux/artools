@@ -61,20 +61,19 @@ clean_up(){
 
 sign_pkg(){
     local pkg="$1"
-    su ${OWNER} -c "signfile ${pkg_dir}/${pkg}"
+    user_run "signfile ${pkg_dir}/${pkg}"
 }
 
 move_to_cache(){
-    prepare_dir "${log_dir}"
-
     local src="$1"
     [[ -n $PKGDEST ]] && src="$PKGDEST/$src"
     [[ ! -f $src ]] && die
     msg2 "Moving [%s] -> [%s]" "${src##*/}" "${pkg_dir}"
     mv $src ${pkg_dir}/
+    user_own "${pkg_dir}" -R
     ${sign} && sign_pkg "${src##*/}"
 #     [[ -n $PKGDEST ]] && rm "$src"
-    user_own "${pkg_dir}" "-R"
+    user_own "${pkg_dir}" -R
 }
 
 post_build(){
@@ -92,11 +91,9 @@ post_build(){
 }
 
 build_pkg(){
-    prepare_dir "${pkg_dir}"
-    user_own "${pkg_dir}"
     ${purge} && clean_up
 #     setarch "${target_arch}"
-    mkchrootpkg "${mkchrootpkg_args[@]}"
+    mkchrootpkg "${mkchrootpkg_args[@]}" || die
     post_build
 }
 

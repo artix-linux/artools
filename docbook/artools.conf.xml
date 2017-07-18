@@ -80,10 +80,9 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>cache_dir=</varname></term>
+                <term><varname>workspace_dir=</varname></term>
 
-                <listitem><para>Cache dir where buildpkg and buildise will cache
-                packages. Default is "/var/cache/artools".
+                <listitem><para>Workspace dir where packages, iso, repos or build tree. Default is "/home/$OWNER/artools-workspace".
                 </para></listitem>
             </varlistentry>
 
@@ -97,17 +96,31 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>log_dir=</varname></term>
+                <term><varname>build_mirror=</varname></term>
 
-                <listitem><para>Log dir where buildiso log the build process. Default is  "/var/log/artools".
+                <listitem><para>Default mirror to be used when building
+                packages or iso.
                 </para></listitem>
             </varlistentry>
 
             <varlistentry>
-                <term><varname>build_mirror=</varname></term>
+                <term><varname>account=</varname></term>
 
-                <listitem><para>Default mirror to be used when building
-                packages.
+                <listitem><para>Default user to be used for upload.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>project=</varname></term>
+
+                <listitem><para>Default SF project name to be used for upload.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>host_mirrors=</varname></term>
+
+                <listitem><para>Array of host mirrors.
                 </para></listitem>
             </varlistentry>
 
@@ -121,25 +134,32 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
         <variablelist>
             <varlistentry>
-                <term><varname>repo_tree=</varname></term>
+                <term><varname>repo_tree_artix=</varname></term>
 
                 <listitem><para>Artix package tree. Default is
-                "('artix')".
+                "('system' 'world' 'galaxy')".
                 </para></listitem>
             </varlistentry>
 
             <varlistentry>
-                <term><varname>host_tree=</varname></term>
+                <term><varname>host_tree_artix=</varname></term>
 
-                <listitem><para>Host tree. Default is "https://github.com/cromnix/artix".
+                <listitem><para>Host tree. Default is "https://github.com/artix-linux".
                 </para></listitem>
             </varlistentry>
 
+            <varlistentry>
+                <term><varname>repo_tree_arch=</varname></term>
+
+                <listitem><para>Archlinux package tree. Default is
+                "('packages' 'community')".
+                </para></listitem>
+            </varlistentry>
 
             <varlistentry>
-                <term><varname>host_tree_abs=</varname></term>
+                <term><varname>host_tree_arch=</varname></term>
 
-                <listitem><para>Host tree for abs. Default is
+                <listitem><para>Host tree for archlinux. Default is
                 "https://projects.archlinux.org/git/svntogit".
                 </para></listitem>
             </varlistentry>
@@ -203,20 +223,17 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
         <varlistentry>
             <term><varname>initsys=</varname></term>
 
-            <listitem><para>Takes <option>systemd</option> (the default)
-            or <option>openrc</option>. Selecting and option will change
+            <listitem><para>Takes <option>openrc</option> (the default)
+            or <option>notyetimplemented</option>. Selecting and option will change
             how the hostname, the displaymanager and services will be configured.
-            For services also controls if buildiso will use enable_systemd and
-            enable_systemd_live or enable_openrc and enable_openrc_live to determine
-            the default services that will be enabled automatically.
             </para></listitem>
         </varlistentry>
 
         <varlistentry>
             <term><varname>kernel=</varname></term>
 
-            <listitem><para>Takes a string corresponding to a
-            manjaro kernel package (ex: linux318 for linux 3.18).
+            <listitem><para>Takes a string corresponding to an
+            artix kernel package.
             </para></listitem>
         </varlistentry>
 
@@ -230,33 +247,12 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
         <variablelist>
 
-            <varlistentry>
-                <term><varname>account=</varname></term>
-
-                <listitem><para>Default user to be used for upload.
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>project=</varname></term>
-
-                <listitem><para>Default SF project name to be used for upload.
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>limit=</varname></term>
-
-                <listitem><para>Default upload bandwidth limit in kb/s.
-                </para></listitem>
-            </varlistentry>
-
              <varlistentry>
-            <term><varname>tracker_url=</varname></term>
+                <term><varname>tracker_url=</varname></term>
 
-            <listitem><para>Default tracker announce for the torrent.
+                <listitem><para>Default tracker announce for the torrent.
                     The tracker url can also contain comma separated urls.
-                    </para></listitem>
+                </para></listitem>
             </varlistentry>
 
             <varlistentry>
@@ -267,10 +263,25 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>iso_mirrors=</varname></term>
+                <term><varname>limit=</varname></term>
 
-                <listitem><para>Array of iso mirrors that will be
-                used for webseeds.
+                <listitem><para>Default upload bandwidth limit in kb/s.
+                </para></listitem>
+            </varlistentry>
+
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Options for deploypkg</title>
+
+        <para>The following options are understood:</para>
+
+        <variablelist>
+            <varlistentry>
+                <term><varname>repos_local=</varname></term>
+
+                <listitem><para>The local repository root. Default is "${workspace_dir}/repos".
                 </para></listitem>
             </varlistentry>
 
@@ -284,6 +295,7 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             <citerefentry project='artools'><refentrytitle>buildiso</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
             <citerefentry project='artools'><refentrytitle>deployiso</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
             <citerefentry project='artools'><refentrytitle>buildtree</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+            <citerefentry project='artools'><refentrytitle>deploypkg</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
             <citerefentry project='artools'><refentrytitle>buildpkg</refentrytitle><manvolnum>1</manvolnum></citerefentry>
         </para>
     </refsect1>

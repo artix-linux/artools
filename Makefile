@@ -31,6 +31,9 @@ LIST_PKG = \
 ARCH_CONF = \
 	$(wildcard data/make.conf.d/*.conf)
 
+LIST_IMPORT = \
+	$(wildcard data/import.list.d/*.list)
+
 BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
@@ -39,7 +42,8 @@ BIN_PKG = \
 	bin/signpkgs \
 	bin/mkchrootpkg \
 	bin/buildpkg \
-	bin/buildtree
+	bin/buildtree \
+	bin/deploypkg
 
 LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
@@ -55,8 +59,7 @@ BIN_ISO = \
 	bin/deployiso
 
 LIBS_ISO = \
-	$(wildcard lib/util-iso*.sh) \
-	lib/util-publish.sh
+	$(wildcard lib/util-iso*.sh)
 
 SHARED_ISO = \
 	data/mkinitcpio.conf \
@@ -76,6 +79,7 @@ MAN_XML = \
 	buildtree.xml \
 	buildiso.xml \
 	deployiso.xml \
+	deploypkg.xml \
 	check-yaml.xml \
 	artools.conf.xml \
 	profile.conf.xml
@@ -128,6 +132,9 @@ install_base:
 install_pkg:
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d
 	install -m0644 ${LIST_PKG} $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d
+
+	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
+	install -m0644 ${LIST_IMPORT} $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
 	install -m0644 ${ARCH_CONF} $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
@@ -198,6 +205,7 @@ uninstall_base:
 
 uninstall_pkg:
 	for f in ${LIST_PKG}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d/$$f; done
+	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${ARCH_CONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides

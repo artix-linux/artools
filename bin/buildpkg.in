@@ -110,6 +110,8 @@ prepare_build(){
 
     mkchrootpkg_args+=(-r ${work_dir})
 
+    prepare_dir "${pkg_dir}"
+
     prepare_dir "${work_dir}"
 
     eval_build_list "${list_dir_pkg}" "${build_list_pkg}"

@@ -111,53 +111,6 @@ prepare_dir(){
     [[ ! -d $1 ]] && mkdir -p $1
 }
 
-init_common(){
-
-    [[ -z ${target_arch} ]] && target_arch=$(uname -m)
-
-    [[ -z ${cache_dir} ]] && cache_dir='/var/cache/artools'
-
-    [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
-
-    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/cromnix/fork'
-
-    log_dir='/var/log/artools'
-
-    tmp_dir='/tmp'
-
-    host="sourceforge.net"
-
-    [[ -z ${project} ]] && project="cromnix"
-
-    [[ -z ${account} ]] && account="[SetUser]"
-}
-
-init_buildtree(){
-    tree_dir=${cache_dir}/pkgtree
-
-    tree_dir_abs=${tree_dir}/archlinux
-
-    [[ -z ${repo_tree[@]} ]] && repo_tree=('artix')
-
-    [[ -z ${host_tree} ]] && host_tree='https://github.com/cromnix'
-
-    [[ -z ${host_tree_abs} ]] && host_tree_abs='git://projects.archlinux.org/svntogit'
-}
-
-init_buildpkg(){
-    chroots_pkg="${chroots_dir}/buildpkg"
-
-    list_dir_pkg="${SYSCONFDIR}/pkg.list.d"
-
-    make_conf_dir="${SYSCONFDIR}/make.conf.d"
-
-    [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
-
-    [[ -z ${build_list_pkg} ]] && build_list_pkg='default'
-
-    cache_dir_pkg=${cache_dir}/pkg
-}
-
 get_release(){
     source /etc/lsb-release
     echo "${DISTRIB_RELEASE}"
@@ -167,11 +120,6 @@ get_distname(){
     source /etc/lsb-release
     echo "${DISTRIB_ID%Linux}"
 }
-
-# get_distid(){
-#     source /etc/lsb-release
-#     echo "${DISTRIB_ID}"
-# }
 
 get_disturl(){
     source /usr/lib/os-release
@@ -188,6 +136,66 @@ get_osid(){
     echo "${ID}"
 }
 
+init_common(){
+
+    [[ -z ${target_arch} ]] && target_arch=$(uname -m)
+
+    [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
+
+    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/artix-linux/repos'
+
+    log_dir='/var/log/artools'
+
+    tmp_dir='/tmp'
+
+    host="sourceforge.net"
+
+    [[ -z ${host_mirrors[@]} ]] && host_mirrors=('netcologne' 'freefr' 'netix' 'kent' '10gbps-io')
+
+    [[ -z ${project} ]] && project="artix-linux"
+
+    [[ -z ${account} ]] && account="[SetUser]"
+
+    [[ -z ${workspace_dir} ]] && workspace_dir=/home/${OWNER}/artools-workspace
+
+    prepare_dir "${workspace_dir}"
+}
+
+init_buildtree(){
+
+    [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${workspace_dir}/artix
+
+    [[ -z ${repo_tree_artix[@]} ]] && repo_tree_artix=('system' 'world' 'galaxy')
+
+    [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
+
+    [[ -z ${tree_dir_arch} ]] && tree_dir_arch=${workspace_dir}/archlinux
+
+    [[ -z ${repo_tree_arch} ]] && repo_tree_arch=('packages' 'community')
+
+    [[ -z ${host_tree_arch} ]] && host_tree_arch='git://projects.archlinux.org/svntogit'
+
+    list_dir_import="${SYSCONFDIR}/import.list.d"
+
+    [[ -d ${AT_USERCONFDIR}/import.list.d ]] && list_dir_import=${AT_USERCONFDIR}/import.list.d
+}
+
+init_buildpkg(){
+    chroots_pkg="${chroots_dir}/buildpkg"
+
+    list_dir_pkg="${SYSCONFDIR}/pkg.list.d"
+
+    make_conf_dir="${SYSCONFDIR}/make.conf.d"
+
+    [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
+
+    [[ -z ${build_list_pkg} ]] && build_list_pkg='default'
+
+    cache_dir_pkg=${workspace_dir}/pkg
+
+    prepare_dir "${cache_dir_pkg}"
+}
+
 init_buildiso(){
     chroots_iso="${chroots_dir}/buildiso"
 
@@ -197,7 +205,9 @@ init_buildiso(){
 
     [[ -z ${build_list_iso} ]] && build_list_iso='default'
 
-    cache_dir_iso="${cache_dir}/iso"
+    cache_dir_iso="${workspace_dir}/iso"
+
+    prepare_dir "${cache_dir_iso}"
 
     ##### iso settings #####
 
@@ -218,15 +228,22 @@ init_buildiso(){
 
 init_deployiso(){
 
-    [[ -z ${limit} ]] && limit=100
+    [[ -z ${uplimit} ]] && uplimit=100
 
     [[ -z ${tracker_url} ]] && tracker_url='udp://mirror.strits.dk:6969'
 
     [[ -z ${piece_size} ]] && piece_size=21
 
-    [[ -z ${iso_mirrors[@]} ]] && iso_mirrors=('netcologne' 'iweb' 'heanet' 'jaist' 'kent')
-
     torrent_meta="$(get_osname)"
+}
+
+init_deploypkg(){
+
+    repository='system'
+
+    [[ -z ${repos_local} ]] && repos_local="${workspace_dir}/repos"
+
+    repos_remote="/${repos_local##*/}"
 }
 
 load_config(){
@@ -247,12 +264,18 @@ load_config(){
 
     init_deployiso
 
+    init_deploypkg
+
     return 0
 }
 
 user_own(){
     local flag=$2
     chown ${flag} "${OWNER}:$(id --group ${OWNER})" "$1"
+}
+
+user_run(){
+    su ${OWNER} -c "$@"
 }
 
 clean_dir(){
@@ -320,4 +343,9 @@ check_root() {
     else
         exec su root -c "$(printf ' %q' "${orig_argv[@]}")"
     fi
+}
+
+connect(){
+    local home="/home/frs/project/${project}"
+    echo "${account},${project}@frs.${host}:${home}"
 }
