@@ -16,7 +16,7 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-publish-pkg.sh
+import ${LIBDIR}/util-pkg-publish.sh
 
 show_transfer(){
     local repo="$1"

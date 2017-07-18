@@ -16,7 +16,7 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-publish-iso.sh
+import ${LIBDIR}/util-iso-publish.sh
 
 show_profile(){
     prepare_transfer "$1"

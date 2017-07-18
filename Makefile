@@ -46,8 +46,7 @@ BIN_PKG = \
 	bin/deploypkg
 
 LIBS_PKG = \
-	$(wildcard lib/util-pkg*.sh) \
-	lib/util-publish-pkg.sh
+	$(wildcard lib/util-pkg*.sh)
 
 SHARED_PKG = \
 	data/makepkg.conf
@@ -60,8 +59,7 @@ BIN_ISO = \
 	bin/deployiso
 
 LIBS_ISO = \
-	$(wildcard lib/util-iso*.sh) \
-	lib/util-publish-iso.sh
+	$(wildcard lib/util-iso*.sh)
 
 SHARED_ISO = \
 	data/mkinitcpio.conf \
