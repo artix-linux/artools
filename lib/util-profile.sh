@@ -50,16 +50,18 @@ load_profile(){
     [[ -z ${login_shell} ]] && login_shell='/bin/bash'
 
     if [[ -z ${addgroups} ]];then
-        addgroups="video,power,storage,optical,network,lp,scanner,wheel,sys"
+        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users"
     fi
 
-    if [[ -z ${enable_openrc[@]} ]];then
-        enable_openrc=('acpid' 'bluetooth' 'elogind' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
+    if [[ -z ${openrc_boot[@]} ]];then
+        openrc_boot=('elogind')
     fi
 
-    if [[ ${displaymanager} != "none" ]]; then
-        enable_openrc+=('xdm')
+    if [[ -z ${openrc_default[@]} ]];then
+        openrc_default=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
     fi
+
+    [[ ${displaymanager} != "none" ]] && openrc_default+=('xdm')
 
     [[ -z ${netinstall} ]] && netinstall='false'
 
@@ -107,7 +109,8 @@ reset_profile(){
     unset username
     unset password
     unset addgroups
-    unset enable_openrc
+    unset openrc_boot
+    unset openrc_default
     unset enable_live
     unset login_shell
     unset netinstall

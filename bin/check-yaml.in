@@ -51,7 +51,8 @@ show_profile(){
     msg2 "addgroups: %s" "${addgroups}"
 
     msg2 "enable_live: %s" "${enable_live[*]}"
-    msg2 "enable_openrc: %s" "${enable_openrc[*]}"
+    msg2 "openrc_boot: %s" "${openrc_boot[*]}"
+    msg2 "openrc_default: %s" "${openrc_default[*]}"
 
     reset_profile
     unset yaml_dir
