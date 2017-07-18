@@ -11,35 +11,6 @@
 
 import ${LIBDIR}/util-yaml.sh
 
-# check_yaml(){
-#     msg2 "Checking validity [%s] ..." "${1##*/}"
-#     local name=${1##*/} data=$1 schema
-#     case ${name##*.} in
-#         yaml)
-#             name=netgroups
-# #             data=$1
-#         ;;
-#         conf)
-#             name=${name%.conf}
-# #             data=${tmp_dir}/$name.yaml
-# #             cp $1 $data
-#         ;;
-#     esac
-#     local schemas_dir=/usr/share/calamares/schemas
-#     schema=${schemas_dir}/$name.schema.yaml
-# #     pykwalify -d $data -s $schema
-#     kwalify -lf $schema $data
-# }
-
-# write_calamares_yaml(){
-#     configure_calamares "${yaml_dir}"
-#     if ${validate}; then
-#         for conf in "${yaml_dir}"/etc/calamares/modules/*.conf "${yaml_dir}"/etc/calamares/settings.conf; do
-#             check_yaml "$conf"
-#         done
-#     fi
-# }
-
 write_netgroup_yaml(){
     msg2 "Writing %s ..." "${2##*/}"
     echo "---" > "$2"
@@ -52,14 +23,12 @@ write_netgroup_yaml(){
     for p in ${packages[@]};do
         echo "       - $p" >> "$2"
     done
-#     ${validate} && check_yaml "$2"
 }
 
 write_pacman_group_yaml(){
     packages=$(pacman -Sgq "$1")
     prepare_dir "${cache_dir_netinstall}/pacman"
     write_netgroup_yaml "$1" "${cache_dir_netinstall}/pacman/$1.yaml"
-#     ${validate} && check_yaml "${cache_dir_netinstall}/pacman/$1.yaml"
 }
 
 gen_fn(){
@@ -74,7 +43,7 @@ make_profile_yaml(){
         load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
         write_netgroup_yaml "$1" "$(gen_fn "Packages-Desktop")"
     fi
-#     ${calamares} && write_calamares_yaml "$1"
+    ${calamares} && configure_calamares "${yaml_dir}"
     reset_profile
     unset yaml_dir
 }
