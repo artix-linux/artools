@@ -163,15 +163,6 @@ write_welcome_conf(){
     fi
 }
 
-write_postcfg_conf(){
-    local conf="${modules_dir}/postcfg.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "keyrings:" >> "$conf"
-    echo "    - archlinux" >> "$conf"
-    echo "    - cromnix" >> "$conf"
-}
-
 write_umount_conf(){
     local conf="${modules_dir}/umount.conf"
     msg2 "Writing %s ..." "${conf##*/}"
@@ -259,7 +250,7 @@ write_settings_conf(){
     esac
     echo "        - grubcfg" >> "$conf"
     echo "        - bootloader" >> "$conf" && write_bootloader_conf
-    echo "        - postcfg" >> "$conf" && write_postcfg_conf
+    echo "        - postcfg" >> "$conf"
     echo "        - umount" >> "$conf" && write_umount_conf
     echo "    - show:" >> "$conf"
     echo "        - finished" >> "$conf" && write_finished_conf
