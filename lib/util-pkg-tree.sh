@@ -109,7 +109,10 @@ import_from_arch(){
             for pkg in ${import_list[@]};do
                 msg2 "Importing [%s] ..." "$pkg"
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
-                $(is_dirty) && git commit -m "Archlinux $pkg import $(date %Y%m%d)"
+                if $(is_dirty); then
+                    git add $pkg
+                    git commit -m "Archlinux $pkg import $(date %Y%m%d)"
+                fi
             done
         fi
     done
