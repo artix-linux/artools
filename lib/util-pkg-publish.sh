@@ -12,9 +12,9 @@
 repo_add_pkg(){
     local repo="$1" arch="$2" pkg="$3"
 #     if [[ ! -f ${cache_dir_pkg}/$arch/$pkg{,.sig} ]];then
-        ln -sv ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+        ln -s ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
 #     fi
-    repo-add -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${cache_dir_pkg}/$arch/$pkg
+    repo-add -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${repos_local}/$repo/os/$arch/$pkg
 }
 
 repo_del_pkg(){
