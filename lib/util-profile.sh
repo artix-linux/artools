@@ -79,7 +79,7 @@ load_profile(){
     root_list=${run_dir}/shared/Packages-Root
     [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
 
-    root_overlay="${run_dir}/shared/${os_id}/root-overlay"
+    root_overlay="${run_dir}/shared/root-overlay"
     [[ -d "$profdir/root-overlay" ]] && root_overlay="$profdir/root-overlay"
 
     [[ -f "$profdir/Packages-Desktop" ]] && desktop_list=$profdir/Packages-Desktop
@@ -88,7 +88,7 @@ load_profile(){
     live_list="${run_dir}/shared/Packages-Live"
     [[ -f "$profdir/Packages-Live" ]] && live_list="$profdir/Packages-Live"
 
-    live_overlay="${run_dir}/shared/${os_id}/live-overlay"
+    live_overlay="${run_dir}/shared/live-overlay"
     [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
 
     if ${netinstall};then
