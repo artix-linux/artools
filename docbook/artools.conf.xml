@@ -263,7 +263,7 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>limit=</varname></term>
+                <term><varname>uplimit=</varname></term>
 
                 <listitem><para>Default upload bandwidth limit in kb/s.
                 </para></listitem>

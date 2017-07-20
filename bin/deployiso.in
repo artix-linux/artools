@@ -30,7 +30,7 @@ display_settings(){
     show_config
 
     msg "OPTIONS:"
-    msg2 "limit: %s kB/s" "${limit}"
+    msg2 "uplimit: %s kB/s" "${uplimit}"
 #     msg2 "dist_release: %s" "${dist_release}"
 
     msg "ARGS:"
@@ -68,8 +68,8 @@ rsync_args=(-aP --progress -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p                 Source folder to upload [default:${build_list_iso}]"
-    echo "    -l                 Limit bandwidth in kB/s [default:${limit}]"
+    echo "    -p                 Source folder to upload"
+    echo "    -l                 Limit bandwidth in kB/s [default:${uplimit}]"
     echo '    -u                 Update remote directory'
     echo '    -t                 Create iso torrent'
     echo '    -q                 Query settings and pretend upload'
@@ -99,7 +99,7 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
-rsync_args+=(--bwlimit=${limit})
+rsync_args+=(--bwlimit=${uplimit})
 
 ${pretend} && display_settings #&& exit 1
 
