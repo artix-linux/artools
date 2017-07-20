@@ -10,10 +10,10 @@
 # GNU General Public License for more details.
 
 add_svc_rc(){
-    local mnt="$1" name="$2"
+    local mnt="$1" name="$2" rlvl="$3"
     if [[ -f $mnt/etc/init.d/$name ]];then
         msg2 "Setting %s ..." "$name"
-        chroot $mnt rc-update add $name default &>/dev/null
+        chroot $mnt rc-update add $name $rlvl &>/dev/null
     fi
 }
 
@@ -53,14 +53,14 @@ configure_services(){
     case ${initsys} in
         'openrc')
             for svc in ${openrc_boot[@]}; do
-                add_svc_rc "$mnt" "$svc"
+                add_svc_rc "$mnt" "$svc" "boot"
             done
             for svc in ${openrc_default[@]}; do
                 [[ $svc == "xdm" ]] && set_xdm "$mnt"
-                add_svc_rc "$mnt" "$svc"
+                add_svc_rc "$mnt" "$svc" "default"
             done
             for svc in ${enable_live[@]}; do
-                add_svc_rc "$mnt" "$svc"
+                add_svc_rc "$mnt" "$svc" "default"
             done
         ;;
     esac
