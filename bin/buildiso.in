@@ -39,7 +39,7 @@ prepare_build(){
 
     iso_file=$(gen_iso_fn).iso
 
-    mkchroot_args+=(-C ${pacman_conf} -U "${build_mirror}")
+    mkchroot_args+=(-C ${pacman_conf})
     work_dir=${chroots_iso}/${profile}/${target_arch}
 
     iso_dir="${cache_dir_iso}/${profile}"
@@ -72,7 +72,8 @@ show_profile(){
         msg2 "addgroups: %s" "${addgroups}"
 
         msg2 "enable_live: %s" "${enable_live[*]}"
-        msg2 "enable_openrc: %s" "${enable_openrc[*]}"
+        msg2 "openrc_boot: %s" "${openrc_boot[*]}"
+        msg2 "openrc_default: %s" "${openrc_default[*]}"
     fi
     reset_profile
 }

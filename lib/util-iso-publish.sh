@@ -39,9 +39,10 @@ prepare_transfer(){
 }
 
 sync_dir(){
-    prepare_transfer "$1"
-    msg "Start upload [%s] ..." "$1"
+    prof="$1"
+    prepare_transfer "$prof"
+    msg "Start upload [%s] ..." "$prof"
     rsync "${rsync_args[@]}" ${src_dir} $(connect)${target_dir}
-    msg "Done upload [%s]" "$1"
+    msg "Done upload [%s]" "$prof"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

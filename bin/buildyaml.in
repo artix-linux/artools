@@ -51,7 +51,8 @@ show_profile(){
     msg2 "addgroups: %s" "${addgroups}"
 
     msg2 "enable_live: %s" "${enable_live[*]}"
-    msg2 "enable_openrc: %s" "${enable_openrc[*]}"
+    msg2 "openrc_boot: %s" "${openrc_boot[*]}"
+    msg2 "openrc_default: %s" "${openrc_default[*]}"
 
     reset_profile
     unset yaml_dir
@@ -72,8 +73,7 @@ display_settings(){
     msg2 "kernel: %s" "${kernel}"
 
     msg "ARGS:"
-#     msg2 "validate: %s" "${validate}"
-#     msg2 "calamares: %s" "${calamares}"
+    msg2 "calamares: %s" "${calamares}"
     msg2 "group: %s" "${group}"
 
     msg "CHECK QUEUE:"
@@ -92,7 +92,6 @@ load_run_dir
 calamares=false
 pretend=false
 group=false
-validate=false
 cache_dir_netinstall="${workspace_dir}/netinstall"
 
 usage() {
@@ -101,9 +100,8 @@ usage() {
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -k <name>          Kernel to use[default: ${kernel}]"
     echo "    -i <name>          Init system to use [default: ${initsys}]"
-#     echo '    -c                 Check also calamares yaml files generated for the profile'
+    echo '    -c                 Check also calamares yaml files generated for the profile'
     echo '    -g                 Enable pacman group accepted for -p'
-#     echo '    -v                 Validate by schema'
     echo '    -q                 Query settings'
     echo '    -h                 This help'
     echo ''
@@ -113,9 +111,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-# opts='p:a:i:k:gcvqh'
-
-opts='p:a:i:k:gqh'
+opts='p:a:i:k:gcqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -123,9 +119,8 @@ while getopts "${opts}" arg; do
         a) target_arch="$OPTARG" ;;
         i) initsys="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
-#         c) calamares=true ;;
+        c) calamares=true ;;
         g) group=true ;;
-#         v) validate=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -133,8 +128,6 @@ while getopts "${opts}" arg; do
 done
 
 shift $(($OPTIND - 1))
-
-#check_root
 
 eval_build_list "${list_dir_iso}" "${build_list_iso}"
 

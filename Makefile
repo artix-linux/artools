@@ -1,4 +1,4 @@
-Version=0.1
+Version=0.3
 
 PREFIX = /usr/local
 SYSCONFDIR = /etc
@@ -80,12 +80,12 @@ MAN_XML = \
 	buildiso.xml \
 	deployiso.xml \
 	deploypkg.xml \
-	check-yaml.xml \
+	buildyaml.xml \
 	artools.conf.xml \
 	profile.conf.xml
 
 BIN_YAML = \
-	bin/check-yaml
+	bin/buildyaml
 
 LIBS_YAML = \
 	$(wildcard lib/util-yaml*.sh) \
@@ -195,7 +195,7 @@ install_yaml:
 	install -m0644 ${SHARED_YAML} $(DESTDIR)$(PREFIX)/share/artools
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/man/man1
-	gzip -c man/check-yaml.1 > $(DESTDIR)$(PREFIX)/share/man/man1/check-yaml.1.gz
+	gzip -c man/buildyaml.1 > $(DESTDIR)$(PREFIX)/share/man/man1/buildyaml.1.gz
 
 uninstall_base:
 	for f in ${SYSCONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/$$f; done
@@ -232,7 +232,7 @@ uninstall_yaml:
 	for f in ${BIN_YAML}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	for f in ${LIBS_YAML}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 	for f in ${SHARED_YAML}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
-	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/check-yaml.1.gz
+	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/buildyaml.1.gz
 
 install: install_base install_pkg install_iso install_yaml
 

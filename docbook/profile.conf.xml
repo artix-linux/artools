@@ -128,10 +128,18 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>enable_openrc=</varname></term>
+                <term><varname>openrc_boot=</varname></term>
 
                 <listitem><para>Array of services that will be
-                enabled in openrc systems.
+                enabled in openrc boot runlevel.
+                </para></listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>openrc_default=</varname></term>
+
+                <listitem><para>Array of services that will be
+                enabled in openrc default runlevel.
                 </para></listitem>
             </varlistentry>
 

@@ -72,7 +72,7 @@ else
 fi
 
 basestrap_args=(-Gcd ${pacman_conf:+-C "$pacman_conf"})
-[[ -z ${mirror} ]] && basestrap_args+=(-M)
+[[ -n ${mirror} ]] && basestrap_args+=(-M)
 
 umask 0022
 

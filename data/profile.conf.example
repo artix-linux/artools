@@ -23,12 +23,12 @@
 # configure calamares to use chrootcfg instead of unpackfs; default: unpackfs
 # chrootcfg="false"
 
-# unset defaults to given values,
-# names must match openrc service names
-# enable_openrc=('acpid' 'bluetooth' 'elogind' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
+# service runlevels
+# openrc_boot=('elogind')
+# openrc_default=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
 
 # unset defaults to given values
-# addgroups="video,power,disk,storage,optical,network,lp,scanner,wheel"
+# addgroups="video,power,storage,optical,network,lp,scanner,wheel,users"
 
 ################# live-session #################
 

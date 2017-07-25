@@ -9,12 +9,20 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+get_local_head(){
+    echo $(git log --pretty=%H ...refs/heads/$1^ | head -n 1)
+}
+
+get_remote_head(){
+    echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
+}
+
 sync_tree_branches(){
-    local branches=(master artix archlinux testing)
+    local branches=(master artix archlinux)
     for b in ${branches[@]};do
         git checkout $b &> /dev/null
-        local local_head=$(git log --pretty=%H ...refs/heads/$b^ | head -n 1)
-        local remote_head=$(git ls-remote origin -h refs/heads/$b | cut -f1)
+        local local_head=$(get_local_head "$b")
+        local remote_head=$(get_remote_head "$b")
         local timer=$(get_timer) repo="$1"
         msg "Checking [%s] (%s) ..." "$repo" "$b"
         msg2 "local: %s" "${local_head}"
@@ -32,17 +40,18 @@ sync_tree_branches(){
 }
 
 sync_tree(){
-    local master=$(git log --pretty=%H ...refs/heads/master^ | head -n 1)
-    local master_remote=$(git ls-remote origin -h refs/heads/master | cut -f1)
+    local branch="master"
+    local local_head=$(get_local_head "$branch")
+    local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer) repo="$1"
     msg "Checking [%s] ..." "$repo"
-    msg2 "local: %s" "${master}"
-    msg2 "remote: %s" "${master_remote}"
-    if [[ "${master}" == "${master_remote}" ]]; then
+    msg2 "local: %s" "${local_head}"
+    msg2 "remote: %s" "${remote_head}"
+    if [[ "${local_head}" == "${remote_head}" ]]; then
         info "nothing to do"
     else
         info "needs sync"
-        git pull origin master
+        git pull origin $branch
     fi
     msg "Done [%s]" "$repo"
     show_elapsed_time "${FUNCNAME}" "${timer}"
@@ -96,6 +105,11 @@ is_dirty() {
     return 0
 }
 
+get_pkgver(){
+    source PKGBUILD
+    echo $pkgver-$pkgrel
+}
+
 import_from_arch(){
     local timer=$(get_timer)
     for repo in ${repo_tree_artix[@]};do
@@ -109,7 +123,10 @@ import_from_arch(){
             for pkg in ${import_list[@]};do
                 msg2 "Importing [%s] ..." "$pkg"
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
-                $(is_dirty) && git commit -m "Archlinux $pkg import $(date %Y%m%d)"
+                if $(is_dirty); then
+                    git add $pkg
+                    git commit -m "Archlinux $pkg-$(get_pkgver) import"
+                fi
             done
         fi
     done
