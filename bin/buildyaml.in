@@ -21,6 +21,7 @@ import ${LIBDIR}/util-yaml-check.sh
 import ${LIBDIR}/util-profile.sh
 
 show_profile(){
+    prepare_build
     msg2 "yaml_dir: %s" "${yaml_dir}"
     msg2 "autologin: %s" "${autologin}"
 
@@ -48,6 +49,7 @@ display_settings(){
     show_config
 
     msg "OPTIONS:"
+    msg2 "profile: %s" "${profile}"
     msg2 "arch: %s" "${target_arch}"
     msg2 "initsys: %s" "${initsys}"
     msg2 "kernel: %s" "${kernel}"
@@ -113,7 +115,5 @@ shift $(($OPTIND - 1))
 ${pretend} && display_settings && exit 1
 
 ${group} && write_pacman_group_yaml "${profile}" && exit 0
-
-prepare_build
 
 build

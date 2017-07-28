@@ -48,6 +48,7 @@ prepare_build(){
 }
 
 build(){
+    prepare_build
     load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
     write_netgroup_yaml "${profile}" "$(gen_fn "Packages-Root")"
     if [[ -f "${desktop_list}" ]]; then

@@ -20,6 +20,7 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso.sh
 
 show_profile(){
+    prepare_build
     msg2 "iso_file: %s" "${iso_file}"
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
@@ -46,6 +47,7 @@ display_settings(){
     show_config
 
     msg "OPTIONS:"
+    msg2 "profile: %s" "${profile}"
     msg2 "arch: %s" "${target_arch}"
     msg2 "initsys: %s" "${initsys}"
     msg2 "kernel: %s" "${kernel}"
@@ -84,7 +86,7 @@ profile=lxqt
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p <profile>       Profile"
+    echo "    -p <profile>       Profile [default: ${profile}]"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_iso}]"
@@ -138,8 +140,6 @@ shift $(($OPTIND - 1))
 check_root
 
 check_requirements
-
-prepare_build
 
 ${pretend} && display_settings && exit 1
 

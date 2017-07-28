@@ -367,17 +367,6 @@ make_grub(){
     fi
 }
 
-check_requirements(){
-
-    [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
-
-    for sig in TERM HUP QUIT; do
-        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
-    done
-    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
-    trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
-}
-
 compress_images(){
     local timer=$(get_timer)
     run_safe "make_iso"
@@ -403,22 +392,26 @@ prepare_images(){
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
+check_requirements(){
+    [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
+
+    for sig in TERM HUP QUIT; do
+        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
+    done
+    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
+    trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
+}
+
 prepare_build(){
     timer_start=$(get_timer)
     local profile_dir=${run_dir}/${profile}
 
     load_profile "${profile_dir}"
 
-    local user_conf=${profile_dir}/user-repos.conf pac_arch='default' pacman_conf
+    local pac_arch='default' pacman_conf
     [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
-    if [[ -f ${user_conf} ]];then
-        info "detected: %s" "user-repos.conf"
-        check_user_repos_conf "${user_conf}"
-        pacman_conf=${tmp_dir}/custom-pacman.conf
-        cat ${DATADIR}/pacman-$pac_arch.conf ${user_conf} > "$pacman_conf"
-    else
-        pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
-    fi
+
+    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
 
     iso_file=$(gen_iso_fn).iso
 
@@ -434,6 +427,7 @@ prepare_build(){
 }
 
 build(){
+    prepare_build
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
         chroot_clean "${chroots_iso}/${profile}/${target_arch}"

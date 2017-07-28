@@ -9,6 +9,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+# $1: list_dir
+show_build_lists(){
+    local list temp
+    for item in $(ls $1/*.list); do
+        temp=${item##*/}
+        list=${list:-}${list:+|}${temp%.list}
+    done
+    echo $list
+}
+
 read_build_list(){
     local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
     build_list=$(sed "$_com_rm" "$1.list" | sed "$_space" | sed "$_clean")
