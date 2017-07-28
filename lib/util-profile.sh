@@ -47,8 +47,6 @@ load_profile(){
 
     [[ -z ${password} ]] && password="artix"
 
-    [[ -z ${login_shell} ]] && login_shell='/bin/bash'
-
     if [[ -z ${addgroups} ]];then
         addgroups="video,power,storage,optical,network,lp,scanner,wheel,users"
     fi
@@ -62,10 +60,6 @@ load_profile(){
     fi
 
     [[ ${displaymanager} != "none" ]] && openrc_default+=('xdm')
-
-    [[ -z ${netinstall} ]] && netinstall='false'
-
-    [[ -z ${chrootcfg} ]] && chrootcfg='false'
 
     enable_live=('artix-live' 'pacman-init')
 
@@ -91,13 +85,6 @@ load_profile(){
     live_overlay="${run_dir}/shared/live-overlay"
     [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
 
-    if ${netinstall};then
-        sort -u ${run_dir}/shared/Packages-Net ${live_list} > ${tmp_dir}/packages-live-net.list
-        live_list=${tmp_dir}/packages-live-net.list
-    else
-        chrootcfg="false"
-    fi
-
     return 0
 }
 
@@ -112,9 +99,6 @@ reset_profile(){
     unset openrc_boot
     unset openrc_default
     unset enable_live
-    unset login_shell
-    unset netinstall
-    unset chrootcfg
     unset extra
     unset root_list
     unset desktop_list
@@ -134,9 +118,6 @@ write_live_session_conf(){
     echo '# autologin' >> ${conf}
     echo "autologin=${autologin}" >> ${conf}
     echo '' >> ${conf}
-    echo '# login shell' >> ${conf}
-    echo "login_shell=${login_shell}" >> ${conf}
-    echo '' >> ${conf}
     echo '# live username' >> ${conf}
     echo "username=${username}" >> ${conf}
     echo '' >> ${conf}
@@ -155,14 +136,10 @@ load_pkgs(){
     local _init="s|>openrc||g" #_init_rm="s|>runit.*||g"
 
     local _basic="s|>basic.*||g"
-    if ${basic};then
-        _basic="s|>basic||g"
-    fi
+    ${basic} && _basic="s|>basic||g"
 
     local _extra="s|>extra.*||g"
-    if ${extra};then
-        _extra="s|>extra||g"
-    fi
+    ${extra} && _extra="s|>extra||g"
 
     local _multi _arch _arch_rm
 
@@ -173,11 +150,8 @@ load_pkgs(){
     else
         _arch="s|>x86_64||g"
         _arch_rm="s|>i686.*||g"
-        if ${multilib};then
-            _multi="s|>multilib||g"
-        else
-            _multi="s|>multilib.*||g"
-        fi
+        _multi="s|>multilib.*||g"
+        ${multilib} && _multi="s|>multilib||g"
     fi
 
     local _blacklist="s|>blacklist.*||g" \

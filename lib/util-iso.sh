@@ -227,10 +227,7 @@ make_iso() {
 gen_iso_fn(){
     local vars=() name
     vars+=("${os_id}")
-#     if ! ${chrootcfg};then
-#         [[ -n ${profile} ]] && vars+=("${profile}")
-#     fi
-#     [[ ${initsys} == 'openrc' ]] && vars+=("${initsys}")
+#     vars+=("${profile}")
     vars+=("${dist_release}")
     vars+=("${target_arch}")
     for n in ${vars[@]};do
@@ -372,8 +369,6 @@ make_grub(){
 
 check_requirements(){
 
-    eval_build_list "${list_dir_iso}" "${build_list_iso}"
-
     [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
 
     for sig in TERM HUP QUIT; do
@@ -408,16 +403,37 @@ prepare_images(){
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
-archive_logs(){
-    local name=$(gen_iso_fn) ext=log.tar.xz src=${tmp_dir}/archives.list
-    find ${log_dir} -maxdepth 1 -name "$name*.log" -printf "%f\n" > $src
-    msg2 "Archiving log files [%s] ..." "$name.$ext"
-    tar -cJf ${log_dir}/$name.$ext -C ${log_dir} -T $src
-    msg2 "Cleaning log files ..."
-    find ${log_dir} -maxdepth 1 -name "$name*.log" -delete
+prepare_build(){
+    timer_start=$(get_timer)
+    local profile_dir=${run_dir}/${profile}
+
+    load_profile "${profile_dir}"
+
+    local user_conf=${profile_dir}/user-repos.conf pac_arch='default' pacman_conf
+    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
+    if [[ -f ${user_conf} ]];then
+        info "detected: %s" "user-repos.conf"
+        check_user_repos_conf "${user_conf}"
+        pacman_conf=${tmp_dir}/custom-pacman.conf
+        cat ${DATADIR}/pacman-$pac_arch.conf ${user_conf} > "$pacman_conf"
+    else
+        pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+    fi
+
+    iso_file=$(gen_iso_fn).iso
+
+    mkchroot_args+=(-C ${pacman_conf})
+    work_dir=${chroots_iso}/${profile}/${target_arch}
+
+    iso_dir="${cache_dir_iso}/${profile}"
+
+    iso_root=${chroots_iso}/${profile}/iso
+    mnt_dir=${chroots_iso}/${profile}/mnt
+    prepare_dir "${mnt_dir}"
+    prepare_dir "${iso_dir}"
 }
 
-make_profile(){
+build(){
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
         chroot_clean "${chroots_iso}/${profile}/${target_arch}"
@@ -435,26 +451,17 @@ make_profile(){
     if ${iso_only}; then
         [[ ! -d ${work_dir} ]] && die "Create images: buildiso -p %s -x" "${profile}"
         compress_images
-        ${verbose} && archive_logs
         exit 1
     fi
     if ${images_only}; then
         prepare_images
-        ${verbose} && archive_logs
         warning "Continue compress: buildiso -p %s -zc ..." "${profile}"
         exit 1
     else
         prepare_images
         compress_images
-        ${verbose} && archive_logs
     fi
     reset_profile
     msg "Finished building [%s]" "${profile}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
-}
-
-build(){
-    local prof="$1"
-    prepare_build "$prof"
-    make_profile
 }

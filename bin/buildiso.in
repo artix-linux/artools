@@ -19,40 +19,7 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso.sh
 
-prepare_build(){
-    timer_start=$(get_timer)
-    profile=$1
-    local profile_dir=${run_dir}/${profile}
-
-    load_profile "${profile_dir}"
-
-    local user_conf=${profile_dir}/user-repos.conf pac_arch='default' pacman_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
-    if [[ -f ${user_conf} ]];then
-        info "detected: %s" "user-repos.conf"
-        check_user_repos_conf "${user_conf}"
-        pacman_conf=${tmp_dir}/custom-pacman.conf
-        cat ${DATADIR}/pacman-$pac_arch.conf ${user_conf} > "$pacman_conf"
-    else
-        pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
-    fi
-
-    iso_file=$(gen_iso_fn).iso
-
-    mkchroot_args+=(-C ${pacman_conf})
-    work_dir=${chroots_iso}/${profile}/${target_arch}
-
-    iso_dir="${cache_dir_iso}/${profile}"
-
-    iso_root=${chroots_iso}/${profile}/iso
-    mnt_dir=${chroots_iso}/${profile}/mnt
-    prepare_dir "${mnt_dir}"
-    prepare_dir "${iso_dir}"
-}
-
 show_profile(){
-    local prof="$1"
-    prepare_build "$prof"
     msg2 "iso_file: %s" "${iso_file}"
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
@@ -60,15 +27,11 @@ show_profile(){
         [[ ${target_arch} == 'x86_64' ]] && msg2 "multilib: %s" "${multilib}"
 
         msg2 "extra: %s" "${extra}"
-
-        msg2 "netinstall: %s" "${netinstall}"
-        msg2 "chrootcfg: %s" "${chrootcfg}"
-        ${netinstall} && msg2 "netgroups: %s" "$(get_yaml)"
+        msg2 "netgroups: %s" "$(get_yaml)"
 
         msg2 "hostname: %s" "${hostname}"
         msg2 "username: %s" "${username}"
         msg2 "password: %s" "${password}"
-        msg2 "login_shell: %s" "${login_shell}"
         msg2 "addgroups: %s" "${addgroups}"
 
         msg2 "enable_live: %s" "${enable_live[*]}"
@@ -81,11 +44,6 @@ show_profile(){
 display_settings(){
     show_version
     show_config
-
-#     msg "PROFILE:"
-#     msg2 "build_lists: %s" "$(show_build_lists ${list_dir_iso})"
-#     msg2 "build_list_iso: %s" "${build_list_iso}"
-    msg2 "is_build_list: %s" "${is_build_list}"
 
     msg "OPTIONS:"
     msg2 "arch: %s" "${target_arch}"
@@ -104,8 +62,8 @@ display_settings(){
     msg2 "dist_release: %s" "${dist_release}"
     msg2 "dist_branding: %s" "${dist_branding}"
 
-    msg "BUILD QUEUE:"
-    run show_profile "${build_list_iso}"
+    msg "BUILD:"
+    show_profile
 }
 
 load_user_info
@@ -122,10 +80,11 @@ verbose=false
 persist=false
 
 mkchroot_args=()
+profile=lxqt
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p <profile>       Buildset or profile [default: ${build_list_iso}]"
+    echo "    -p <profile>       Profile"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_iso}]"
@@ -156,7 +115,7 @@ opts='p:a:r:t:k:i:g:czxmvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        p) build_list_iso="$OPTARG" ;;
+        p) profile="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         r) chroots_iso="$OPTARG" ;;
         t) cache_dir_iso="$OPTARG" ;;
@@ -180,6 +139,8 @@ check_root
 
 check_requirements
 
+prepare_build
+
 ${pretend} && display_settings && exit 1
 
-run build "${build_list_iso}"
+build

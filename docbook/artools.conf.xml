@@ -173,7 +173,7 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
 
         <variablelist>
             <varlistentry>
-                <term><varname>build_list_pkg=</varname></term>
+                <term><varname>build_list=</varname></term>
 
                 <listitem><para>Default list for buildpkg without the .list
                 extension.
@@ -189,13 +189,6 @@ along with systemd; If not, see <http://www.gnu.org/licenses/>.
         <para>The following options are understood:</para>
 
         <variablelist>
-        <varlistentry>
-            <term><varname>build_list_iso=</varname></term>
-
-            <listitem><para>Default list for buildiso without the .list
-            extension.
-            </para></listitem>
-        </varlistentry>
 
         <varlistentry>
             <term><varname>dist_release=</varname></term>

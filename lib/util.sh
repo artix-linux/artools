@@ -189,7 +189,7 @@ init_buildpkg(){
 
     [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
 
-    [[ -z ${build_list_pkg} ]] && build_list_pkg='default'
+    [[ -z ${build_list} ]] && build_list='default'
 
     cache_dir_pkg=${workspace_dir}/pkg
 
@@ -198,12 +198,6 @@ init_buildpkg(){
 
 init_buildiso(){
     chroots_iso="${chroots_dir}/buildiso"
-
-    list_dir_iso="${SYSCONFDIR}/iso.list.d"
-
-    [[ -d ${AT_USERCONFDIR}/iso.list.d ]] && list_dir_iso=${AT_USERCONFDIR}/iso.list.d
-
-    [[ -z ${build_list_iso} ]] && build_list_iso='default'
 
     cache_dir_iso="${workspace_dir}/iso"
 
@@ -309,30 +303,6 @@ show_config(){
         msg2 "config: %s" "~/.config/artools/artools.conf"
     else
         msg2 "config: %s" "${artools_conf}"
-    fi
-}
-
-read_build_list(){
-    local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
-    build_list=$(sed "$_com_rm" "$1.list" | sed "$_space" | sed "$_clean")
-}
-
-# $1: list_dir
-# $2: build list
-eval_build_list(){
-    eval "case $2 in
-        $(show_build_lists $1)) is_build_list=true; read_build_list $1/$2 ;;
-        *) is_build_list=false ;;
-    esac"
-}
-
-run(){
-    if ${is_build_list};then
-        for item in ${build_list[@]};do
-            $1 $item
-        done
-    else
-        $1 $2
     fi
 }
 

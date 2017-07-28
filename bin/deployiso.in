@@ -19,8 +19,7 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso-publish.sh
 
 show_profile(){
-    prepare_transfer "$1"
-    info "Profile: [$1]"
+    info "Profile: [${profile}]"
     msg2 "src_dir: ${src_dir}"
     msg2 "target_dir: ${target_dir}"
 }
@@ -51,7 +50,7 @@ display_settings(){
     msg2 "project: %s" "${project}"
 
     msg "UPLOAD:"
-    show_profile "${profile}"
+    show_profile
 }
 
 load_user_info
@@ -62,7 +61,7 @@ pretend=false
 update=false
 verbose=false
 torrent=false
-profile=''
+profile=lxqt
 
 rsync_args=(-aP --progress -e ssh)
 
@@ -101,6 +100,8 @@ timer_start=$(get_timer)
 
 rsync_args+=(--bwlimit=${uplimit})
 
+prepare_transfer
+
 ${pretend} && display_settings #&& exit 1
 
-sync_dir "${profile}"
+sync_dir

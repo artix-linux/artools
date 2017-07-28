@@ -158,9 +158,7 @@ write_welcome_conf(){
     echo "      - storage" >> "$conf"
     echo "      - ram" >> "$conf"
     echo "      - root" >> "$conf"
-    if ${netinstall};then
-        echo "      - internet" >> "$conf"
-    fi
+    echo "      - internet" >> "$conf"
 }
 
 write_umount_conf(){
@@ -172,12 +170,7 @@ write_umount_conf(){
 }
 
 get_yaml(){
-    local args=() yaml
-    if ${chrootcfg};then
-        args+=("chrootcfg")
-    else
-        args+=("packages")
-    fi
+    local args=("chrootcfg") yaml
     args+=("${initsys}")
     for arg in ${args[@]};do
         yaml=${yaml:-}${yaml:+-}${arg}
@@ -213,26 +206,13 @@ write_settings_conf(){
     echo "        - keyboard" >> "$conf"
     echo "        - partition" >> "$conf"
     echo "        - users" >> "$conf" && write_users_conf
-    if ${netinstall};then
-        echo "        - netinstall" >> "$conf" && write_netinstall_conf
-    fi
+    echo "        - netinstall" >> "$conf" && write_netinstall_conf
     echo "        - summary" >> "$conf"
     echo "    - exec:" >> "$conf"
     echo "        - partition" >> "$conf"
     echo "        - mount" >> "$conf"
-    if ${netinstall};then
-        if ${chrootcfg}; then
-            echo "        - chrootcfg" >> "$conf"
-            echo "        - networkcfg" >> "$conf"
-        else
-            echo "        - unpackfs" >> "$conf" && write_unpack_conf
-            echo "        - networkcfg" >> "$conf"
-            echo "        - packages" >> "$conf" && write_packages_conf
-        fi
-    else
-        echo "        - unpackfs" >> "$conf" && write_unpack_conf
-        echo "        - networkcfg" >> "$conf"
-    fi
+    echo "        - chrootcfg" >> "$conf"
+    echo "        - networkcfg" >> "$conf"
     echo "        - machineid" >> "$conf" && write_machineid_conf
     echo "        - fstab" >> "$conf"
     echo "        - locale" >> "$conf"

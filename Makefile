@@ -51,9 +51,6 @@ LIBS_PKG = \
 SHARED_PKG = \
 	data/makepkg.conf
 
-LIST_ISO = \
-	$(wildcard data/iso.list.d/*.list)
-
 BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
@@ -155,9 +152,6 @@ install_pkg:
 	gzip -c man/buildtree.1 > $(DESTDIR)$(PREFIX)/share/man/man1/buildtree.1.gz
 
 install_iso:
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/iso.list.d
-	install -m0644 ${LIST_ISO} $(DESTDIR)$(SYSCONFDIR)/artools/iso.list.d
-
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
@@ -215,7 +209,6 @@ uninstall_pkg:
 	rm -f $(DESTDIR)$(PREFIX)/share/man/man1/buildtree.1.gz
 
 uninstall_iso:
-	for f in ${LIST_ISO}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/iso.list.d/$$f; done
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 

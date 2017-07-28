@@ -73,7 +73,7 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             <varlistentry>
                 <term><option>-p PROFILE...</option></term>
 
-                <listitem><para>Name of the build list or name of the directory
+                <listitem><para>Name of the iso profile directory
                 you will upload.</para></listitem>
             </varlistentry>
 

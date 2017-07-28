@@ -9,14 +9,27 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-repo_add_pkg(){
-    repo="$1" arch="$2" pkg="$3" ext="db.tar.xz"
-    repo-add "$repo/os/$arch/$repo.$ext" "$repo/os/$arch/$pkg"
+read_build_list(){
+    local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
+    build_list=$(sed "$_com_rm" "$1.list" | sed "$_space" | sed "$_clean")
 }
 
-repo_del_pkg(){
-    repo="$1" arch="$2" pkg="$3" ext="db.tar.xz"
-    repo-remove "$repo/os/$arch/$repo.$ext" "$repo/os/$arch/$pkg"
+# $1: build list
+eval_build_list(){
+    eval "case $1 in
+        $(show_build_lists ${list_dir_pkg})) is_build_list=true; read_build_list ${list_dir_pkg}/$1 ;;
+        *) is_build_list=false ;;
+    esac"
+}
+
+run(){
+    if ${is_build_list};then
+        for item in ${build_list[@]};do
+            $1 $item
+        done
+    else
+        $1 $2
+    fi
 }
 
 in_array() {
