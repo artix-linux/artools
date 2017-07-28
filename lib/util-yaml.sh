@@ -170,7 +170,7 @@ write_umount_conf(){
 }
 
 get_yaml(){
-    local args=("chrootcfg") yaml
+    local args=("netgroups") yaml
     args+=("${initsys}")
     for arg in ${args[@]};do
         yaml=${yaml:-}${yaml:+-}${arg}
