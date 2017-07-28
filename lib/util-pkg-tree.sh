@@ -33,7 +33,7 @@ sync_tree_branches(){
             info "needs sync"
             git pull origin $b
         fi
-        msg "Done [%s]" "$repo"
+        msg "Done [%s] (%s)" "$repo" "$b"
     done
     git checkout master &> /dev/null
     show_elapsed_time "${FUNCNAME}" "${timer}"

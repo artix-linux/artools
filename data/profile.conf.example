@@ -17,12 +17,6 @@
 # Set to false to disable autologin in the livecd
 # autologin="true"
 
-# configure calamares for netinstall
-# netinstall="false"
-
-# configure calamares to use chrootcfg instead of unpackfs; default: unpackfs
-# chrootcfg="false"
-
 # service runlevels
 # openrc_boot=('elogind')
 # openrc_default=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')

@@ -18,18 +18,12 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso-publish.sh
 
-show_profile(){
-    prepare_transfer "$1"
-    info "Profile: [$1]"
-    msg2 "src_dir: ${src_dir}"
-    msg2 "target_dir: ${target_dir}"
-}
-
 display_settings(){
     show_version
     show_config
 
     msg "OPTIONS:"
+    msg2 "profile: %s" "${profile}"
     msg2 "uplimit: %s kB/s" "${uplimit}"
 #     msg2 "dist_release: %s" "${dist_release}"
 
@@ -51,7 +45,8 @@ display_settings(){
     msg2 "project: %s" "${project}"
 
     msg "UPLOAD:"
-    show_profile "${profile}"
+    msg2 "src_dir: ${src_dir}"
+    msg2 "target_dir: ${target_dir}"
 }
 
 load_user_info
@@ -62,13 +57,13 @@ pretend=false
 update=false
 verbose=false
 torrent=false
-profile=''
+profile=lxqt
 
 rsync_args=(-aP --progress -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p                 Source folder to upload"
+    echo "    -p                 Source folder to upload [default: ${profile}]"
     echo "    -l                 Limit bandwidth in kB/s [default:${uplimit}]"
     echo '    -u                 Update remote directory'
     echo '    -t                 Create iso torrent'
@@ -101,6 +96,8 @@ timer_start=$(get_timer)
 
 rsync_args+=(--bwlimit=${uplimit})
 
+prepare_transfer
+
 ${pretend} && display_settings #&& exit 1
 
-sync_dir "${profile}"
+sync_dir

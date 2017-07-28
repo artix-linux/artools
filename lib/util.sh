@@ -8,80 +8,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-# $1: section
-parse_section() {
-    local is_section=0
-    while read line; do
-        [[ $line =~ ^\ {0,}# ]] && continue
-        [[ -z "$line" ]] && continue
-        if [ $is_section == 0 ]; then
-            if [[ $line =~ ^\[.*?\] ]]; then
-                line=${line:1:$((${#line}-2))}
-                section=${line// /}
-                if [[ $section == $1 ]]; then
-                    is_section=1
-                    continue
-                fi
-                continue
-            fi
-        elif [[ $line =~ ^\[.*?\] && $is_section == 1 ]]; then
-            break
-        else
-            pc_key=${line%%=*}
-            pc_key=${pc_key// /}
-            pc_value=${line##*=}
-            pc_value=${pc_value## }
-            eval "$pc_key='$pc_value'"
-        fi
-    done < "$2"
-}
-
-get_repos() {
-    local section repos=() filter='^\ {0,}#'
-    while read line; do
-        [[ $line =~ "${filter}" ]] && continue
-        [[ -z "$line" ]] && continue
-        if [[ $line =~ ^\[.*?\] ]]; then
-            line=${line:1:$((${#line}-2))}
-            section=${line// /}
-            case ${section} in
-                "options") continue ;;
-                *) repos+=("${section}") ;;
-            esac
-        fi
-    done < "$1"
-    echo ${repos[@]}
-}
-
-check_user_repos_conf(){
-    local repositories=$(get_repos "$1") uri='file://'
-    for repo in ${repositories[@]}; do
-        msg2 "parsing repo [%s] ..." "${repo}"
-        parse_section "${repo}" "$1"
-        [[ ${pc_value} == $uri* ]] && die "Using local repositories is not supported!"
-    done
-}
-
-# $1: list_dir
-show_build_lists(){
-    local list temp
-    for item in $(ls $1/*.list); do
-        temp=${item##*/}
-        list=${list:-}${list:+|}${temp%.list}
-    done
-    echo $list
-}
-
-# $1: make_conf_dir
-show_build_profiles(){
-    local cpuarch temp
-    for item in $(ls $1/*.conf); do
-        temp=${item##*/}
-        cpuarch=${cpuarch:-}${cpuarch:+|}${temp%.conf}
-    done
-    echo $cpuarch
-}
-
 get_timer(){
     echo $(date +%s)
 }
@@ -189,7 +115,7 @@ init_buildpkg(){
 
     [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
 
-    [[ -z ${build_list_pkg} ]] && build_list_pkg='default'
+    [[ -z ${build_list} ]] && build_list='default'
 
     cache_dir_pkg=${workspace_dir}/pkg
 
@@ -198,12 +124,6 @@ init_buildpkg(){
 
 init_buildiso(){
     chroots_iso="${chroots_dir}/buildiso"
-
-    list_dir_iso="${SYSCONFDIR}/iso.list.d"
-
-    [[ -d ${AT_USERCONFDIR}/iso.list.d ]] && list_dir_iso=${AT_USERCONFDIR}/iso.list.d
-
-    [[ -z ${build_list_iso} ]] && build_list_iso='default'
 
     cache_dir_iso="${workspace_dir}/iso"
 
@@ -309,30 +229,6 @@ show_config(){
         msg2 "config: %s" "~/.config/artools/artools.conf"
     else
         msg2 "config: %s" "${artools_conf}"
-    fi
-}
-
-read_build_list(){
-    local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
-    build_list=$(sed "$_com_rm" "$1.list" | sed "$_space" | sed "$_clean")
-}
-
-# $1: list_dir
-# $2: build list
-eval_build_list(){
-    eval "case $2 in
-        $(show_build_lists $1)) is_build_list=true; read_build_list $1/$2 ;;
-        *) is_build_list=false ;;
-    esac"
-}
-
-run(){
-    if ${is_build_list};then
-        for item in ${build_list[@]};do
-            $1 $item
-        done
-    else
-        $1 $2
     fi
 }
 

@@ -75,8 +75,8 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             <varlistentry>
                 <term><option>-p PROFILE...</option></term>
 
-                <listitem><para>Name of the build list or name of the directory
-                you will build. It needs to contain an existing build list or a
+                <listitem><para>Name of the name of the directory
+                you will build. It needs to contain a
                 folder with a valid profile.</para></listitem>
             </varlistentry>
 

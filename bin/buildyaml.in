@@ -20,19 +20,8 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-yaml-check.sh
 import ${LIBDIR}/util-profile.sh
 
-prepare_check(){
-    local profile="$1"
-    local profile_dir=${run_dir}/${profile}
-
-    load_profile "${profile_dir}"
-
-    yaml_dir=${cache_dir_netinstall}/${profile}/${target_arch}
-
-    prepare_dir "${yaml_dir}"
-}
-
 show_profile(){
-    prepare_check "$1"
+    prepare_build
     msg2 "yaml_dir: %s" "${yaml_dir}"
     msg2 "autologin: %s" "${autologin}"
 
@@ -40,14 +29,11 @@ show_profile(){
 
     msg2 "extra: %s" "${extra}"
 
-    msg2 "netinstall: %s" "${netinstall}"
-    msg2 "chrootcfg: %s" "${chrootcfg}"
-    ${netinstall} && msg2 "netgroups: %s" "$(get_yaml)"
+    msg2 "netgroups: %s" "$(get_yaml)"
 
     msg2 "hostname: %s" "${hostname}"
     msg2 "username: %s" "${username}"
     msg2 "password: %s" "${password}"
-    msg2 "login_shell: %s" "${login_shell}"
     msg2 "addgroups: %s" "${addgroups}"
 
     msg2 "enable_live: %s" "${enable_live[*]}"
@@ -62,12 +48,8 @@ display_settings(){
     show_version
     show_config
 
-#     msg "PROFILE:"
-#     msg2 "build_lists: %s" "$(show_build_lists ${list_dir_iso})"
-#     msg2 "build_list_iso: %s" "${build_list_iso}"
-    msg2 "is_build_list: %s" "${is_build_list}"
-
     msg "OPTIONS:"
+    msg2 "profile: %s" "${profile}"
     msg2 "arch: %s" "${target_arch}"
     msg2 "initsys: %s" "${initsys}"
     msg2 "kernel: %s" "${kernel}"
@@ -76,8 +58,8 @@ display_settings(){
     msg2 "calamares: %s" "${calamares}"
     msg2 "group: %s" "${group}"
 
-    msg "CHECK QUEUE:"
-    run show_profile "${build_list_iso}"
+    msg "BUILD:"
+    show_profile
 }
 
 load_user_info
@@ -93,10 +75,11 @@ calamares=false
 pretend=false
 group=false
 cache_dir_netinstall="${workspace_dir}/netinstall"
+profile=lxqt
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p <profile>       Buildset or profile [default: ${build_list_iso}]"
+    echo "    -p <profile>       Buildset or profile [default: ${profile}]"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -k <name>          Kernel to use[default: ${kernel}]"
     echo "    -i <name>          Init system to use [default: ${initsys}]"
@@ -115,7 +98,7 @@ opts='p:a:i:k:gcqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        p) build_list_iso="$OPTARG" ;;
+        p) profile="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         i) initsys="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
@@ -129,10 +112,8 @@ done
 
 shift $(($OPTIND - 1))
 
-eval_build_list "${list_dir_iso}" "${build_list_iso}"
-
 ${pretend} && display_settings && exit 1
 
-${group} && write_pacman_group_yaml "${build_list_iso}" && exit 0
+${group} && write_pacman_group_yaml "${profile}" && exit 0
 
-run make_profile_yaml "${build_list_iso}"
+build

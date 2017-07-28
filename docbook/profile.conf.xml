@@ -92,24 +92,6 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>netinstall=</varname></term>
-
-                <listitem><para>Accepts
-                    <option>false</option> (the default)
-                    <option>true</option>.</para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>chrootcfg=</varname></term>
-
-                <listitem><para>Accepts
-                    <option>false</option> (the default)
-                    <option>true</option>.</para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
                 <term><varname>extra=</varname></term>
 
                 <listitem><para>Accepts
@@ -163,14 +145,6 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
 
                 <listitem><para>Password of the default user
                 that will be created in the live-cd.
-                </para></listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>login_shell=</varname></term>
-
-                <listitem><para>Accepts any login shell for the user, eg. /bin/zsh.
-                login_shell defaults to /bin/bash
                 </para></listitem>
             </varlistentry>
 

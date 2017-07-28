@@ -93,21 +93,6 @@ write_initcpio_conf(){
     echo "kernel: ${kernel}" >> "$conf"
 }
 
-write_unpack_conf(){
-    local conf="${modules_dir}/unpackfs.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "unpack:" >> "$conf"
-    echo "    - source: \"/run/artix/bootmnt/${os_id}/${target_arch}/rootfs.sfs\"" >> "$conf"
-    echo "      sourcefs: \"squashfs\"" >> "$conf"
-    echo "      destination: \"\"" >> "$conf"
-    if [[ -f "${desktop_list}" ]] ; then
-        echo "    - source: \"/run/artix/bootmnt/${os_id}/${target_arch}/desktopfs.sfs\"" >> "$conf"
-        echo "      sourcefs: \"squashfs\"" >> "$conf"
-        echo "      destination: \"\"" >> "$conf"
-    fi
-}
-
 write_users_conf(){
     local conf="${modules_dir}/users.conf"
     msg2 "Writing %s ..." "${conf##*/}"
@@ -125,15 +110,6 @@ write_users_conf(){
     echo "doReusePassword: false" >> "$conf" # only used in old 'users' module
     echo "availableShells: /bin/bash, /bin/zsh" >> "$conf" # only used in new 'users' module
     echo "avatarFilePath:  ~/.face" >> "$conf" # mostly used file-name for avatar
-}
-
-write_packages_conf(){
-    local conf="${modules_dir}/packages.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "backend: pacman" >> "$conf"
-    echo '' >> "$conf"
-    echo "update_db: true" >> "$conf"
 }
 
 write_welcome_conf(){
@@ -158,9 +134,7 @@ write_welcome_conf(){
     echo "      - storage" >> "$conf"
     echo "      - ram" >> "$conf"
     echo "      - root" >> "$conf"
-    if ${netinstall};then
-        echo "      - internet" >> "$conf"
-    fi
+    echo "      - internet" >> "$conf"
 }
 
 write_umount_conf(){
@@ -172,17 +146,7 @@ write_umount_conf(){
 }
 
 get_yaml(){
-    local args=() yaml
-    if ${chrootcfg};then
-        args+=("chrootcfg")
-    else
-        args+=("packages")
-    fi
-    args+=("${initsys}")
-    for arg in ${args[@]};do
-        yaml=${yaml:-}${yaml:+-}${arg}
-    done
-    echo "${yaml}.yaml"
+    echo "netgroups-${initsys}.yaml"
 }
 
 write_netinstall_conf(){
@@ -213,26 +177,13 @@ write_settings_conf(){
     echo "        - keyboard" >> "$conf"
     echo "        - partition" >> "$conf"
     echo "        - users" >> "$conf" && write_users_conf
-    if ${netinstall};then
-        echo "        - netinstall" >> "$conf" && write_netinstall_conf
-    fi
+    echo "        - netinstall" >> "$conf" && write_netinstall_conf
     echo "        - summary" >> "$conf"
     echo "    - exec:" >> "$conf"
     echo "        - partition" >> "$conf"
     echo "        - mount" >> "$conf"
-    if ${netinstall};then
-        if ${chrootcfg}; then
-            echo "        - chrootcfg" >> "$conf"
-            echo "        - networkcfg" >> "$conf"
-        else
-            echo "        - unpackfs" >> "$conf" && write_unpack_conf
-            echo "        - networkcfg" >> "$conf"
-            echo "        - packages" >> "$conf" && write_packages_conf
-        fi
-    else
-        echo "        - unpackfs" >> "$conf" && write_unpack_conf
-        echo "        - networkcfg" >> "$conf"
-    fi
+    echo "        - chrootcfg" >> "$conf"
+    echo "        - networkcfg" >> "$conf"
     echo "        - machineid" >> "$conf" && write_machineid_conf
     echo "        - fstab" >> "$conf"
     echo "        - locale" >> "$conf"

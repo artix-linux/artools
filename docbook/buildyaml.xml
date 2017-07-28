@@ -73,7 +73,7 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             <varlistentry>
                 <term><option>-p PROFILE...</option></term>
 
-                <listitem><para>Name of the build list or name of the directory.</para></listitem>
+                <listitem><para>Name of the profile directory.</para></listitem>
             </varlistentry>
 
             <varlistentry>

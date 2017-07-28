@@ -12,36 +12,48 @@
 import ${LIBDIR}/util-yaml.sh
 
 write_netgroup_yaml(){
-    msg2 "Writing %s ..." "${2##*/}"
-    echo "---" > "$2"
-    echo "- name: '$1'" >> "$2"
-    echo "  description: '$1'" >> "$2"
-    echo "  selected: false" >> "$2"
-    echo "  hidden: false" >> "$2"
-    echo "  critical: false" >> "$2"
-    echo "  packages:" >> "$2"
+    local name="$1" yaml="$2"
+    msg2 "Writing %s ..." "${yaml##*/}"
+    echo "---" > "$yaml"
+    echo "- name: '$name'" >> "$yaml"
+    echo "  description: '$name'" >> "$yaml"
+    echo "  selected: false" >> "$yaml"
+    echo "  hidden: false" >> "$yaml"
+    echo "  critical: false" >> "$yaml"
+    echo "  packages:" >> "$yaml"
     for p in ${packages[@]};do
-        echo "       - $p" >> "$2"
+        echo "       - $p" >> "$yaml"
     done
 }
 
 write_pacman_group_yaml(){
-    packages=$(pacman -Sgq "$1")
+    local group="$1"
+    packages=$(pacman -Sgq "$group")
     prepare_dir "${cache_dir_netinstall}/pacman"
-    write_netgroup_yaml "$1" "${cache_dir_netinstall}/pacman/$1.yaml"
+    write_netgroup_yaml "$group" "${cache_dir_netinstall}/pacman/$group.yaml"
 }
 
 gen_fn(){
     echo "${yaml_dir}/$1-${target_arch}-${initsys}.yaml"
 }
 
-make_profile_yaml(){
-    prepare_check "$1"
+prepare_build(){
+    local profile_dir=${run_dir}/${profile}
+
+    load_profile "${profile_dir}"
+
+    yaml_dir=${cache_dir_netinstall}/${profile}/${target_arch}
+
+    prepare_dir "${yaml_dir}"
+}
+
+build(){
+    prepare_build
     load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
-    write_netgroup_yaml "$1" "$(gen_fn "Packages-Root")"
+    write_netgroup_yaml "${profile}" "$(gen_fn "Packages-Root")"
     if [[ -f "${desktop_list}" ]]; then
         load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
-        write_netgroup_yaml "$1" "$(gen_fn "Packages-Desktop")"
+        write_netgroup_yaml "${profile}" "$(gen_fn "Packages-Desktop")"
     fi
     ${calamares} && configure_calamares "${yaml_dir}"
     reset_profile
