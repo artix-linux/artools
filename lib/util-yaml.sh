@@ -93,21 +93,6 @@ write_initcpio_conf(){
     echo "kernel: ${kernel}" >> "$conf"
 }
 
-write_unpack_conf(){
-    local conf="${modules_dir}/unpackfs.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "unpack:" >> "$conf"
-    echo "    - source: \"/run/artix/bootmnt/${os_id}/${target_arch}/rootfs.sfs\"" >> "$conf"
-    echo "      sourcefs: \"squashfs\"" >> "$conf"
-    echo "      destination: \"\"" >> "$conf"
-    if [[ -f "${desktop_list}" ]] ; then
-        echo "    - source: \"/run/artix/bootmnt/${os_id}/${target_arch}/desktopfs.sfs\"" >> "$conf"
-        echo "      sourcefs: \"squashfs\"" >> "$conf"
-        echo "      destination: \"\"" >> "$conf"
-    fi
-}
-
 write_users_conf(){
     local conf="${modules_dir}/users.conf"
     msg2 "Writing %s ..." "${conf##*/}"
@@ -125,15 +110,6 @@ write_users_conf(){
     echo "doReusePassword: false" >> "$conf" # only used in old 'users' module
     echo "availableShells: /bin/bash, /bin/zsh" >> "$conf" # only used in new 'users' module
     echo "avatarFilePath:  ~/.face" >> "$conf" # mostly used file-name for avatar
-}
-
-write_packages_conf(){
-    local conf="${modules_dir}/packages.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "backend: pacman" >> "$conf"
-    echo '' >> "$conf"
-    echo "update_db: true" >> "$conf"
 }
 
 write_welcome_conf(){
@@ -170,12 +146,7 @@ write_umount_conf(){
 }
 
 get_yaml(){
-    local args=("netgroups") yaml
-    args+=("${initsys}")
-    for arg in ${args[@]};do
-        yaml=${yaml:-}${yaml:+-}${arg}
-    done
-    echo "${yaml}.yaml"
+    echo "netgroups-${initsys}.yaml"
 }
 
 write_netinstall_conf(){
