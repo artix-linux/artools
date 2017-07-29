@@ -39,8 +39,6 @@ load_profile(){
     [[ -z ${autologin} ]] && autologin="true"
     [[ ${displaymanager} == 'none' ]] && autologin="false"
 
-    [[ -z ${multilib} ]] && multilib="true"
-
     [[ -z ${hostname} ]] && hostname="artix"
 
     [[ -z ${username} ]] && username="artix"
@@ -65,11 +63,6 @@ load_profile(){
 
     netgroups="https://raw.githubusercontent.com/artix-linux/iso-profiles/master/base/netgroups"
 
-    basic='true'
-    [[ -z ${extra} ]] && extra='false'
-
-    ${extra} && basic='false'
-
     root_list=${run_dir}/base/Packages-Root
     [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
 
@@ -91,7 +84,6 @@ load_profile(){
 reset_profile(){
     unset displaymanager
     unset autologin
-    unset multilib
     unset hostname
     unset username
     unset password
@@ -99,7 +91,6 @@ reset_profile(){
     unset openrc_boot
     unset openrc_default
     unset enable_live
-    unset extra
     unset root_list
     unset desktop_list
     unset live_list
@@ -133,25 +124,18 @@ load_pkgs(){
     local pkglist="$1" arch="$2" init="$3" _kv="$4"
     info "Loading Packages: [%s] ..." "${pkglist##*/}"
 
-    local _init="s|>openrc||g" #_init_rm="s|>runit.*||g"
+    local _init="s|>$init||g"
+    case "$init" in
+        'openrc') _init_rm1="s|>runit.*||g"; _init_rm2="s|>s6*||g" ;;
+        's6') _init_rm1="s|>runit.*||g"; _init_rm2="s|>openrc.*||g" ;;
+        'runit') _init_rm1="s|>s6.*||g"; _init_rm2="s|>openrc.*||g" ;;
+    esac
 
-    local _basic="s|>basic.*||g"
-    ${basic} && _basic="s|>basic||g"
-
-    local _extra="s|>extra.*||g"
-    ${extra} && _extra="s|>extra||g"
-
-    local _multi _arch _arch_rm
+    local _arch="s|>x86_64||g" _arch_rm="s|>i686.*||g"
 
     if [[ "$arch" == 'i686' ]];then
         _arch="s|>i686||g"
         _arch_rm="s|>x86_64.*||g"
-        _multi="s|>multilib.*||g"
-    else
-        _arch="s|>x86_64||g"
-        _arch_rm="s|>i686.*||g"
-        _multi="s|>multilib.*||g"
-        ${multilib} && _multi="s|>multilib||g"
     fi
 
     local _blacklist="s|>blacklist.*||g" \
@@ -165,11 +149,10 @@ load_pkgs(){
             | sed "$_blacklist" \
             | sed "$_purge" \
             | sed "$_init" \
+            | sed "$_init_rm1" \
+            | sed "$_init_rm2" \
             | sed "$_arch" \
             | sed "$_arch_rm" \
-            | sed "$_multi" \
             | sed "$_kernel" \
-            | sed "$_basic" \
-            | sed "$_extra" \
             | sed "$_clean"))
 }

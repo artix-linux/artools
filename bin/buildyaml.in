@@ -25,10 +25,6 @@ show_profile(){
     msg2 "yaml_dir: %s" "${yaml_dir}"
     msg2 "autologin: %s" "${autologin}"
 
-    [[ ${target_arch} == 'x86_64' ]] && msg2 "multilib: %s" "${multilib}"
-
-    msg2 "extra: %s" "${extra}"
-
     msg2 "netgroups: %s" "$(get_yaml)"
 
     msg2 "hostname: %s" "${hostname}"
