@@ -92,24 +92,6 @@ along with artools; If not, see <http://www.gnu.org/licenses/>.
             </varlistentry>
 
             <varlistentry>
-                <term><varname>extra=</varname></term>
-
-                <listitem><para>Accepts
-                        <option>false</option> (the default)
-                        <option>false</option>.</para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
-                <term><varname>multilib=</varname></term>
-
-                <listitem><para>Accepts
-                        <option>true</option> (the default)
-                        <option>false</option>.</para>
-                </listitem>
-            </varlistentry>
-
-            <varlistentry>
                 <term><varname>openrc_boot=</varname></term>
 
                 <listitem><para>Array of services that will be
