@@ -56,11 +56,11 @@ repo_unlock(){
 
 repo_download(){
     local repo="$1"
-    if is_locked "$repo"
+    if is_locked "$repo"; then
         die "The '%s' repository is locked" "$repo"
-     else
+    else
         rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
-     fi
+    fi
 }
 
 repo_upload(){
