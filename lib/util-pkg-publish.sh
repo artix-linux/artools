@@ -27,6 +27,15 @@ update_lock(){
     rsync "${rsync_args[@]}" --exclude='os' "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
 }
 
+is_locked(){
+    local repo="$1" url="https://${host}/projects/${project}/files/repos"
+    if wget --spider -v $url/$repo/$repo.lock;then
+        return 0
+    else
+        return 1
+    fi
+}
+
 repo_lock(){
     local repo="$1"
     if [[ ! -f ${repos_local}/$repo/$repo.lock ]];then
@@ -47,8 +56,11 @@ repo_unlock(){
 
 repo_download(){
     local repo="$1"
-    rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
-    [[ -f ${repos_local}/$repo/$repo.lock ]] && die "The '%s' repository is locked" "$repo"
+    if is_locked "$repo"
+        die "The '%s' repository is locked" "$repo"
+     else
+        rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
+     fi
 }
 
 repo_upload(){
