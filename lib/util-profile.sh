@@ -61,7 +61,7 @@ load_profile(){
 
     enable_live=('artix-live' 'pacman-init')
 
-    netgroups="https://raw.githubusercontent.com/artix-linux/iso-profiles/master/base/netgroups"
+    netgroups="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
     root_list=${run_dir}/base/Packages-Root
     [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
