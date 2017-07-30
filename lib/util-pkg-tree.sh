@@ -125,7 +125,9 @@ import_from_arch(){
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
                 if $(is_dirty); then
                     git add $pkg
-                    git commit -m "Archlinux $pkg-$(get_pkgver) import"
+                    cd $pkg
+                        git commit -m "Archlinux $pkg-$(get_pkgver) import"
+                    cd ..
                 fi
             done
         fi

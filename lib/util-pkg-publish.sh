@@ -9,17 +9,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-repo_add_pkg(){
-    local repo="$1" arch="$2" pkg="$3"
-#     if [[ ! -f ${cache_dir_pkg}/$arch/$pkg{,.sig} ]];then
+repo_update(){
+    local repo="$1" arch="$2" pkg="$3" action="$4" cmd
+    if [[ $action == "add" ]];then
         ln -s ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
-#     fi
-    repo-add -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${repos_local}/$repo/os/$arch/$pkg
-}
-
-repo_del_pkg(){
-    local repo="$1" arch="$2" pkg="$3"
-    repo-remove -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $pkg
+    fi
+    repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${repos_local}/$repo/os/$arch/$pkg
 }
 
 update_lock(){
