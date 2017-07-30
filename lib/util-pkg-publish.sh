@@ -29,7 +29,7 @@ update_lock(){
 
 is_locked(){
     local repo="$1" url="https://${host}/projects/${project}/files/repos"
-    if wget --spider -v $url/$repo/$repo.lock;then
+    if wget --spider -v $url/$repo/$repo.lock &>/dev/null;then
         return 0
     else
         return 1
