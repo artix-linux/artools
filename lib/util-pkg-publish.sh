@@ -10,12 +10,14 @@
 # GNU General Public License for more details.
 
 repo_update(){
-    local repo="$1" arch="$2" pkg="$3" action="$4" cmd
+    local repo="$1" arch="$2" pkg="$3" action="$4"
     if [[ $action == "add" ]];then
-        if [[ -f ${repos_local}/$repo/os/$arch/$pkg{,.sig} ]];then
-            rm -v ${repos_local}/$repo/os/$arch/$pkg{,.sig}
-            ln -s ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+        if [[ -f ${repos_local}/$repo/os/$arch/$pkg \
+            && -f ${repos_local}/$repo/os/$arch/$pkg.sig ]];then
+            rm ${repos_local}/$repo/os/$arch/$pkg
+            rm ${repos_local}/$repo/os/$arch/$pkg.sig
         fi
+        ln -s ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
     fi
     repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${repos_local}/$repo/os/$arch/$pkg
 }

@@ -61,9 +61,7 @@ clean_up(){
 
 sign_pkg(){
     local pkg="$1"
-    if [[ -f ${pkg_dir}/${pkg}.sig ]];then
-        rm -v ${pkg_dir}/${pkg}.sig
-    fi
+    [[ -f ${pkg_dir}/${pkg}.sig ]] && rm ${pkg_dir}/${pkg}.sig
     user_run "signfile ${pkg_dir}/${pkg}"
 }
 
