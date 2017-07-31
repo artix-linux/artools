@@ -80,6 +80,7 @@ pretend=false
 is_build_list=false
 sign=false
 is_multilib=false
+repo_add=false
 
 mkchroot_args=()
 mkchrootpkg_args=()
@@ -131,6 +132,7 @@ usage() {
     echo '    -c                 Clean chroot copy'
     echo '    -u                 Update chroot copy'
     echo '    -w                 Clean up cache and sources'
+    echo '    -x                 Add the package(s) to the repo'
     echo '    -n                 Install and run namcap check'
     echo '    -s                 Sign packages'
     echo '    -q                 Query settings and pretend build'
@@ -142,7 +144,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:odcuwnsqh'
+opts='p:a:r:i:odcuwnsxqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -155,6 +157,7 @@ while getopts "${opts}" arg; do
         c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
         u) update_first=true ; mkchrootpkg_args+=(-u) ;;
         w) purge=true ;;
+        x) repo_add=true ;;
         n) namcap=true; mkchrootpkg_args+=(-n) ;;
         s) sign=true ;;
         q) pretend=true ;;

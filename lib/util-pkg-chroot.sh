@@ -87,6 +87,10 @@ post_build(){
         local ver=$(get_full_version "$pkg") src
         src=$pkg-$ver-$tarch.$ext
         move_to_cache "$src"
+        if ${repo_add};then
+            local repo=${PWD##/*}
+            deploypkg -r $repo -x -p $src
+        fi
     done
 }
 
