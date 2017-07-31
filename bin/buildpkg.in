@@ -51,6 +51,7 @@ display_settings(){
     msg2 "purge: %s" "${purge}"
     msg2 "namcap: %s" "${namcap}"
     msg2 "sign: %s" "${sign}"
+    msg2 "repo_add: %s" "${repo_add}"
 
     msg "PATHS:"
     msg2 "pkg_dir: %s" "${pkg_dir}"
@@ -86,6 +87,7 @@ mkchroot_args=()
 mkchrootpkg_args=()
 
 install_pkgs=()
+repository=${PWD##*/}
 
 prepare_build(){
     local pac_arch='default'
@@ -127,6 +129,7 @@ usage() {
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_pkg}]"
     echo '    -i <pkgs>          Install packages into the working copy of the chroot'
+    echo "    -z <repo>          The repo name to add the package(s)  [default: ${repository}]"
     echo '    -o                 Create chroot'
     echo '    -d                 Delete chroot'
     echo '    -c                 Clean chroot copy'
@@ -144,7 +147,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:odcuwnsxqh'
+opts='p:a:r:i:z:odcuwnsxqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -152,6 +155,7 @@ while getopts "${opts}" arg; do
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
         i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
+        z) repository="$OPTARG" ;;
         o) create_first=true ;;
         d) delete_first=true ;;
         c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
