@@ -61,6 +61,7 @@ clean_up(){
 
 sign_pkg(){
     local pkg="$1"
+    [[ -f ${pkg_dir}/${pkg}.sig ]] && rm ${pkg_dir}/${pkg}.sig
     user_run "signfile ${pkg_dir}/${pkg}"
 }
 
@@ -87,6 +88,9 @@ post_build(){
         local ver=$(get_full_version "$pkg") src
         src=$pkg-$ver-$tarch.$ext
         move_to_cache "$src"
+        if ${repo_add};then
+            deploypkg -r "${repository}" -x -p "$src"
+        fi
     done
 }
 
