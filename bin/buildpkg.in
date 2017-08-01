@@ -41,6 +41,7 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "arch: %s" "${target_arch}"
+    ${repo_add} && msg2 "repository: %s" "${repository}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
 
     msg "ARGS:"
