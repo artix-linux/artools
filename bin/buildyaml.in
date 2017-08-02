@@ -71,7 +71,6 @@ calamares=false
 pretend=false
 group=false
 cache_dir_netinstall="${workspace_dir}/netinstall"
-profile=lxqt
 
 usage() {
     echo "Usage: ${0##*/} [options]"
