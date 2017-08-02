@@ -112,7 +112,7 @@ prepare_dir "${repos_local}"
 
 ${pretend} && display_settings #&& exit 1
 
-${move} $$ move_to_pool "${repository}" "${target_arch}" "${package}"
+${move} && move_to_pool "${repository}" "${target_arch}" "${package}"
 
 ${add_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "add"
 ${del_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "remove"

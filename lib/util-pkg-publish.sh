@@ -21,7 +21,7 @@ repo_update(){
     fi
     local dest=${repos_local}/$repo/os/$arch/$pkg
     if [[ $action == "remove" ]];then
-        $dest=$pkg
+        dest=$pkg
     fi
     repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $dest
 }
