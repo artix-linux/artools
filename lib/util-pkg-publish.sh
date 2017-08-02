@@ -19,7 +19,16 @@ repo_update(){
         fi
         ln -s ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
     fi
-    repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz ${repos_local}/$repo/os/$arch/$pkg
+    local dest=${repos_local}/$repo/os/$arch/$pkg
+    if [[ $action == "remove" ]];then
+        dest=$pkg
+    fi
+    repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $dest
+}
+
+move_to_pool(){
+    local repo="$1" arch="$2" pkg="$3"
+    cp ${repos_local}/$repo/os/$arch/$pkg{,.sig} ${cache_dir_pkg}/$arch/
 }
 
 update_lock(){

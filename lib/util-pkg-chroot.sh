@@ -90,6 +90,7 @@ post_build(){
         move_to_cache "$src"
         if ${repo_add};then
             deploypkg -r "${repository}" -x -p "$src"
+            user_own "${repos_local}/${repository}" -R
         fi
     done
 }

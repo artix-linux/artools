@@ -227,7 +227,7 @@ make_iso() {
 gen_iso_fn(){
     local vars=() name
     vars+=("${os_id}")
-#     vars+=("${profile}")
+    vars+=("${profile}")
     vars+=("${dist_release}")
     vars+=("${target_arch}")
     for n in ${vars[@]};do
@@ -431,14 +431,6 @@ build(){
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
         chroot_clean "${chroots_iso}/${profile}/${target_arch}"
-
-        local unused_arch='i686'
-        if [[ ${target_arch} == 'i686' ]];then
-            unused_arch='x86_64'
-        fi
-        if [[ -d "${chroots_iso}/${profile}/${unused_arch}" ]];then
-            chroot_clean "${chroots_iso}/${profile}/${unused_arch}"
-        fi
         clean_iso_root "${iso_root}"
     fi
 

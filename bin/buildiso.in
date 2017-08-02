@@ -79,7 +79,6 @@ verbose=false
 persist=false
 
 mkchroot_args=()
-profile=lxqt
 
 usage() {
     echo "Usage: ${0##*/} [options]"

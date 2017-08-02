@@ -62,7 +62,7 @@ get_osid(){
     echo "${ID}"
 }
 
-init_common(){
+init_artools_base(){
 
     [[ -z ${target_arch} ]] && target_arch=$(uname -m)
 
@@ -87,7 +87,7 @@ init_common(){
     prepare_dir "${workspace_dir}"
 }
 
-init_buildtree(){
+init_artools_pkg(){
 
     [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${workspace_dir}/artix
 
@@ -104,9 +104,7 @@ init_buildtree(){
     list_dir_import="${SYSCONFDIR}/import.list.d"
 
     [[ -d ${AT_USERCONFDIR}/import.list.d ]] && list_dir_import=${AT_USERCONFDIR}/import.list.d
-}
 
-init_buildpkg(){
     chroots_pkg="${chroots_dir}/buildpkg"
 
     list_dir_pkg="${SYSCONFDIR}/pkg.list.d"
@@ -120,16 +118,22 @@ init_buildpkg(){
     cache_dir_pkg=${workspace_dir}/pkg
 
     prepare_dir "${cache_dir_pkg}"
+
+    repository='system'
+
+    [[ -z ${repos_local} ]] && repos_local="${workspace_dir}/repos"
+
+    repos_remote="/${repos_local##*/}"
 }
 
-init_buildiso(){
+init_artools_iso(){
     chroots_iso="${chroots_dir}/buildiso"
 
     cache_dir_iso="${workspace_dir}/iso"
 
     prepare_dir "${cache_dir_iso}"
 
-    ##### iso settings #####
+    [[ -z ${profile} ]] && profile='base'
 
     [[ -z ${dist_release} ]] && dist_release=$(get_release)
 
@@ -144,9 +148,6 @@ init_buildiso(){
     [[ -z ${kernel} ]] && kernel="linux-lts"
 
     [[ -z ${gpgkey} ]] && gpgkey=''
-}
-
-init_deployiso(){
 
     [[ -z ${uplimit} ]] && uplimit=100
 
@@ -157,14 +158,6 @@ init_deployiso(){
     torrent_meta="$(get_osname)"
 }
 
-init_deploypkg(){
-
-    repository='system'
-
-    [[ -z ${repos_local} ]] && repos_local="${workspace_dir}/repos"
-
-    repos_remote="/${repos_local##*/}"
-}
 
 load_config(){
 
@@ -174,17 +167,11 @@ load_config(){
 
     [[ -r ${artools_conf} ]] && source ${artools_conf}
 
-    init_common
+    init_artools_base
 
-    init_buildtree
+    init_artools_pkg
 
-    init_buildpkg
-
-    init_buildiso
-
-    init_deployiso
-
-    init_deploypkg
+    init_artools_iso
 
     return 0
 }
