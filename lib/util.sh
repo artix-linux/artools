@@ -133,8 +133,6 @@ init_artools_iso(){
 
     prepare_dir "${cache_dir_iso}"
 
-    ##### iso settings #####
-
     [[ -z ${profile} ]] && profile='base'
 
     [[ -z ${dist_release} ]] && dist_release=$(get_release)

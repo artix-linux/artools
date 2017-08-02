@@ -60,6 +60,7 @@ verbose=false
 verbose=false
 add_pkg=false
 del_pkg=false
+move=false
 package=''
 
 rsync_args=(-rtxisP --progress --delete -e ssh)
@@ -70,6 +71,7 @@ usage() {
     echo "    -r                 Repository to sync [default:${repository}]"
     echo "    -u                 Upload repository"
     echo '    -d                 Download repository'
+    echo '    -m                 Move package from repository to pool'
     echo "    -p                 Package name to add/delete"
     echo '    -x                 Add package to repository'
     echo '    -y                 Delete package from repository'
@@ -83,7 +85,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:xyduvqh'
+opts='p:a:r:xymduvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -93,6 +95,7 @@ while getopts "${opts}" arg; do
         x) add_pkg=true ;;
         y) del_pkg=true ;;
         d) download=true ;;
+        m) move=true ;;
         u) upload=true; rsync_args+=(-L) ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true; rsync_args+=(-n) ;;
@@ -108,6 +111,8 @@ timer_start=$(get_timer)
 prepare_dir "${repos_local}"
 
 ${pretend} && display_settings #&& exit 1
+
+${move} $$ move_to_pool "${repository}" "${target_arch}" "${package}"
 
 ${add_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "add"
 ${del_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "remove"
