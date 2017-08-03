@@ -18,7 +18,7 @@ get_remote_head(){
 }
 
 sync_tree_branches(){
-    local branches=(master artix archlinux)
+    local branches=(master archlinux)
     for b in ${branches[@]};do
         git checkout $b &> /dev/null
         local local_head=$(get_local_head "$b")
