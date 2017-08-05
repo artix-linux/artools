@@ -93,6 +93,8 @@ init_artools_pkg(){
 
     [[ -z ${repo_tree_artix[@]} ]] && repo_tree_artix=('system' 'world' 'galaxy')
 
+    [[ -z ${repo_tree_import[@]} ]] && repo_tree_import=('system-arch' 'world-arch' 'galaxy-arch')
+
     [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
 
     [[ -z ${tree_dir_arch} ]] && tree_dir_arch=${workspace_dir}/archlinux

@@ -17,26 +17,9 @@ get_remote_head(){
     echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
 }
 
-sync_tree_branches(){
-    local branches=(master archlinux)
-    for b in ${branches[@]};do
-        git checkout $b &> /dev/null
-        local local_head=$(get_local_head "$b")
-        local remote_head=$(get_remote_head "$b")
-        local timer=$(get_timer) repo="$1"
-        msg "Checking [%s] (%s) ..." "$repo" "$b"
-        msg2 "local: %s" "${local_head}"
-        msg2 "remote: %s" "${remote_head}"
-        if [[ "${local_head}" == "${remote_head}" ]]; then
-            info "nothing to do"
-        else
-            info "needs sync"
-            git pull origin $b
-        fi
-        msg "Done [%s] (%s)" "$repo" "$b"
-    done
-    git checkout master &> /dev/null
-    show_elapsed_time "${FUNCNAME}" "${timer}"
+is_dirty() {
+    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
+    return 0
 }
 
 sync_tree(){
@@ -68,10 +51,11 @@ clone_tree(){
 
 sync_tree_artix(){
     cd ${tree_dir_artix}
-        for repo in ${repo_tree_artix[@]};do
+        for repo in ${repo_tree_artix[@]} ${repo_tree_import[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
-                    sync_tree_branches "${repo}"
+                    $(is_dirty) && die "The repos has uncommited changes!"
+                    sync_tree "${repo}"
                 cd ..
             else
                 clone_tree "${repo}" "${host_tree_artix}/${repo}"
@@ -100,11 +84,6 @@ read_import_list(){
     import_list=$(sed "$_com_rm" "${list_dir_import}/$name.list" | sed "$_space" | sed "$_clean")
 }
 
-is_dirty() {
-    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
-    return 0
-}
-
 get_pkgver(){
     source PKGBUILD
     echo $pkgver-$pkgrel
@@ -112,21 +91,23 @@ get_pkgver(){
 
 import_from_arch(){
     local timer=$(get_timer)
-    for repo in ${repo_tree_artix[@]};do
+    for repo in ${repo_tree_import[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
-            git checkout archlinux &> /dev/null
+            git checkout master &> /dev/null
+            $(is_dirty) && die "The repos has uncommited changes!"
             local arch_dir=packages
-            [[ $repo == "galaxy" ]] && arch_dir=community
+            [[ $repo == "galaxy-arch" ]] && arch_dir=community
             msg "Import into [%s] branch (archlinux)" "$repo"
             for pkg in ${import_list[@]};do
-                msg2 "Importing [%s] ..." "$pkg"
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
                 if $(is_dirty); then
                     git add $pkg
                     cd $pkg
-                        git commit -m "Archlinux $pkg-$(get_pkgver) import"
+                        local ver=$(get_pkgver)
+                        msg2 "Archlinux import: [%s]" "$pkg-$ver"
+                        git commit -m "Archlinux import: $pkg-$ver"
                     cd ..
                 fi
             done
