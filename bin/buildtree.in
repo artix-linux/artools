@@ -19,7 +19,7 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg-tree.sh
 
 show_imports(){
-    for repo in ${repo_tree_artix[@]};do
+    for repo in ${repo_tree_import[@]};do
         read_import_list "$repo"
         for p in ${import_list[@]};do
             msg2 "%s: %s" ""$repo "$p"
@@ -38,7 +38,8 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "verbose: %s" "${verbose}"
-    msg2 "artix: %s" "${artix}"
+    msg2 "artix_stable: %s" "${artix_stable}"
+    msg2 "artix_testing: %s" "${artix_testing}"
     msg2 "arch: %s" "${arch}"
     msg2 "import_arch: %s" "${import_arch}"
 
@@ -58,17 +59,19 @@ load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-artix=false
+artix_stable=false
 pretend=false
 arch=false
 import_arch=false
 verbose=false
+artix_testing=false
 
 rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -x            Sync artix tree"
+    echo "    -s            Sync artix tree stable"
+    echo "    -t            Sync artix tree testing"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch packages'
     echo '    -v            Verbose import output'
@@ -81,11 +84,12 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='xaivqh'
+opts='staivqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        x) artix=true ;;
+        s) artix_stable=true ;;
+        t) artix_testing=true ;;
         a) arch=true ;;
         i) import_arch=true ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
@@ -102,7 +106,7 @@ prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1
 
-${artix} && sync_tree_artix
+${artix_stable} && sync_tree_artix "${artix_testing}"
 
 ${arch} && sync_tree_arch
 

@@ -22,11 +22,33 @@ is_dirty() {
     return 0
 }
 
+sync_tree_branches(){
+    local branches=('master') repo="$1" testing="$2"
+    ${testing} && branches+=('testing')
+    for branch in ${branches[@]};do
+        git checkout $branch &> /dev/null
+        local local_head=$(get_local_head "$branch")
+        local remote_head=$(get_remote_head "$branch")
+        local timer=$(get_timer)
+        msg "Checking [%s] (%s) ..." "$repo" "$branch"
+        msg2 "local: %s" "${local_head}"
+        msg2 "remote: %s" "${remote_head}"
+        if [[ "${local_head}" == "${remote_head}" ]]; then
+            info "nothing to do"
+        else
+            info "needs sync"
+            git pull origin $branch
+        fi
+        msg "Done [%s] (%s)" "$repo" "$branch"
+    done
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
 sync_tree(){
-    local branch="master"
+    local branch="master" repo="$1"
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
-    local timer=$(get_timer) repo="$1"
+    local timer=$(get_timer)
     msg "Checking [%s] ..." "$repo"
     msg2 "local: %s" "${local_head}"
     msg2 "remote: %s" "${remote_head}"
@@ -50,8 +72,19 @@ clone_tree(){
 }
 
 sync_tree_artix(){
+    local testing="$1"
     cd ${tree_dir_artix}
-        for repo in ${repo_tree_artix[@]} ${repo_tree_import[@]};do
+        for repo in ${repo_tree_artix[@]};do
+            if [[ -d ${repo} ]];then
+                cd ${repo}
+                    $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
+                    sync_tree_branches "${repo}" "${testing}"
+                cd ..
+            else
+                clone_tree "${repo}" "${host_tree_artix}/${repo}"
+            fi
+        done
+        for repo in ${repo_tree_import[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
