@@ -34,6 +34,7 @@ display_settings(){
     msg "REPOS:"
     msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
     msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
+    msg2 "repo_tree_import: %s" "${repo_tree_import[*]}"
 
     msg "ARGS:"
     msg2 "verbose: %s" "${verbose}"
@@ -44,8 +45,6 @@ display_settings(){
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-#     msg2 "host_tree_artix: %s" "${host_tree_artix}"
-#     msg2 "host_tree_arch: %s" "${host_tree_arch}"
 
     if ${verbose}; then
         if ${import_arch};then
@@ -71,7 +70,7 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -x            Sync artix tree"
     echo "    -a            Sync arch tree"
-    echo '    -i            Import arch system packages'
+    echo '    -i            Import arch packages'
     echo '    -v            Verbose import output'
     echo '    -q            Query settings'
     echo '    -h            This help'
