@@ -54,7 +54,7 @@ sync_tree_artix(){
         for repo in ${repo_tree_artix[@]} ${repo_tree_import[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
-                    $(is_dirty) && die "The repos has uncommited changes!"
+                    $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
                     sync_tree "${repo}"
                 cd ..
             else
@@ -89,6 +89,11 @@ get_pkgver(){
     echo $pkgver-$pkgrel
 }
 
+is_untracked(){
+    [[ $(git ls-files --others --exclude-standard)  != "" ]] || return 1
+    return 0
+}
+
 import_from_arch(){
     local timer=$(get_timer)
     for repo in ${repo_tree_import[@]};do
@@ -96,13 +101,13 @@ import_from_arch(){
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
             git checkout master &> /dev/null
-            $(is_dirty) && die "The repos has uncommited changes!"
+            $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
             local arch_dir=packages
             [[ $repo == "galaxy-arch" ]] && arch_dir=community
-            msg "Import into [%s] branch (archlinux)" "$repo"
+            msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
-                if $(is_dirty); then
+                if $(is_dirty) || $(is_untracked); then
                     git add $pkg
                     cd $pkg
                         local ver=$(get_pkgver)
