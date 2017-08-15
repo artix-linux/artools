@@ -26,7 +26,11 @@ get_makepkg_conf(){
     local arch="$1"
     local conf="${tmp_dir}/makepkg-${arch}.conf"
 
-    cp "${DATADIR}/makepkg.conf" "$conf"
+    if [[ -f $AT_USERCONFDIR/makepkg.conf ]];then
+        cp "$AT_USERCONFDIR/makepkg.conf" "$conf"
+    else
+        cp "${DATADIR}/makepkg.conf" "$conf"
+    fi
 
     load_compiler_settings "${arch}"
 

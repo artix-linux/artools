@@ -99,6 +99,7 @@ prepare_build(){
     fi
 
     local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+    [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch.conf"
 
     work_dir="${chroots_pkg}/${target_arch}"
     pkg_dir="${cache_dir_pkg}/${target_arch}"
