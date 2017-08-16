@@ -1,0 +1,9 @@
+mkinitcpio-nfs-utils
+nbd
+>openrc artix-live-openrc
+squashfs-tools
+artix-live-portable-efi
+virtualbox-guest-modules-artix
+virtualbox-guest-utils
+linux-lts-headers
+
