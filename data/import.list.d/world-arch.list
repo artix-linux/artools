@@ -40,7 +40,6 @@ apr-util
 atk
 at-spi2-atk
 at-spi2-core
-boost-libs
 cairo
 cantarell-fonts
 check
@@ -67,14 +66,12 @@ ghostscript
 giflib
 gnome-common
 gobject-introspection
-gobject-introspection-runtime
 gptfdisk
 graphite
 graphviz
 gsfonts
 gtk3
 gtk-doc
-gtk-update-icon-cache
 gts
 harfbuzz
 hicolor-icon-theme
@@ -137,7 +134,6 @@ libxft
 libxi
 libxinerama
 libxkbcommon
-libxkbcommon-x11
 libxkbfile
 libxml2
 libxmu
@@ -150,7 +146,7 @@ libxt
 libxtst
 libxxf86vm
 lirc
-llvm-libs
+llvm
 mesa
 mtdev
 net-snmp
@@ -187,7 +183,7 @@ vala
 valgrind
 volume_key
 vte3
-vte-common
+vte
 wayland
 wayland-protocols
 xcb-proto
