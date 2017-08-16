@@ -97,8 +97,8 @@ prepare_build(){
     local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
     [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch.conf"
 
-    work_dir="${chroots_pkg}/${target_arch}"
-    pkg_dir="${cache_dir_pkg}/${target_arch}"
+    work_dir="${chroots_pkg}/${repository}-${target_arch}"
+    pkg_dir="${cache_dir_pkg}/${repository}-${target_arch}"
 
     local makepkg_conf=$(get_makepkg_conf "${target_arch}")
 
@@ -130,7 +130,6 @@ usage() {
     echo '    -d                 Delete chroot'
     echo '    -c                 Clean chroot copy'
     echo '    -u                 Update chroot copy'
-    echo '    -w                 Clean up cache and sources'
     echo '    -x                 Add the package(s) to the repo'
     echo '    -n                 Install and run namcap check'
     echo '    -s                 Sign packages'
