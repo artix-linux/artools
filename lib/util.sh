@@ -115,8 +115,6 @@ init_artools_pkg(){
 
     [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
 
-    [[ -z ${build_list} ]] && build_list='default'
-
     cache_dir_pkg=${workspace_dir}/pkg
 
     prepare_dir "${cache_dir_pkg}"

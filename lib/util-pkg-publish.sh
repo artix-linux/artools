@@ -10,25 +10,20 @@
 # GNU General Public License for more details.
 
 repo_update(){
-    local repo="$1" arch="$2" pkg="$3" action="$4"
+    local repo="$1" arch="$2" pkg="$3" action="$4" copy="$5"
     if [[ $action == "add" ]];then
         if [[ -f ${repos_local}/$repo/os/$arch/$pkg \
             && -f ${repos_local}/$repo/os/$arch/$pkg.sig ]];then
             rm ${repos_local}/$repo/os/$arch/$pkg
             rm ${repos_local}/$repo/os/$arch/$pkg.sig
         fi
-        ln -s ${cache_dir_pkg}/$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+        local cmd='ln -s'
+        $copy && cmd='cp'
+        $cmd ${cache_dir_pkg}/$repo-$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
     fi
     local dest=${repos_local}/$repo/os/$arch/$pkg
-    if [[ $action == "remove" ]];then
-        dest=$pkg
-    fi
+    [[ $action == "remove" ]] && dest=$pkg
     repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $dest
-}
-
-move_to_pool(){
-    local repo="$1" arch="$2" pkg="$3"
-    cp ${repos_local}/$repo/os/$arch/$pkg{,.sig} ${cache_dir_pkg}/$arch/
 }
 
 update_lock(){

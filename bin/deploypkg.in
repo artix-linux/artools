@@ -36,6 +36,7 @@ display_settings(){
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
     msg2 "del_pkg: %s" "${del_pkg}"
+    msg2 "copy_pkg: %s" "${copy_pkg}"
     msg2 "download: %s" "${download}"
     msg2 "upload: %s" "${upload}"
     msg2 "verbose: %s" "${verbose}"
@@ -60,7 +61,7 @@ verbose=false
 verbose=false
 add_pkg=false
 del_pkg=false
-move=false
+copy_pkg=false
 package=''
 
 rsync_args=(-rtxisP --progress --delete -e ssh)
@@ -71,9 +72,9 @@ usage() {
     echo "    -r                 Repository to sync [default:${repository}]"
     echo "    -u                 Upload repository"
     echo '    -d                 Download repository'
-    echo '    -m                 Move package from repository to pool'
     echo "    -p                 Package name to add/delete"
     echo '    -x                 Add package to repository'
+    echo '    -c                 Copy instead of symlink package to repository'
     echo '    -y                 Delete package from repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -v                 Verbose output'
@@ -85,7 +86,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:xymduvqh'
+opts='p:a:r:xyducvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -94,8 +95,8 @@ while getopts "${opts}" arg; do
         p) package="$OPTARG" ;;
         x) add_pkg=true ;;
         y) del_pkg=true ;;
+        c) copy_pkg=true ;;
         d) download=true ;;
-        m) move=true ;;
         u) upload=true; rsync_args+=(-L) ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true; rsync_args+=(-n) ;;
@@ -112,9 +113,7 @@ prepare_dir "${repos_local}"
 
 ${pretend} && display_settings #&& exit 1
 
-${move} && move_to_pool "${repository}" "${target_arch}" "${package}"
-
-${add_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "add"
+${add_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "add" "${copy_pkg}"
 ${del_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "remove"
 
 ${download} && repo_download "${repository}"

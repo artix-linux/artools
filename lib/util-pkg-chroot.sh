@@ -26,7 +26,11 @@ get_makepkg_conf(){
     local arch="$1"
     local conf="${tmp_dir}/makepkg-${arch}.conf"
 
-    cp "${DATADIR}/makepkg.conf" "$conf"
+    if [[ -f $AT_USERCONFDIR/makepkg.conf ]];then
+        cp "$AT_USERCONFDIR/makepkg.conf" "$conf"
+    else
+        cp "${DATADIR}/makepkg.conf" "$conf"
+    fi
 
     load_compiler_settings "${arch}"
 
@@ -47,16 +51,7 @@ check_build(){
 find_pkg(){
     local bdir="$1"
     local result=$(find . -type d -name "${bdir}")
-    [[ -z $result ]] && die "%s is not a valid package or build list!" "${bdir}"
-}
-
-clean_up(){
-    msg2 "Cleaning [%s]" "${pkg_dir}"
-    find ${pkg_dir} -maxdepth 1 -name "*.*" -delete #&> /dev/null
-    if [[ -z $SRCDEST ]];then
-        msg2 "Cleaning [source files]"
-        find $PWD -maxdepth 1 -name '*.?z?' -delete #&> /dev/null
-    fi
+    [[ -z $result ]] && die "%s is not a valid package!" "${bdir}"
 }
 
 sign_pkg(){
@@ -89,20 +84,18 @@ post_build(){
         src=$pkg-$ver-$tarch.$ext
         move_to_cache "$src"
         if ${repo_add};then
-            deploypkg -r "${repository}" -x -p "$src"
+            deploypkg "${deploypkg_args[@]}" -p "$src"
             user_own "${repos_local}/${repository}" -R
         fi
     done
 }
 
 build_pkg(){
-    ${purge} && clean_up
-#     setarch "${target_arch}"
     mkchrootpkg "${mkchrootpkg_args[@]}" || die
     post_build
 }
 
-make_pkg(){
+build(){
     local pkg="$1"
     check_build "${pkg}"
     msg "Start building [%s]" "${pkg}"
