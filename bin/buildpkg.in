@@ -75,7 +75,6 @@ clean_first=false
 update_first=false
 namcap=false
 pretend=false
-is_build_list=false
 sign=false
 is_multilib=false
 repo_add=false
@@ -85,6 +84,7 @@ mkchrootpkg_args=()
 
 install_pkgs=()
 repository=${PWD##*/}
+package=''
 
 prepare_build(){
     local pac_arch='default'
