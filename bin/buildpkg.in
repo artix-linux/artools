@@ -37,11 +37,9 @@ display_settings(){
     show_version
     show_config
 
-    msg2 "is_build_list: %s" "${is_build_list}"
-
     msg "OPTIONS:"
     msg2 "arch: %s" "${target_arch}"
-    ${repo_add} && msg2 "repository: %s" "${repository}"
+    msg2 "repository: %s" "${repository}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
 
     msg "ARGS:"
@@ -49,7 +47,6 @@ display_settings(){
     msg2 "delete_first: %s" "${delete_first}"
     msg2 "clean_first: %s" "${clean_first}"
     msg2 "update_first: %s" "${update_first}"
-    msg2 "purge: %s" "${purge}"
     msg2 "namcap: %s" "${namcap}"
     msg2 "sign: %s" "${sign}"
     msg2 "repo_add: %s" "${repo_add}"
@@ -62,8 +59,8 @@ display_settings(){
         msg2 "packages: %s" "${packages[*]}"
     fi
 
-    msg "BUILD QUEUE:"
-    run show_pkg "${build_list}"
+    msg "BUILD:"
+    show_pkg "${package}"
 }
 
 load_user_info
@@ -76,7 +73,6 @@ create_first=false
 delete_first=false
 clean_first=false
 update_first=false
-purge=false
 namcap=false
 pretend=false
 is_build_list=false
@@ -116,8 +112,6 @@ prepare_build(){
 
     prepare_dir "${work_dir}"
 
-    eval_build_list "${build_list}"
-
     packages=('base-devel')
     ${is_multilib} && packages+=('multilib-devel')
 
@@ -126,7 +120,7 @@ prepare_build(){
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -p <pkg>           Build list or pkg [default: ${build_list}]"
+    echo "    -p <pkg>           Package to build [default: ${package}]"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_pkg}]"
@@ -149,11 +143,11 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:z:odcuwnsxqh'
+opts='p:a:r:i:z:odcunsxqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        p) build_list="$OPTARG" ;;
+        p) package="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
         i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
@@ -162,7 +156,6 @@ while getopts "${opts}" arg; do
         d) delete_first=true ;;
         c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
         u) update_first=true ; mkchrootpkg_args+=(-u) ;;
-        w) purge=true ;;
         x) repo_add=true ;;
         n) namcap=true; mkchrootpkg_args+=(-n) ;;
         s) sign=true ;;
@@ -184,4 +177,4 @@ ${delete_first} && delete_chroot "${work_dir}/root" "${work_dir}"
 
 ${create_first} && create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
 
-run make_pkg "${build_list}"
+build "${package}"

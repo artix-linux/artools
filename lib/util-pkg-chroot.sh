@@ -51,16 +51,7 @@ check_build(){
 find_pkg(){
     local bdir="$1"
     local result=$(find . -type d -name "${bdir}")
-    [[ -z $result ]] && die "%s is not a valid package or build list!" "${bdir}"
-}
-
-clean_up(){
-    msg2 "Cleaning [%s]" "${pkg_dir}"
-    find ${pkg_dir} -maxdepth 1 -name "*.*" -delete #&> /dev/null
-    if [[ -z $SRCDEST ]];then
-        msg2 "Cleaning [source files]"
-        find $PWD -maxdepth 1 -name '*.?z?' -delete #&> /dev/null
-    fi
+    [[ -z $result ]] && die "%s is not a valid package!" "${bdir}"
 }
 
 sign_pkg(){
@@ -100,13 +91,11 @@ post_build(){
 }
 
 build_pkg(){
-    ${purge} && clean_up
-#     setarch "${target_arch}"
     mkchrootpkg "${mkchrootpkg_args[@]}" || die
     post_build
 }
 
-make_pkg(){
+build(){
     local pkg="$1"
     check_build "${pkg}"
     msg "Start building [%s]" "${pkg}"
