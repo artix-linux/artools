@@ -84,7 +84,7 @@ post_build(){
         src=$pkg-$ver-$tarch.$ext
         move_to_cache "$src"
         if ${repo_add};then
-            deploypkg -r "${repository}" -x -p "$src"
+            deploypkg "${deploypkg_args[@]}" -p "$src"
             user_own "${repos_local}/${repository}" -R
         fi
     done

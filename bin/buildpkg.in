@@ -50,6 +50,7 @@ display_settings(){
     msg2 "namcap: %s" "${namcap}"
     msg2 "sign: %s" "${sign}"
     msg2 "repo_add: %s" "${repo_add}"
+    msg2 "copy_pkg: %s" "${copy_pkg}"
 
     msg "PATHS:"
     msg2 "pkg_dir: %s" "${pkg_dir}"
@@ -78,9 +79,11 @@ pretend=false
 sign=false
 is_multilib=false
 repo_add=false
+copy_pkg=false
 
 mkchroot_args=()
 mkchrootpkg_args=()
+deploypkg_args=(-x)
 
 install_pkgs=()
 repository=${PWD##*/}
@@ -107,6 +110,7 @@ prepare_build(){
     mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf})
 
     mkchrootpkg_args+=(-r ${work_dir})
+    deploypkg_args+=(-r ${repository})
 
     prepare_dir "${pkg_dir}"
 
@@ -125,12 +129,13 @@ usage() {
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_pkg}]"
     echo '    -i <pkgs>          Install packages into the working copy of the chroot'
-    echo "    -z <repo>          The repo name to add the package(s)  [default: ${repository}]"
+    echo "    -z <repo>          The repo name to add the package(s) [default: ${repository}]"
     echo '    -o                 Create chroot'
     echo '    -d                 Delete chroot'
     echo '    -c                 Clean chroot copy'
     echo '    -u                 Update chroot copy'
     echo '    -x                 Add the package(s) to the repo'
+    echo '    -l                 Copy the package(s) to the repo instead of symlink'
     echo '    -n                 Install and run namcap check'
     echo '    -s                 Sign packages'
     echo '    -q                 Query settings and pretend build'
@@ -142,7 +147,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:z:odcunsxqh'
+opts='p:a:r:i:z:oldcunsxqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -156,6 +161,7 @@ while getopts "${opts}" arg; do
         c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
         u) update_first=true ; mkchrootpkg_args+=(-u) ;;
         x) repo_add=true ;;
+        l) copy_pkg=true; deploypkg_args+=(-c) ;;
         n) namcap=true; mkchrootpkg_args+=(-n) ;;
         s) sign=true ;;
         q) pretend=true ;;
