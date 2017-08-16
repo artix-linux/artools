@@ -1,7 +1,6 @@
 autoconf-archive
 confuse
-libappindicator-gtk3
-libdbusmenu-glib
-libdbusmenu-gtk3
+libappindicator
+libdbusmenu
 libftdi
-libindicator-gtk3
+libindicator

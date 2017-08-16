@@ -40,6 +40,7 @@ apr-util
 atk
 at-spi2-atk
 at-spi2-core
+boost
 cairo
 cantarell-fonts
 check
