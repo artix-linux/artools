@@ -37,7 +37,6 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "verbose: %s" "${verbose}"
-    msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
     msg2 "import_arch: %s" "${import_arch}"
 
@@ -57,7 +56,6 @@ load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
-artix=false
 pretend=false
 arch=false
 import_arch=false
@@ -67,7 +65,6 @@ rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -x            Sync artix import tree"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch packages'
     echo '    -v            Verbose import output'
@@ -80,11 +77,10 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='xaivqh'
+opts='aivqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        x) artix=true ;;
         a) arch=true ;;
         i) import_arch=true ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;
@@ -100,8 +96,6 @@ prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1
-
-${artix} && sync_tree_artix
 
 ${arch} && sync_tree_arch
 

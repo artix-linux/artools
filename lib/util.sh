@@ -37,14 +37,9 @@ prepare_dir(){
     [[ ! -d $1 ]] && mkdir -p $1
 }
 
-get_release(){
-    source /etc/lsb-release
-    echo "${DISTRIB_RELEASE}"
-}
-
 get_distname(){
-    source /etc/lsb-release
-    echo "${DISTRIB_ID%Linux}"
+    source /usr/lib/os-release
+    echo "${NAME%Linux}"
 }
 
 get_disturl(){
@@ -91,9 +86,7 @@ init_artools_pkg(){
 
     [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${workspace_dir}/artix
 
-    [[ -z ${repo_tree_artix[@]} ]] && repo_tree_artix=('system' 'world' 'galaxy')
-
-    [[ -z ${repo_tree_import[@]} ]] && repo_tree_import=('system-arch' 'world-arch' 'galaxy-arch')
+    [[ -z ${repo_tree_import[@]} ]] && repo_tree_import=('system' 'world' 'galaxy')
 
     [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
 
@@ -109,11 +102,7 @@ init_artools_pkg(){
 
     chroots_pkg="${chroots_dir}/buildpkg"
 
-    list_dir_pkg="${SYSCONFDIR}/pkg.list.d"
-
     make_conf_dir="${SYSCONFDIR}/make.conf.d"
-
-    [[ -d ${AT_USERCONFDIR}/pkg.list.d ]] && list_dir_pkg=${AT_USERCONFDIR}/pkg.list.d
 
     cache_dir_pkg=${workspace_dir}/pkg
 
@@ -135,7 +124,7 @@ init_artools_iso(){
 
     [[ -z ${profile} ]] && profile='base'
 
-    [[ -z ${dist_release} ]] && dist_release=$(get_release)
+    [[ -z ${dist_release} ]] && dist_release=$(date +%Y%m%d)
 
     dist_name=$(get_distname)
 
