@@ -37,14 +37,9 @@ prepare_dir(){
     [[ ! -d $1 ]] && mkdir -p $1
 }
 
-get_release(){
-    source /etc/lsb-release
-    echo "${DISTRIB_RELEASE}"
-}
-
 get_distname(){
-    source /etc/lsb-release
-    echo "${DISTRIB_ID%Linux}"
+    source /usr/lib/os-release
+    echo "${NAME%Linux}"
 }
 
 get_disturl(){
@@ -129,7 +124,7 @@ init_artools_iso(){
 
     [[ -z ${profile} ]] && profile='base'
 
-    [[ -z ${dist_release} ]] && dist_release=$(get_release)
+    [[ -z ${dist_release} ]] && dist_release=$(date +%Y%m%d)
 
     dist_name=$(get_distname)
 
