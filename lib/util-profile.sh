@@ -61,21 +61,21 @@ load_profile(){
 
     enable_live=('artix-live' 'pacman-init')
 
-    netgroups="https://raw.githubusercontent.com/artix-linux/netgroups/master"
+    [[ -z ${netgroups} ]] && netgroups="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
-    root_list=${run_dir}/base/Packages-Root
+    root_list=${DATADIR}/iso-profiles/base/Packages-Root
     [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
 
-    root_overlay="${run_dir}/base/root-overlay"
+    root_overlay="${DATADIR}/iso-profiles/base/root-overlay"
     [[ -d "$profdir/root-overlay" ]] && root_overlay="$profdir/root-overlay"
 
     [[ -f "$profdir/Packages-Desktop" ]] && desktop_list=$profdir/Packages-Desktop
     [[ -d "$profdir/desktop-overlay" ]] && desktop_overlay="$profdir/desktop-overlay"
 
-    live_list="${run_dir}/base/Packages-Live"
+    live_list="${DATADIR}/iso-profiles/base/Packages-Live"
     [[ -f "$profdir/Packages-Live" ]] && live_list="$profdir/Packages-Live"
 
-    live_overlay="${run_dir}/base/live-overlay"
+    live_overlay="${DATADIR}/iso-profiles/base/live-overlay"
     [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
 
     return 0
