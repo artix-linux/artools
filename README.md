@@ -31,16 +31,12 @@ By default it is commented and shows just initialization values done in code.
 Tools configuration is done in artools.conf or by args.
 Specifying args will override artools.conf settings.
 
-User build lists(eg 'my-super-build.list') can be placed in
-
 ~~~
-$HOME/.config/artools/pkg.list.d
-$HOME/.config/artools/iso.list.d
+$HOME/.config/artools/import.list.d
 ~~~
 
 overriding
 
 ~~~
-/etc/artools/pkg.list.d
-/etc/artools/iso.list.d
+/etc/artools/import.list.d
 ~~~
