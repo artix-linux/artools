@@ -132,9 +132,6 @@ install_base:
 	install -m0644 ${SHARED_BASE} $(DESTDIR)$(PREFIX)/share/artools
 
 install_pkg:
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d
-	install -m0644 ${LIST_PKG} $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d
-
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 	install -m0644 ${LIST_IMPORT} $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 
@@ -207,7 +204,6 @@ uninstall_base:
 	for f in ${LIBS_BASE}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_pkg:
-	for f in ${LIST_PKG}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/pkg.list.d/$$f; done
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${ARCH_CONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
