@@ -81,6 +81,26 @@ LIBS_YAML = \
 SHARED_YAML = \
 	data/linux.preset
 
+INFO = \
+	data/repo_info
+
+BASE = \
+	$(wildcard data/base/Packages-*) \
+	data/base/profile.conf
+
+LIVE_ETC = \
+	data/base/live-overlay/etc/issue \
+	data/base/live-overlay/etc/fstab
+
+LIVE_ETC_DEFAULT = \
+	$(wildcard data/base/live-overlay/etc/default/*)
+
+LIVE_ETC_PAM = \
+	$(wildcard data/base/live-overlay/etc/pam.d/*)
+
+LIVE_ETC_SUDOERS = \
+	$(wildcard data/base/live-overlay/etc/sudoers.d/*)
+
 all: $(BIN_BASE) $(BIN_PKG) $(BIN_ISO) $(BIN_YAML)
 
 edit = sed -e "s|@datadir[@]|$(DESTDIR)$(PREFIX)/share/artools|g" \
@@ -132,6 +152,25 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
 	install -m0644 ${SHARED_PKG} $(DESTDIR)$(PREFIX)/share/artools
 
+install_isobase:
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
+	install -m0644 ${INFO} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
+
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
+	install -m0644 ${BASE} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
+
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc
+	install -m0644 ${LIVE_ETC} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc
+
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default
+	install -m0644 ${LIVE_ETC_DEFAULT} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default
+
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d
+	install -m0644 ${LIVE_ETC_PAM} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d
+
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d
+	install -m0644 ${LIVE_ETC_SUDOERS} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d
+
 install_iso:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
@@ -176,6 +215,14 @@ uninstall_pkg:
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
+uninstall_isobase:
+	for f in ${INFO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/$$f; done
+	for f in ${BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/$$f; done
+	for f in ${LIVE_ETC}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/$$f; done
+	for f in ${LIVE_ETC_DEFAULT}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default/$$f; done
+	for f in ${LIVE_ETC_PAM}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d/$$f; done
+	for f in ${LIVE_ETC_SUDOERS}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d/$$f; done
+
 uninstall_iso:
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
@@ -190,9 +237,9 @@ uninstall_yaml:
 	for f in ${LIBS_YAML}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 	for f in ${SHARED_YAML}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
-install: install_base install_pkg install_iso install_yaml
+install: install_base install_pkg install_iso install_yaml install_isobase
 
-uninstall: uninstall_base uninstall_pkg uninstall_iso uninstall_yaml
+uninstall: uninstall_base uninstall_pkg uninstall_iso uninstall_yaml uninstall_isobase
 
 dist:
 	git archive --format=tar --prefix=artools-$(Version)/ $(Version) | gzip -9 > artools-$(Version).tar.gz

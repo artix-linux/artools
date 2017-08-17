@@ -19,7 +19,7 @@ repo_update(){
         fi
         local cmd='ln -s'
         $copy && cmd='cp'
-        $cmd ${cache_dir_pkg}/$repo-$arch/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+        $cmd ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
     fi
     local dest=${repos_local}/$repo/os/$arch/$pkg
     [[ $action == "remove" ]] && dest=$pkg
