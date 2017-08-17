@@ -49,21 +49,6 @@ clone_tree(){
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
-sync_tree_artix(){
-    cd ${tree_dir_artix}
-        for repo in ${repo_tree_import[@]};do
-            if [[ -d ${repo} ]];then
-                cd ${repo}
-                    $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-                    sync_tree "${repo}"
-                cd ..
-            else
-                clone_tree "${repo}" "${host_tree_artix}/${repo}"
-            fi
-        done
-    cd ..
-}
-
 sync_tree_arch(){
     cd ${tree_dir_arch}
         for repo in ${repo_tree_arch[@]};do
@@ -95,15 +80,16 @@ is_untracked(){
 }
 
 import_from_arch(){
-    local timer=$(get_timer)
+    local timer=$(get_timer) branch='testing'
     for repo in ${repo_tree_import[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
-#             git checkout master &> /dev/null
+            git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
+            git pull origin $branch &> /dev/null
             local arch_dir=packages
-            [[ $repo == "galaxy-arch" ]] && arch_dir=community
+            [[ $repo == "galaxy" ]] && arch_dir=community
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
                 rsync "${rsync_args[@]}" ${tree_dir_arch}/$arch_dir/$pkg/trunk/ ${tree_dir_artix}/$repo/$pkg/
