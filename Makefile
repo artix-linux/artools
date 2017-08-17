@@ -81,6 +81,9 @@ LIBS_YAML = \
 SHARED_YAML = \
 	data/linux.preset
 
+INFO = \
+	data/repo_info
+
 BASE = \
 	$(wildcard data/base/Packages-*) \
 	data/base/profile.conf
