@@ -38,17 +38,12 @@ gen_fn(){
 }
 
 prepare_build(){
-    local profile_dir=${run_dir}/${profile}
-
-    load_profile "${profile_dir}"
-
+    load_profile "${profile}"
     yaml_dir=${cache_dir_netinstall}/${profile}/${target_arch}
-
     prepare_dir "${yaml_dir}"
 }
 
 build(){
-    prepare_build
     load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
     write_netgroup_yaml "${profile}" "$(gen_fn "Packages-Root")"
     if [[ -f "${desktop_list}" ]]; then
@@ -56,6 +51,4 @@ build(){
         write_netgroup_yaml "${profile}" "$(gen_fn "Packages-Desktop")"
     fi
     ${calamares} && configure_calamares "${yaml_dir}"
-    reset_profile
-    unset yaml_dir
 }

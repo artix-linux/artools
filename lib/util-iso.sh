@@ -35,7 +35,6 @@ error_function() {
 run_log(){
     local func="$1"
     local logfile=${log_dir}/$(gen_iso_fn).$func.log
-#     local tmpfile=${tmp_dir}/$func.ansi.log
     logpipe=$(mktemp -u "${tmp_dir}/$func.pipe.XXXXXXXX")
     mkfifo "$logpipe"
     tee "$logfile" < "$logpipe" &
@@ -43,8 +42,6 @@ run_log(){
     $func &> "$logpipe"
     wait $teepid
     rm "$logpipe"
-#     cat $tmpfile | perl -pe 's/\e\[?.*?[\@-~]//g' > $logfile
-#     rm "$tmpfile"
 }
 
 run_safe() {
@@ -392,14 +389,6 @@ prepare_images(){
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
-check_requirements(){
-    for sig in TERM HUP QUIT; do
-        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
-    done
-    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
-#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
-}
-
 build(){
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
@@ -420,7 +409,6 @@ build(){
         prepare_images
         compress_images
     fi
-    reset_profile
     msg "Finished building [%s]" "${profile}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
