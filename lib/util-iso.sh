@@ -35,7 +35,6 @@ error_function() {
 run_log(){
     local func="$1"
     local logfile=${log_dir}/$(gen_iso_fn).$func.log
-#     local tmpfile=${tmp_dir}/$func.ansi.log
     logpipe=$(mktemp -u "${tmp_dir}/$func.pipe.XXXXXXXX")
     mkfifo "$logpipe"
     tee "$logfile" < "$logpipe" &
@@ -43,8 +42,6 @@ run_log(){
     $func &> "$logpipe"
     wait $teepid
     rm "$logpipe"
-#     cat $tmpfile | perl -pe 's/\e\[?.*?[\@-~]//g' > $logfile
-#     rm "$tmpfile"
 }
 
 run_safe() {
@@ -392,42 +389,7 @@ prepare_images(){
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
-check_requirements(){
-    [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
-
-    for sig in TERM HUP QUIT; do
-        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
-    done
-    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
-    trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
-}
-
-prepare_build(){
-    timer_start=$(get_timer)
-    local profile_dir=${run_dir}/${profile}
-
-    load_profile "${profile_dir}"
-
-    local pac_arch='default' pacman_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
-
-    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
-
-    iso_file=$(gen_iso_fn).iso
-
-    mkchroot_args+=(-C ${pacman_conf})
-    work_dir=${chroots_iso}/${profile}/${target_arch}
-
-    iso_dir="${cache_dir_iso}/${profile}"
-
-    iso_root=${chroots_iso}/${profile}/iso
-    mnt_dir=${chroots_iso}/${profile}/mnt
-    prepare_dir "${mnt_dir}"
-    prepare_dir "${iso_dir}"
-}
-
 build(){
-    prepare_build
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
         chroot_clean "${chroots_iso}/${profile}/${target_arch}"
@@ -447,7 +409,6 @@ build(){
         prepare_images
         compress_images
     fi
-    reset_profile
     msg "Finished building [%s]" "${profile}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

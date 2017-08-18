@@ -59,8 +59,7 @@ LIBS_ISO = \
 	$(wildcard lib/util-iso*.sh)
 
 SHARED_ISO = \
-	data/mkinitcpio.conf \
-	data/profile.conf.example
+	data/mkinitcpio.conf
 
 CPIOHOOKS = \
 	$(wildcard initcpio/hooks/*)
@@ -80,9 +79,6 @@ LIBS_YAML = \
 
 SHARED_YAML = \
 	data/linux.preset
-
-INFO = \
-	data/repo_info
 
 BASE = \
 	$(wildcard data/base/Packages-*) \
@@ -150,8 +146,8 @@ install_pkg:
 	install -m0644 ${SHARED_PKG} $(DESTDIR)$(PREFIX)/share/artools
 
 install_isobase:
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
-	install -m0644 ${INFO} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
+# 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
+# 	install -m0644 ${INFO} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
 	install -m0644 ${BASE} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
@@ -212,7 +208,7 @@ uninstall_pkg:
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_isobase:
-	for f in ${INFO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/$$f; done
+# 	for f in ${INFO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/$$f; done
 	for f in ${BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/$$f; done
 	for f in ${LIVE_ETC}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/$$f; done
 	for f in ${LIVE_ETC_DEFAULT}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default/$$f; done

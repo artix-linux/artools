@@ -21,7 +21,6 @@ import ${LIBDIR}/util-yaml-check.sh
 import ${LIBDIR}/util-profile.sh
 
 show_profile(){
-    prepare_build
     msg2 "yaml_dir: %s" "${yaml_dir}"
     msg2 "autologin: %s" "${autologin}"
 
@@ -35,9 +34,6 @@ show_profile(){
     msg2 "enable_live: %s" "${enable_live[*]}"
     msg2 "openrc_boot: %s" "${openrc_boot[*]}"
     msg2 "openrc_default: %s" "${openrc_default[*]}"
-
-    reset_profile
-    unset yaml_dir
 }
 
 display_settings(){
@@ -61,11 +57,6 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-
-# to force old way to have buildiso run in iso-profiles dir
-# run_dir=$(pwd)
-
-load_run_dir
 
 calamares=false
 pretend=false
@@ -106,6 +97,8 @@ while getopts "${opts}" arg; do
 done
 
 shift $(($OPTIND - 1))
+
+prepare_build
 
 ${pretend} && display_settings && exit 1
 

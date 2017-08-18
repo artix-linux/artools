@@ -63,8 +63,6 @@ init_artools_base(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    [[ -z ${build_mirror} ]] && build_mirror='https://downloads.sourceforge.net/project/artix-linux/repos'
-
     log_dir='/var/log/artools'
 
     tmp_dir='/tmp'
@@ -108,8 +106,6 @@ init_artools_pkg(){
 
     prepare_dir "${cache_dir_pkg}"
 
-    repository='system'
-
     [[ -z ${repos_local} ]] && repos_local="${workspace_dir}/repos"
 
     repos_remote="/${repos_local##*/}"
@@ -122,7 +118,7 @@ init_artools_iso(){
 
     prepare_dir "${cache_dir_iso}"
 
-    [[ -z ${profile} ]] && profile='base'
+    profile='base'
 
     [[ -z ${dist_release} ]] && dist_release=$(date +%Y%m%d)
 

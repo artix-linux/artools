@@ -19,8 +19,38 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso.sh
 
+prepare_traps(){
+    for sig in TERM HUP QUIT; do
+        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
+    done
+    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
+#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
+}
+
+prepare_build(){
+    timer_start=$(get_timer)
+
+    load_profile "${profile}"
+
+    local pac_arch='default' pacman_conf
+    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
+
+    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+
+    iso_file=$(gen_iso_fn).iso
+
+    mkchroot_args+=(-C ${pacman_conf})
+    work_dir=${chroots_iso}/${profile}/${target_arch}
+
+    iso_dir="${cache_dir_iso}/${profile}"
+
+    iso_root=${chroots_iso}/${profile}/iso
+    mnt_dir=${chroots_iso}/${profile}/mnt
+    prepare_dir "${mnt_dir}"
+    prepare_dir "${iso_dir}"
+}
+
 show_profile(){
-    prepare_build
     msg2 "iso_file: %s" "${iso_file}"
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
@@ -36,7 +66,6 @@ show_profile(){
         msg2 "openrc_boot: %s" "${openrc_boot[*]}"
         msg2 "openrc_default: %s" "${openrc_default[*]}"
     fi
-    reset_profile
 }
 
 display_settings(){
@@ -68,8 +97,6 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-
-load_run_dir
 
 clean_first=true
 pretend=false
@@ -135,7 +162,9 @@ shift $(($OPTIND - 1))
 
 check_root
 
-check_requirements
+prepare_traps
+
+prepare_build
 
 ${pretend} && display_settings && exit 1
 

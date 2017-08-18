@@ -8,31 +8,29 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-write_repo_conf(){
-    local repos=$(find $USER_HOME -type f -name "repo_info")
-    local path name
-    [[ -z ${repos[@]} ]] && run_dir=${DATADIR}/iso-profiles && return 1
-    for r in ${repos[@]}; do
-        path=${r%/repo_info}
-        name=${path##*/}
-        echo "run_dir=$path" > ${AT_USERCONFDIR}/$name.conf
-    done
-}
-
-load_run_dir(){
-    local gitrepo='iso-profiles'
-    [[ -f ${AT_USERCONFDIR}/$gitrepo.conf ]] || write_repo_conf
-    [[ -r ${AT_USERCONFDIR}/$gitrepo.conf ]] && source ${AT_USERCONFDIR}/$gitrepo.conf
-    return 0
-}
-
 load_profile(){
-    local profdir="$1"
-    local profile_conf="$profdir/profile.conf"
+    local prof="$1"
+    local profdir="${DATADIR}/iso-profiles/$prof"
+    [[ "$prof" != 'base' ]] && profdir=${workspace_dir}/iso-profiles/$prof
 
-    [[ -f ${profile_conf} ]] || return 1
+    root_list="${DATADIR}/iso-profiles/base/Packages-Root"
+    [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
 
-    [[ -r ${profile_conf} ]] && source ${profile_conf}
+    root_overlay="${DATADIR}/iso-profiles/base/root-overlay"
+    [[ -d "$profdir/root-overlay" ]] && root_overlay="$profdir/root-overlay"
+
+    [[ -f "$profdir/Packages-Desktop" ]] && desktop_list="$profdir/Packages-Desktop"
+    [[ -d "$profdir/desktop-overlay" ]] && desktop_overlay="$profdir/desktop-overlay"
+
+    live_list="${DATADIR}/iso-profiles/base/Packages-Live"
+    [[ -f "$profdir/Packages-Live" ]] && live_list="$profdir/Packages-Live"
+
+    live_overlay="${DATADIR}/iso-profiles/base/live-overlay"
+    [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
+
+    [[ -f $profdir/profile.conf ]] || return 1
+
+    [[ -r $profdir/profile.conf ]] && source $profdir/profile.conf
 
     [[ -z ${displaymanager} ]] && displaymanager="none"
 
@@ -63,40 +61,7 @@ load_profile(){
 
     [[ -z ${netgroups} ]] && netgroups="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
-    root_list=${DATADIR}/iso-profiles/base/Packages-Root
-    [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
-
-    root_overlay="${DATADIR}/iso-profiles/base/root-overlay"
-    [[ -d "$profdir/root-overlay" ]] && root_overlay="$profdir/root-overlay"
-
-    [[ -f "$profdir/Packages-Desktop" ]] && desktop_list=$profdir/Packages-Desktop
-    [[ -d "$profdir/desktop-overlay" ]] && desktop_overlay="$profdir/desktop-overlay"
-
-    live_list="${DATADIR}/iso-profiles/base/Packages-Live"
-    [[ -f "$profdir/Packages-Live" ]] && live_list="$profdir/Packages-Live"
-
-    live_overlay="${DATADIR}/iso-profiles/base/live-overlay"
-    [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
-
     return 0
-}
-
-reset_profile(){
-    unset displaymanager
-    unset autologin
-    unset hostname
-    unset username
-    unset password
-    unset addgroups
-    unset openrc_boot
-    unset openrc_default
-    unset enable_live
-    unset root_list
-    unset desktop_list
-    unset live_list
-    unset root_overlay
-    unset desktop_overlay
-    unset live_overlay
 }
 
 write_live_session_conf(){

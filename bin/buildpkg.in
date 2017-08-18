@@ -178,8 +178,13 @@ prepare_build
 
 ${pretend} && display_settings && exit
 
-${delete_first} && delete_chroot "${work_dir}/root" "${work_dir}"
+if ${delete_first};then
+    delete_chroot "${work_dir}/root" "${work_dir}"
+    delete_chroot "${work_dir}/$OWNER" "${work_dir}"
+fi
 
-${create_first} && create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
+if ${create_first} || [[ ! -d ${work_dir}/root ]];then
+    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
+fi
 
 build "${package}"
