@@ -393,13 +393,11 @@ prepare_images(){
 }
 
 check_requirements(){
-    [[ -f ${run_dir}/repo_info ]] || die "%s is not a valid iso profiles directory!" "${run_dir}"
-
     for sig in TERM HUP QUIT; do
         trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
     done
     trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
-    trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
+#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
 }
 
 build(){
