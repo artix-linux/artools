@@ -19,8 +19,31 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso.sh
 
+prepare_build(){
+    timer_start=$(get_timer)
+    local profile_dir=${run_dir}/${profile}
+
+    load_profile "${profile_dir}"
+
+    local pac_arch='default' pacman_conf
+    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
+
+    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+
+    iso_file=$(gen_iso_fn).iso
+
+    mkchroot_args+=(-C ${pacman_conf})
+    work_dir=${chroots_iso}/${profile}/${target_arch}
+
+    iso_dir="${cache_dir_iso}/${profile}"
+
+    iso_root=${chroots_iso}/${profile}/iso
+    mnt_dir=${chroots_iso}/${profile}/mnt
+    prepare_dir "${mnt_dir}"
+    prepare_dir "${iso_dir}"
+}
+
 show_profile(){
-    prepare_build
     msg2 "iso_file: %s" "${iso_file}"
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
@@ -68,8 +91,6 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-
-load_run_dir
 
 clean_first=true
 pretend=false
@@ -133,9 +154,13 @@ done
 
 shift $(($OPTIND - 1))
 
+load_run_dir "${profile}"
+
 check_root
 
 check_requirements
+
+prepare_build
 
 ${pretend} && display_settings && exit 1
 

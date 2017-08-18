@@ -402,32 +402,7 @@ check_requirements(){
     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
 }
 
-prepare_build(){
-    timer_start=$(get_timer)
-    local profile_dir=${run_dir}/${profile}
-
-    load_profile "${profile_dir}"
-
-    local pac_arch='default' pacman_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
-
-    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
-
-    iso_file=$(gen_iso_fn).iso
-
-    mkchroot_args+=(-C ${pacman_conf})
-    work_dir=${chroots_iso}/${profile}/${target_arch}
-
-    iso_dir="${cache_dir_iso}/${profile}"
-
-    iso_root=${chroots_iso}/${profile}/iso
-    mnt_dir=${chroots_iso}/${profile}/mnt
-    prepare_dir "${mnt_dir}"
-    prepare_dir "${iso_dir}"
-}
-
 build(){
-    prepare_build
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
         chroot_clean "${chroots_iso}/${profile}/${target_arch}"
