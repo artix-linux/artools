@@ -23,6 +23,9 @@ create_min_fs(){
     mkdir -m 0755 -p $1/var/{cache/pacman/pkg,lib/pacman,log} $1/{dev,etc}
     mkdir -m 1777 -p $1/{tmp,run}
     mkdir -m 0555 -p $1/{sys,proc}
+    if [[ ! -f $1/etc/machine-id ]];then
+        touch $1/etc/machine-id
+    fi
 }
 
 is_btrfs() {
