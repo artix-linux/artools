@@ -87,7 +87,7 @@ import_from_arch(){
             cd ${tree_dir_artix}/$repo
             git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-            git pull origin $branch &> /dev/null
+            git pull origin $branch #&> /dev/null
             local arch_dir=packages
             [[ $repo == "galaxy" ]] && arch_dir=community
             msg "Import into [%s]" "$repo"
@@ -99,6 +99,7 @@ import_from_arch(){
                         local ver=$(get_pkgver)
                         msg2 "Archlinux import: [%s]" "$pkg-$ver"
                         git commit -m "Archlinux import: $pkg-$ver"
+                        git push origin $branch #&> /dev/null
                     cd ..
                 fi
             done
