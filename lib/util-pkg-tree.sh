@@ -79,6 +79,16 @@ is_untracked(){
     return 0
 }
 
+pull_request() {
+    local repo="$1"
+    local dest_branch="master"
+    local origin=$(git config --get remote.origin.url)
+    local dest_user=$(echo $origin | sed -e 's/.*[\/:]\([^/]*\)\/[^/]*$/\1/')
+    local src_user=$(echo $origin | sed -e 's/.*[\/:]\([^/]*\)\/[^/]*$/\1/')
+    local src_branch=$(git rev-parse --abbrev-ref HEAD)
+    open "https://github.com/$dest_user/$repo/pull/new/$dest_user:$dest_branch...$src_user:$src_branch"
+}
+
 import_from_arch(){
     local timer=$(get_timer) branch='testing'
     for repo in ${repo_tree_import[@]};do
@@ -87,7 +97,7 @@ import_from_arch(){
             cd ${tree_dir_artix}/$repo
             git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-            git pull origin $branch #&> /dev/null
+            git pull origin "$branch" #&> /dev/null
             local arch_dir=packages
             [[ $repo == "galaxy" ]] && arch_dir=community
             msg "Import into [%s]" "$repo"
@@ -99,7 +109,9 @@ import_from_arch(){
                         local ver=$(get_pkgver)
                         msg2 "Archlinux import: [%s]" "$pkg-$ver"
                         git commit -m "Archlinux import: $pkg-$ver"
-                        git push origin $branch #&> /dev/null
+                        sleep 5
+                        git push origin "$branch" #&> /dev/null
+                        pull_request "$repo"
                     cd ..
                 fi
             done
