@@ -67,7 +67,10 @@ init_artools_base(){
 
     tmp_dir='/tmp'
 
-    host="sourceforge.net"
+    [[ -z ${file_host} ]] && file_host="sourceforge.net"
+#     file_host="leviathan.mief.nl"
+
+    [[ -z ${git_host} ]] && git_host='https://github.com'
 
     [[ -z ${host_mirrors[@]} ]] && host_mirrors=('netcologne' 'freefr' 'netix' 'kent' '10gbps-io')
 
@@ -215,5 +218,9 @@ check_root() {
 
 connect(){
     local home="/home/frs/project/${project}"
-    echo "${account},${project}@frs.${host}:${home}"
+    echo "${account},${project}@frs.${file_host}:${home}"
 }
+
+# connect_to_repo(){
+#
+# }

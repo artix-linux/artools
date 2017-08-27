@@ -32,7 +32,7 @@ update_lock(){
 }
 
 is_locked(){
-    local repo="$1" url="https://${host}/projects/${project}/files/repos"
+    local repo="$1" url="https://${file_host}/projects/${project}/files/repos"
     if wget --spider -v $url/$repo/$repo.lock &>/dev/null;then
         return 0
     else
@@ -73,3 +73,17 @@ repo_upload(){
     rsync "${rsync_args[@]}" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
     repo_unlock "$repo"
 }
+
+add_to_repo(){
+    local repo="$1" arch="$2" pkg="$3" ext='db.tar.xz'
+    ln -s ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+    repo-add -R ${repos_local}/$repo/os/$arch/$repo.$ext ${repos_local}/$repo/os/$arch/$pkg
+}
+
+# upload_pkg(){
+#     local pkg="$1" repo="$2" arch="$3" ext='db.tar.xz'
+#     sftp ${account}@${file_host}
+#     cd $repo/os/$arch
+#     put $pkg{,.sig} $repo.$ext{,.old}
+#     bye
+# }

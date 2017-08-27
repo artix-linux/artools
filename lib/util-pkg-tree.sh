@@ -82,9 +82,7 @@ is_untracked(){
 pull_request() {
     local repo="$1"
     local src_branch="testing" dest_branch="master"
-    local origin=$(git config --get remote.origin.url)
-    local user=$(echo $origin | sed -e 's/.*[\/:]\([^/]*\)\/[^/]*$/\1/')
-    open "https://github.com/$user/$repo/pull/new/$user:$dest_branch...$user:$src_branch"
+    open "$git_host/$project/$repo/pull/new/$project:$dest_branch...$project:$src_branch"
 }
 
 import_from_arch(){
