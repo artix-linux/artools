@@ -54,45 +54,8 @@ find_pkg(){
     [[ -z $result ]] && die "%s is not a valid package!" "${bdir}"
 }
 
-sign_pkg(){
-    local pkg="$1"
-    [[ -f ${pkg_dir}/${pkg}.sig ]] && rm ${pkg_dir}/${pkg}.sig
-    user_run "signfile ${pkg_dir}/${pkg}"
-}
-
-move_to_cache(){
-    local src="$1"
-    [[ -n $PKGDEST ]] && src="$PKGDEST/$src"
-    [[ ! -f $src ]] && die
-    msg2 "Moving [%s] -> [%s]" "${src##*/}" "${pkg_dir}"
-    mv $src ${pkg_dir}/
-    user_own "${pkg_dir}" -R
-    ${sign} && sign_pkg "${src##*/}"
-#     [[ -n $PKGDEST ]] && rm "$src"
-    user_own "${pkg_dir}" -R
-}
-
-post_build(){
-    source PKGBUILD
-    local ext='pkg.tar.xz' tarch ver src
-    for pkg in ${pkgname[@]};do
-        case $arch in
-            any) tarch='any' ;;
-            *) tarch=${target_arch}
-        esac
-        local ver=$(get_full_version "$pkg") src
-        src=$pkg-$ver-$tarch.$ext
-        move_to_cache "$src"
-        if ${repo_add};then
-            deploypkg "${deploypkg_args[@]}" -p "$src"
-            user_own "${repos_local}/${repository}" -R
-        fi
-    done
-}
-
 build_pkg(){
     mkchrootpkg "${mkchrootpkg_args[@]}" || die
-    post_build
 }
 
 build(){

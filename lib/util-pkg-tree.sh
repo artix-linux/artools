@@ -82,7 +82,8 @@ is_untracked(){
 pull_request() {
     local repo="$1"
     local src_branch="testing" dest_branch="master"
-    open "$git_host/$project/$repo/pull/new/$project:$dest_branch...$project:$src_branch"
+    hub pull-request -h "$repo" -F -
+   # open "$git_host/$project/$repo/pull/new/$project:$dest_branch...$project:$src_branch"
 }
 
 import_from_arch(){

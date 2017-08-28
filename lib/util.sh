@@ -105,10 +105,6 @@ init_artools_pkg(){
 
     make_conf_dir="${SYSCONFDIR}/make.conf.d"
 
-    cache_dir_pkg=${workspace_dir}/pkg
-
-    prepare_dir "${cache_dir_pkg}"
-
     [[ -z ${repos_local} ]] && repos_local="${workspace_dir}/repos"
 
     repos_remote="/${repos_local##*/}"

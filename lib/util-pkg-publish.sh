@@ -19,7 +19,7 @@ repo_update(){
         fi
         local cmd='ln -s'
         $copy && cmd='cp'
-        $cmd ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+#         $cmd ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
     fi
     local dest=${repos_local}/$repo/os/$arch/$pkg
     [[ $action == "remove" ]] && dest=$pkg
@@ -76,7 +76,7 @@ repo_upload(){
 
 add_to_repo(){
     local repo="$1" arch="$2" pkg="$3" ext='db.tar.xz'
-    ln -s ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+#     ln -s ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
     repo-add -R ${repos_local}/$repo/os/$arch/$repo.$ext ${repos_local}/$repo/os/$arch/$pkg
 }
 

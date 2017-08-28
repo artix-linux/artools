@@ -39,7 +39,6 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "arch: %s" "${target_arch}"
-    msg2 "repository: %s" "${repository}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
 
     msg "ARGS:"
@@ -48,12 +47,6 @@ display_settings(){
     msg2 "clean_first: %s" "${clean_first}"
     msg2 "update_first: %s" "${update_first}"
     msg2 "namcap: %s" "${namcap}"
-    msg2 "sign: %s" "${sign}"
-    msg2 "repo_add: %s" "${repo_add}"
-    msg2 "copy_pkg: %s" "${copy_pkg}"
-
-    msg "PATHS:"
-    msg2 "pkg_dir: %s" "${pkg_dir}"
 
     if ${create_first};then
         msg "PKG:"
@@ -76,14 +69,10 @@ clean_first=false
 update_first=false
 namcap=false
 pretend=false
-sign=false
 is_multilib=false
-repo_add=false
-copy_pkg=false
 
 mkchroot_args=()
-mkchrootpkg_args=()
-deploypkg_args=(-x)
+mkchrootpkg_args=(-c -n)
 
 install_pkgs=()
 repository=${PWD##*/}
@@ -101,7 +90,6 @@ prepare_build(){
     [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch.conf"
 
     work_dir="${chroots_pkg}/${target_arch}/${repository}"
-    pkg_dir="${cache_dir_pkg}/${target_arch}/${repository}"
 
     local makepkg_conf=$(get_makepkg_conf "${target_arch}")
 
@@ -110,9 +98,6 @@ prepare_build(){
     mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf})
 
     mkchrootpkg_args+=(-r ${work_dir})
-    deploypkg_args+=(-r ${repository})
-
-    prepare_dir "${pkg_dir}"
 
     prepare_dir "${work_dir}"
 
@@ -128,16 +113,11 @@ usage() {
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_pkg}]"
-    echo '    -i <pkgs>          Install packages into the working copy of the chroot'
-    echo "    -z <repo>          The repo name to add the package(s) [default: ${repository}]"
     echo '    -o                 Create chroot'
     echo '    -d                 Delete chroot'
     echo '    -c                 Clean chroot copy'
     echo '    -u                 Update chroot copy'
-    echo '    -x                 Add the package(s) to the repo'
-    echo '    -l                 Copy the package(s) to the repo instead of symlink'
     echo '    -n                 Install and run namcap check'
-    echo '    -s                 Sign packages'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
@@ -147,7 +127,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:z:oldcunsxqh'
+opts='p:a:r:i:odcunqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -155,22 +135,19 @@ while getopts "${opts}" arg; do
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
         i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
-        z) repository="$OPTARG" ;;
         o) create_first=true ;;
         d) delete_first=true ;;
         c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
         u) update_first=true ; mkchrootpkg_args+=(-u) ;;
-        x) repo_add=true ;;
-        l) copy_pkg=true; deploypkg_args+=(-c) ;;
         n) namcap=true; mkchrootpkg_args+=(-n) ;;
-        s) sign=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;
     esac
 done
 
-shift $(($OPTIND - 1))
+# shift $(($OPTIND - 1))
+makechrootpkg_args+=("${@:$OPTIND}")
 
 check_root
 
