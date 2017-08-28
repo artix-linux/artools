@@ -37,8 +37,6 @@ display_settings(){
     msg2 "add_pkg: %s" "${add_pkg}"
     msg2 "del_pkg: %s" "${del_pkg}"
     msg2 "copy_pkg: %s" "${copy_pkg}"
-    msg2 "download: %s" "${download}"
-    msg2 "upload: %s" "${upload}"
     msg2 "verbose: %s" "${verbose}"
 
     msg "REMOTE:"
@@ -53,6 +51,8 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
 
 pretend=false
 upload=false
@@ -70,9 +70,7 @@ rsync_args=(-rtxisP --progress --delete -e ssh)
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a                 Repository arch [default:${target_arch}]"
-    echo "    -r                 Repository to sync [default:${repository}]"
-    echo "    -u                 Upload repository"
-    echo '    -d                 Download repository'
+    echo "    -r                 Repository [default:${repository}]"
     echo "    -p                 Package name to add/delete"
     echo '    -x                 Add package to repository'
     echo '    -c                 Copy instead of symlink package to repository'
@@ -87,7 +85,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:xyducvqh'
+opts='p:a:r:xycvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -97,10 +95,8 @@ while getopts "${opts}" arg; do
         x) add_pkg=true ;;
         y) del_pkg=true ;;
         c) copy_pkg=true ;;
-        d) download=true ;;
-        u) upload=true; rsync_args+=(-L) ;;
-        v) verbose=true; rsync_args+=(-v --stats) ;;
-        q) pretend=true; rsync_args+=(-n) ;;
+        v) verbose=true ;;
+        q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
@@ -115,7 +111,5 @@ prepare_dir "${repos_local}"
 ${pretend} && display_settings #&& exit 1
 
 ${add_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "add" "${copy_pkg}"
-${del_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "remove"
 
-${download} && repo_download "${repository}"
-${upload} && repo_upload "${repository}"
+${del_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "remove" "${copy_pkg}"

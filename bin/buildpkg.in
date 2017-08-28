@@ -40,6 +40,7 @@ display_settings(){
     msg "OPTIONS:"
     msg2 "arch: %s" "${target_arch}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
+    msg2 "repository: %s" "${repository}"
 
     msg "ARGS:"
     msg2 "create_first: %s" "${create_first}"
@@ -60,8 +61,8 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
-load_vars /etc/makepkg.conf
+# load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+# load_vars /etc/makepkg.conf
 
 create_first=false
 delete_first=false
@@ -89,7 +90,7 @@ prepare_build(){
     local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
     [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch.conf"
 
-    work_dir="${chroots_pkg}/${target_arch}/${repository}"
+    work_dir="${chroots_pkg}/${repository}/${target_arch}"
 
     local makepkg_conf=$(get_makepkg_conf "${target_arch}")
 
@@ -113,6 +114,7 @@ usage() {
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_pkg}]"
+    echo "    -z <name>          Repo chroot name [default: ${repository}]"
     echo '    -o                 Create chroot'
     echo '    -d                 Delete chroot'
     echo '    -c                 Clean chroot copy'
@@ -127,13 +129,14 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:odcunqh'
+opts='p:a:r:z:i:odcunqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
+        z) repository="$OPTARG" ;;
         i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
         o) create_first=true ;;
         d) delete_first=true ;;
