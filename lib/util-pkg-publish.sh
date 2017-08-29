@@ -9,6 +9,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+import ${LIBDIR}/util-pkg.sh
+
 del_from_repo(){
     local repo="$1" arch="$2" pkg="$3"
     local repo_db=${repos_root}/$repo/os/$arch/$repo.db.tar.xz
@@ -18,13 +20,14 @@ del_from_repo(){
 add_to_repo(){
     local repo="$1" destarch="$2" pkg="$3" ext=pkg.tar.xz ver pkgfile
     source $pkg/PKGBUILD
-    local repo_db=${repos_root}/$repo/os/$destarch/$repo.db.tar.xz
-    for name in ${pkgname[@]};then
+    local repo_db=${repos_root}/$repo/os/$destarch/$repo.db.tar.xz dest=$pkg
+    for name in ${pkgname[@]};do
         [[ $arch == any ]] && CARCH=any
-        ver=$(get_full_verion $name)
-        if $(find_cached_package "$name" "$ver" "$CARCH"); then
+        ver=$(get_full_version $name)
+        if ! $(find_cached_package "$name" "$ver" "$CARCH"); then
             pkgfile=$name-$ver-$CARCH.$ext
-            ln -sf ${PKDDEST}/$pkgfile{,.sig} ${repos_root}/$repo/os/$destarch/
+            [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
+            ln -sf $dest{,.sig} ${repos_root}/$repo/os/$destarch/
             repo-add -R $repo_db ${repos_root}/$repo/os/$destarch/$pkgfile
         fi
     done

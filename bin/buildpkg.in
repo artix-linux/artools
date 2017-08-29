@@ -70,7 +70,8 @@ mkchrootpkg_args=(-c -n)
 install_pkgs=()
 
 package=''
-stablility=${0##*-}
+cmd=${0##*/}
+stablility=${cmd##*-}
 repository=${PWD##*/}
 base_devel=('base-devel')
 
