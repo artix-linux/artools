@@ -47,11 +47,6 @@ display_settings(){
     msg2 "create_first: %s" "${create_first}"
     msg2 "update_first: %s" "${update_first}"
 
-    if ${create_first};then
-        msg "PKG:"
-        msg2 "packages: %s" "${packages[*]}"
-    fi
-
     msg "BUILD:"
     show_pkg "${package}"
 }
@@ -73,10 +68,10 @@ package=''
 cmd=${0##*/}
 stablility=${cmd##*-}
 repository=${PWD##*/}
-base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default' pacman_conf= repo= pac_conf=
+    local pac_arch='default' base_devel=('base-devel')
+    local pacman_conf= repo= pac_conf= makepkg_conf=
 
     if [[ "${target_arch}" == 'multilib' ]];then
         pac_arch='multilib'
@@ -97,7 +92,7 @@ prepare_build(){
 
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
-    local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
+    makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
 
     mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf})
 
