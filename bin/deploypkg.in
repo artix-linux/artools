@@ -55,8 +55,6 @@ load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.co
 load_vars /etc/makepkg.conf
 
 pretend=false
-upload=false
-download=false
 verbose=false
 verbose=false
 add_pkg=false

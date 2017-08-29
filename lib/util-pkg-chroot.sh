@@ -21,27 +21,6 @@ load_compiler_settings(){
     return 0
 }
 
-get_makepkg_conf(){
-
-    local arch="$1"
-    local conf="${tmp_dir}/makepkg-${arch}.conf"
-
-    if [[ -f $AT_USERCONFDIR/makepkg.conf ]];then
-        cp "$AT_USERCONFDIR/makepkg.conf" "$conf"
-    else
-        cp "${DATADIR}/makepkg.conf" "$conf"
-    fi
-
-    load_compiler_settings "${arch}"
-
-    sed -i "$conf" \
-        -e "s|@CARCH[@]|$carch|g" \
-        -e "s|@CHOST[@]|$chost|g" \
-        -e "s|@CFLAGS[@]|$cflags|g"
-
-    echo "$conf"
-}
-
 check_build(){
     local bdir="$1"
     find_pkg "${bdir}"
@@ -55,6 +34,7 @@ find_pkg(){
 }
 
 build_pkg(){
+    lock 9 "${work_dir}/root.lock" "Locking clean chroot"
     mkchrootpkg "${mkchrootpkg_args[@]}" || die
 }
 

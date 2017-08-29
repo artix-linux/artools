@@ -26,11 +26,11 @@ repo_update(){
     repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $dest
 }
 
-add_to_repo(){
-    local repo="$1" arch="$2" pkg="$3" ext='db.tar.xz'
-    ln -s ${PKDDEST}/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
-    repo-add -R ${repos_local}/$repo/os/$arch/$repo.$ext ${repos_local}/$repo/os/$arch/$pkg
-}
+# add_to_repo(){
+#     local repo="$1" arch="$2" pkg="$3" ext='db.tar.xz'
+#     ln -s ${PKDDEST}/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
+#     repo-add -R ${repos_local}/$repo/os/$arch/$repo.$ext ${repos_local}/$repo/os/$arch/$pkg
+# }
 
 # upload_pkg(){
 #     local pkg="$1" repo="$2" arch="$3" ext='db.tar.xz'

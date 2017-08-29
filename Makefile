@@ -22,14 +22,7 @@ LIBS_BASE = \
 	lib/util-fstab.sh
 
 SHARED_BASE = \
-	data/pacman-default.conf \
-	data/pacman-multilib.conf
-
-LIST_PKG = \
-	$(wildcard data/pkg.list.d/*.list)
-
-ARCH_CONF = \
-	$(wildcard data/make.conf.d/*.conf)
+	$(wildcard data/pacman-*.conf)
 
 LIST_IMPORT = \
 	$(wildcard data/import.list.d/*.list)
@@ -49,7 +42,7 @@ LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
 
 SHARED_PKG = \
-	data/makepkg.conf
+	$(wildcard data/makepkg-*.conf)
 
 BIN_ISO = \
 	bin/buildiso \
@@ -131,9 +124,6 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 	install -m0644 ${LIST_IMPORT} $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
-	install -m0644 ${ARCH_CONF} $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
-
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
 
@@ -197,7 +187,6 @@ uninstall_base:
 
 uninstall_pkg:
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
-	for f in ${ARCH_CONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done

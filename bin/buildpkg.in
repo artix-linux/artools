@@ -44,10 +44,7 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "create_first: %s" "${create_first}"
-    msg2 "delete_first: %s" "${delete_first}"
-    msg2 "clean_first: %s" "${clean_first}"
     msg2 "update_first: %s" "${update_first}"
-    msg2 "namcap: %s" "${namcap}"
 
     if ${create_first};then
         msg "PKG:"
@@ -61,14 +58,9 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-# load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
-# load_vars /etc/makepkg.conf
 
 create_first=false
-delete_first=false
-clean_first=false
 update_first=false
-namcap=false
 pretend=false
 is_multilib=false
 
@@ -76,25 +68,25 @@ mkchroot_args=()
 mkchrootpkg_args=(-c -n)
 
 install_pkgs=()
-repository=${PWD##*/}
+
 package=''
 
 prepare_build(){
-    local pac_arch='default'
+    local pac_arch='default' stablility=${0##*-} repository=${PWD##*/}
 
     if [[ "${target_arch}" == 'multilib' ]];then
         pac_arch='multilib'
         is_multilib=true
     fi
 
-    local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch.conf"
+    local pacman_conf="${DATADIR}/pacman-$pac_arch-$stablility.conf"
+    [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch-$stablility.conf"
 
     work_dir="${chroots_pkg}/${repository}/${target_arch}"
 
-    local makepkg_conf=$(get_makepkg_conf "${target_arch}")
-
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
+
+    local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
 
     mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf})
 
@@ -114,12 +106,8 @@ usage() {
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_pkg}]"
-    echo "    -z <name>          Repo chroot name [default: ${repository}]"
     echo '    -o                 Create chroot'
-    echo '    -d                 Delete chroot'
-    echo '    -c                 Clean chroot copy'
     echo '    -u                 Update chroot copy'
-    echo '    -n                 Install and run namcap check'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
@@ -129,20 +117,16 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:z:i:odcunqh'
+opts='p:a:r:i:odcuqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
-        z) repository="$OPTARG" ;;
         i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
         o) create_first=true ;;
-        d) delete_first=true ;;
-        c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
         u) update_first=true ; mkchrootpkg_args+=(-u) ;;
-        n) namcap=true; mkchrootpkg_args+=(-n) ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;
@@ -158,12 +142,10 @@ prepare_build
 
 ${pretend} && display_settings && exit
 
-if ${delete_first};then
-    delete_chroot "${work_dir}/root" "${work_dir}"
-    delete_chroot "${work_dir}/$OWNER" "${work_dir}"
-fi
-
 if ${create_first} || [[ ! -d ${work_dir}/root ]];then
+    for copy in "${work_dir}"/*; do
+        delete_chroot "${work_dir}/$copy" "${work_dir}"
+    done
     create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
 fi
 
