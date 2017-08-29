@@ -127,6 +127,9 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
 
+	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
+	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-staging
+
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
@@ -189,6 +192,8 @@ uninstall_pkg:
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildpkg-staging
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
