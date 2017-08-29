@@ -39,6 +39,8 @@ add_to_repo(){
             if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
                 pkgfile=$name-$ver-$CARCH.$ext
                 [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
+                [[ -e $dest.sig ]] && rm $dest.sig
+                signfile $dest
                 repo-add -R $repo_db $dest
                 ln -sf $dest{,.sig} ${repos_root}/$repo/os/$destarch/
             fi
