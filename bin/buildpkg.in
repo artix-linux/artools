@@ -41,6 +41,7 @@ display_settings(){
     msg2 "arch: %s" "${target_arch}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
     msg2 "repository: %s" "${repository}"
+    msg2 "stablility: %s" "${stablility}"
 
     msg "ARGS:"
     msg2 "create_first: %s" "${create_first}"
@@ -62,7 +63,6 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 create_first=false
 update_first=false
 pretend=false
-is_multilib=false
 
 mkchroot_args=()
 mkchrootpkg_args=(-c -n)
@@ -70,19 +70,29 @@ mkchrootpkg_args=(-c -n)
 install_pkgs=()
 
 package=''
+stablility=${0##*-}
+repository=${PWD##*/}
+base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default' stablility=${0##*-} repository=${PWD##*/}
+    local pac_arch='default' pacman_conf= repo= pac_conf=
 
     if [[ "${target_arch}" == 'multilib' ]];then
         pac_arch='multilib'
-        is_multilib=true
+        base_devel+=('multilib-devel')
     fi
 
-    local pacman_conf="${DATADIR}/pacman-$pac_arch-$stablility.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch-$stablility.conf"
+    if [[ ${stablility} == 'buildpkg' ]];then
+        pac_conf=$pac_arch
+        repo=${repository}
+    else
+        pac_conf=$pac_arch-${stablility}
+        repo=${repository}-${stablility}
+    fi
 
-    work_dir="${chroots_pkg}/${repository}/${target_arch}"
+    pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
+    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
+    work_dir="${chroots_pkg}/${target_arch}/$repo"
 
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
@@ -94,9 +104,6 @@ prepare_build(){
 
     prepare_dir "${work_dir}"
 
-    packages=('base-devel')
-    ${is_multilib} && packages+=('multilib-devel')
-
     timer_start=$(get_timer)
 }
 
@@ -104,8 +111,8 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -p <pkg>           Package to build [default: ${package}]"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
-    echo '    -r <dir>           Chroots directory'
-    echo "                       [default: ${chroots_pkg}]"
+    echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
+    echo '    -i <pkgs>          Install packages into the working copy of the chroot'
     echo '    -o                 Create chroot'
     echo '    -u                 Update chroot copy'
     echo '    -q                 Query settings and pretend build'
@@ -117,7 +124,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:odcuqh'
+opts='p:a:r:i:ouqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -146,7 +153,7 @@ if ${create_first} || [[ ! -d ${work_dir}/root ]];then
     for copy in "${work_dir}"/*; do
         delete_chroot "${work_dir}/$copy" "${work_dir}"
     done
-    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
+    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${base_devel[@]}"
 fi
 
 build "${package}"

@@ -82,7 +82,7 @@ is_untracked(){
 pull_request() {
     local repo="$1"
     local src_branch="testing" dest_branch="master"
-    hub pull-request -h "$repo" -F -
+#     hub pull-request -h "$repo" -F -
    # open "$git_host/$project/$repo/pull/new/$project:$dest_branch...$project:$src_branch"
 }
 
@@ -108,7 +108,7 @@ import_from_arch(){
                         git commit -m "Archlinux import: $pkg-$ver"
                         sleep 5
                         git push origin "$branch" #&> /dev/null
-                        pull_request "$repo"
+#                         pull_request "$repo"
                     cd ..
                 fi
             done

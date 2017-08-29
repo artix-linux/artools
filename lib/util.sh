@@ -105,9 +105,9 @@ init_artools_pkg(){
 
     make_conf_dir="${SYSCONFDIR}/make.conf.d"
 
-    [[ -z ${repos_local} ]] && repos_local="${workspace_dir}/repos"
+    [[ -z ${repos_root} ]] && repos_root="${workspace_dir}/repos"
 
-    repos_remote="/${repos_local##*/}"
+#     repos_remote="/${repos_root##*/}"
 }
 
 init_artools_iso(){

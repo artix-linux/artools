@@ -9,18 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-load_compiler_settings(){
-    local arch="$1" conf
-    conf=${make_conf_dir}/$arch.conf
-
-    [[ -f $conf ]] || return 1
-
-    info "Loading compiler settings: %s" "$arch"
-    source $conf
-
-    return 0
-}
-
 check_build(){
     local bdir="$1"
     find_pkg "${bdir}"
@@ -34,7 +22,6 @@ find_pkg(){
 }
 
 build_pkg(){
-    lock 9 "${work_dir}/root.lock" "Locking clean chroot"
     mkchrootpkg "${mkchrootpkg_args[@]}" || die
 }
 
