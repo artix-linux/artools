@@ -68,10 +68,11 @@ package=''
 cmd=${0##*/}
 stablility=${cmd##*-}
 repository=${PWD##*/}
+base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default' base_devel=('base-devel')
-    local pacman_conf= repo= pac_conf= makepkg_conf=
+    local pac_arch='default'
+    local pacman_conf= pac_conf= makepkg_conf=
 
     if [[ "${target_arch}" == 'multilib' ]];then
         pac_arch='multilib'
@@ -80,15 +81,13 @@ prepare_build(){
 
     if [[ ${stablility} == 'buildpkg' ]];then
         pac_conf=$pac_arch
-        repo=${repository}
     else
         pac_conf=$pac_arch-${stablility}
-        repo=${repository}-${stablility}
     fi
 
     pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
     [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
-    work_dir="${chroots_pkg}/${target_arch}/$repo"
+    work_dir="${chroots_pkg}/${repository}-${target_arch}"
 
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
@@ -109,6 +108,7 @@ usage() {
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
     echo '    -i <pkgs>          Install packages into the working copy of the chroot'
+    echo '    -z <repo>          Repo name'
     echo '    -o                 Create chroot'
     echo '    -u                 Update chroot copy'
     echo '    -q                 Query settings and pretend build'
@@ -120,13 +120,14 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:ouqh'
+opts='p:a:r:z:i:ouqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
+        z) repository="$OPTARG" ;;
         i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
         o) create_first=true ;;
         u) update_first=true ; mkchrootpkg_args+=(-u) ;;
@@ -149,7 +150,7 @@ if ${create_first} || [[ ! -d ${work_dir}/root ]];then
     for copy in "${work_dir}"/*; do
         delete_chroot "${work_dir}/$copy" "${work_dir}"
     done
-    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${base_devel[@]}"
+    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${base_devel[*]}"
 fi
 
 build "${package}"
