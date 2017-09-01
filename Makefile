@@ -32,7 +32,6 @@ BIN_PKG = \
 	bin/lddd \
 	bin/finddeps \
 	bin/find-libdeps \
-	bin/signpkgs \
 	bin/mkchrootpkg \
 	bin/buildpkg \
 	bin/buildtree \
