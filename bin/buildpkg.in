@@ -150,7 +150,7 @@ if ${create_first} || [[ ! -d ${work_dir}/root ]];then
     for copy in "${work_dir}"/*; do
         delete_chroot "${work_dir}/$copy" "${work_dir}"
     done
-    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${base_devel[*]}"
+    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${base_devel[*]}" || die
 fi
 
 build "${package}"

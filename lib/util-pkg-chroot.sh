@@ -21,16 +21,12 @@ find_pkg(){
     [[ -z $result ]] && die "%s is not a valid package!" "${bdir}"
 }
 
-build_pkg(){
-    mkchrootpkg "${mkchrootpkg_args[@]}" || die
-}
-
 build(){
     local pkg="$1"
     check_build "${pkg}"
     msg "Start building [%s]" "${pkg}"
     cd ${pkg}
-        build_pkg
+        mkchrootpkg "${mkchrootpkg_args[@]}" || die
     cd ..
     msg "Finished building [%s]" "${pkg}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
