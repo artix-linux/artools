@@ -80,6 +80,8 @@ init_artools_base(){
 
     [[ -z ${workspace_dir} ]] && workspace_dir=/home/${OWNER}/artools-workspace
 
+    [[ -z ${gpg_args[@]} ]] && gpg_args=(--detach-sign --use-agent)
+
     prepare_dir "${workspace_dir}"
 }
 

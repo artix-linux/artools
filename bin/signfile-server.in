@@ -18,17 +18,15 @@ import ${LIBDIR}/util.sh
 
 load_user_info
 
-load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-
 load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
 
-file_to_sign="$1"
-
 if [ ! -e "$1" ]; then
-    error "%s does not exist!" "$file_to_sign"
+    error "%s does not exist!" "$1"
     exit 1
 fi
 
-msg2 "Signing [%s] with key %s" "${file_to_sign##*/}" "${GPGKEY}..."
-gpg "${gpg_args[@]}" -u "${GPGKEY}" "$file_to_sign"
+msg2 "Signing [%s] with key %s" "${1##*/}" "${GPGKEY}..."
+gpg --detach-sign -u "${GPGKEY}" "$1"
+
+gpg --batch --passphrase-file /home/nous/buildbot.pass --detach-sign -u "${GPGKEY}" "$1"
