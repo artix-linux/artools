@@ -102,6 +102,8 @@ prepare_dir "${repos_root}"
 
 ${pretend} && display_settings #&& exit 1
 
+${del_pkg} && del_from_repo "${repository}" "${target_arch}" "${package}"
+
 ${add_pkg} && add_to_repo "${repository}" "${target_arch}" "${package}"
 
-${del_pkg} && del_from_repo "${repository}" "${target_arch}" "${package}"
+exit 0
