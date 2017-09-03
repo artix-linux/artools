@@ -45,7 +45,8 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "create_first: %s" "${create_first}"
-    msg2 "update_first: %s" "${update_first}"
+    msg2 "makepkg_args: %s" "${makepkg_args[*]}"
+    msg2 "mkchrootpkg_args: %s" "${mkchrootpkg_args[*]}"
 
     msg "BUILD:"
     show_pkg "${package}"
@@ -56,7 +57,6 @@ load_user_info
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 create_first=false
-update_first=false
 pretend=false
 
 mkchroot_args=()
@@ -71,8 +71,7 @@ repository=${PWD##*/}
 base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default'
-    local pacman_conf= pac_conf= makepkg_conf=
+    local pac_arch='default' pac_conf=
 
     if [[ "${target_arch}" == 'multilib' ]];then
         pac_arch='multilib'
@@ -85,42 +84,39 @@ prepare_build(){
         pac_conf=$pac_arch-${stablility}
     fi
 
-    pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
+    local pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
     [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
     work_dir="${chroots_pkg}/${repository}-${target_arch}"
 
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
-    makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
+    local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
 
-    mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf})
+    mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
     mkchrootpkg_args+=(-r ${work_dir})
-
-    prepare_dir "${work_dir}"
 
     timer_start=$(get_timer)
 }
 
 usage() {
-    echo "Usage: ${0##*/} [options]"
+    echo "Usage: ${0##*/} [options] -- [makepkg_args]"
     echo "    -p <pkg>           Package to build [default: ${package}]"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
-    echo '    -i <pkgs>          Install packages into the working copy of the chroot'
     echo '    -z <repo>          Repo name'
-    echo '    -o                 Create chroot'
-    echo '    -u                 Update chroot copy'
+    echo '    -c                 Create root chroot'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
+    echo "Default makepkg_args args: ${makepkg_args[*]}"
     echo ''
     exit $1
 }
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:z:i:ouqh'
+opts='p:a:r:z:cqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -128,9 +124,7 @@ while getopts "${opts}" arg; do
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
         z) repository="$OPTARG" ;;
-        i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
-        o) create_first=true ;;
-        u) update_first=true ; mkchrootpkg_args+=(-u) ;;
+        c) create_first=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;
@@ -138,7 +132,7 @@ while getopts "${opts}" arg; do
 done
 
 # shift $(($OPTIND - 1))
-makechrootpkg_args+=("${@:$OPTIND}")
+makepkg_args+=("${@:$OPTIND}")
 
 check_root
 
@@ -147,10 +141,27 @@ prepare_build
 ${pretend} && display_settings && exit
 
 if ${create_first} || [[ ! -d ${work_dir}/root ]];then
+    msg "Creating chroot for [%s] (%s)..." "${repository}" "${target_arch}"
+
     for copy in "${work_dir}"/*; do
-        delete_chroot "${work_dir}/$copy" "${work_dir}"
+        [[ -d $copy ]] || continue
+        msg2 "Deleting chroot copy '%s'..." "$(basename "${copy}")"
+
+        lock 9 "$copy.lock" "Locking chroot copy '%s'" "$copy"
+
+        subvolume_delete_recursive "${copy}"
+        rm -rf --one-file-system "${copy}"
     done
-    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${base_devel[*]}" || die
+    lock_close 9
+
+    rm -rf --one-file-system "${work_dir}"
+    mkdir -p "${work_dir}"
+    setarch "${target_arch}" mkchroot \
+        "${mkchroot_args[@]}"  "${base_devel[@]}" || abort
+else
+    lock 9 "${work_dir}/root.lock" "Locking clean chroot"
+    chroot-run "${mkchroot_args[@]}" \
+        pacman -Syu --noconfirm || abort
 fi
 
 build "${package}"

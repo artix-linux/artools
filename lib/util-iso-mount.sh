@@ -34,7 +34,7 @@ track_fs() {
     mount "$@" && FS_ACTIVE_MOUNTS=("$5" "${FS_ACTIVE_MOUNTS[@]}")
 }
 
-mount_fs(){
+mount_overlay(){
     FS_ACTIVE_MOUNTS=()
     local lower= upper="$1" work="$2" pkglist="$3"
     local fs=${upper##*/}
@@ -55,7 +55,7 @@ mount_fs(){
     track_fs -t overlay overlay -olowerdir="$lower",upperdir="$upper",workdir="${mnt_dir}/work" "$upper"
 }
 
-umount_fs(){
+umount_overlay(){
     if [[ -n ${FS_ACTIVE_MOUNTS[@]} ]];then
         info "overlayfs umount: [%s]" "${FS_ACTIVE_MOUNTS[@]}"
         umount "${FS_ACTIVE_MOUNTS[@]}"

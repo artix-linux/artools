@@ -121,24 +121,24 @@ sync_chroot() {
 }
 
 # Usage: delete_chroot $copydir [$copy]
-# delete_chroot() {
-#     local copydir=$1
-#     local copy=${1:-$2}
-#
-#     stat_busy "Removing chroot copy [%s]" "$copy"
-#     if is_btrfs "$chrootdir" && ! mountpoint -q "$copydir"; then
-#         subvolume_delete_recursive "$copydir" ||
-#             die "Unable to delete subvolume %s" "$copydir"
-#     else
-#         # avoid change of filesystem in case of an umount failure
-#         rm --recursive --force --one-file-system "$copydir" ||
-#             die "Unable to delete %s" "$copydir"
-#     fi
-#
-#     # remove lock file
-#     rm -f "$copydir.lock"
-#     stat_done
-# }
+delete_chroot() {
+    local copydir=$1
+    local copy=${1:-$2}
+
+    stat_busy "Removing chroot copy [%s]" "$copy"
+    if is_btrfs "$chrootdir" && ! mountpoint -q "$copydir"; then
+        subvolume_delete_recursive "$copydir" ||
+            die "Unable to delete subvolume %s" "$copydir"
+    else
+        # avoid change of filesystem in case of an umount failure
+        rm --recursive --force --one-file-system "$copydir" ||
+            die "Unable to delete %s" "$copydir"
+    fi
+
+    # remove lock file
+    rm -f "$copydir.lock"
+    stat_done
+}
 
 # Usage: install_packages $copydir $pkgs...
 install_packages() {

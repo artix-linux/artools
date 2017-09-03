@@ -249,7 +249,8 @@ make_image_root() {
 
         prepare_dir "${rootfs}"
 
-        create_chroot "${mkchroot_args[@]}" "${rootfs}" "${packages[@]}"
+        setarch "${target_arch}" mkchroot \
+            "${mkchroot_args[@]}" "${rootfs}" "${packages[@]}" || abort
 
         copy_overlay "${root_overlay}" "${rootfs}"
 
@@ -268,13 +269,14 @@ make_image_desktop() {
 
         prepare_dir "${desktopfs}"
 
-        mount_fs "${desktopfs}" "${work_dir}"
+        mount_overlay "${desktopfs}" "${work_dir}"
 
-        create_chroot "${mkchroot_args[@]}" "${desktopfs}" "${packages[@]}"
+        setarch "${target_arch}" mkchroot \
+            "${mkchroot_args[@]}" "${desktopfs}" "${packages[@]}" || abort
 
         copy_overlay "${desktop_overlay}" "${desktopfs}"
 
-        umount_fs
+        umount_overlay
         clean_up_image "${desktopfs}"
 
         msg "Done [Desktop installation] (desktopfs)"
@@ -288,9 +290,10 @@ make_image_live() {
 
         prepare_dir "${livefs}"
 
-        mount_fs "${livefs}" "${work_dir}" "${desktop_list}"
+        mount_overlay "${livefs}" "${work_dir}" "${desktop_list}"
 
-        create_chroot "${mkchroot_args[@]}" "${livefs}" "${packages[@]}"
+        setarch "${target_arch}" mkchroot \
+            "${mkchroot_args[@]}" "${livefs}" "${packages[@]}" || abort
 
         copy_overlay "${live_overlay}" "${livefs}"
 
@@ -298,7 +301,7 @@ make_image_live() {
 
         pacman -Qr "${livefs}" > ${iso_dir}/$(gen_iso_fn)-pkgs.txt
 
-        umount_fs
+        umount_overlay
 
         clean_up_image "${livefs}"
 
@@ -317,7 +320,7 @@ make_image_boot() {
 
         local bootfs="${work_dir}/bootfs"
 
-        mount_fs "${bootfs}" "${work_dir}" "${desktop_list}"
+        mount_overlay "${bootfs}" "${work_dir}" "${desktop_list}"
 
         prepare_initcpio "${bootfs}"
         prepare_initramfs "${bootfs}"
@@ -325,7 +328,7 @@ make_image_boot() {
         cp ${bootfs}/boot/initramfs.img ${boot}/initramfs-${target_arch}.img
         prepare_boot_extras "${bootfs}" "${boot}"
 
-        umount_fs
+        umount_overlay
 
         rm -R ${bootfs}
         : > ${work_dir}/bootfs.lock
@@ -392,7 +395,18 @@ prepare_images(){
 build(){
     msg "Start building [%s]" "${profile}"
     if ${clean_first};then
-        chroot_clean "${chroots_iso}/${profile}/${target_arch}"
+        for copy in "${work_dir}"/*; do
+            [[ -d $copy ]] || continue
+            msg2 "Deleting chroot copy '%s'..." "$(basename "${copy}")"
+
+            lock 9 "$copy.lock" "Locking chroot copy '%s'" "$copy"
+
+            subvolume_delete_recursive "${copy}"
+            rm -rf --one-file-system "${copy}"
+        done
+        lock_close 9
+
+        rm -rf --one-file-system "${work_dir}"
         clean_iso_root "${iso_root}"
     fi
 

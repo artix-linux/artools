@@ -26,9 +26,8 @@ build(){
     check_build "${pkg}"
     msg "Start building [%s]" "${pkg}"
     cd ${pkg}
-        mkchrootpkg "${mkchrootpkg_args[@]}" || die
+        exec mkchrootpkg "${mkchrootpkg_args[@]}" || abort
     cd ..
     msg "Finished building [%s]" "${pkg}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
-

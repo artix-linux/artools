@@ -123,14 +123,3 @@ clean_up_image(){
         rm $file
     fi
 }
-
-chroot_clean(){
-    local dest="$1"
-    for root in "$dest"/*; do
-        [[ -d ${root} ]] || continue
-        local name=${root##*/}
-        delete_chroot "${root}" "$dest"
-    done
-    rm -rf --one-file-system "$dest"
-}
-
