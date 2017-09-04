@@ -127,3 +127,5 @@ eval $(grep '^CARCH=' "$working_dir/etc/makepkg.conf")
 ${nosetarch} && unset CARCH
 
 ${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"
+
+kill_chroot_process "${working_dir}"

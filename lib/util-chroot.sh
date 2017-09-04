@@ -73,24 +73,18 @@ default_mirror(){
 }
 
 # $1: chroot
-# kill_chroot_process(){
-#     # enable to have more debug info
-#     #msg "machine-id (etc): $(cat $1/etc/machine-id)"
-#     #[[ -e $1/var/lib/dbus/machine-id ]] && msg "machine-id (lib): $(cat $1/var/lib/dbus/machine-id)"
-#     #msg "running processes: "
-#     #lsof | grep $1
-#
-#     local prefix="$1" flink pid name
-#     for root_dir in /proc/*/root; do
-#         flink=$(readlink $root_dir)
-#         if [ "x$flink" != "x" ]; then
-#             if [ "x${flink:0:${#prefix}}" = "x$prefix" ]; then
-#                 # this process is in the chroot...
-#                 pid=$(basename $(dirname "$root_dir"))
-#                 name=$(ps -p $pid -o comm=)
-#                 info "Killing chroot process: %s (%s)" "$name" "$pid"
-#                 kill -9 "$pid"
-#             fi
-#         fi
-#     done
-# }
+kill_chroot_process(){
+    local prefix="$1" flink pid name
+    for root_dir in /proc/*/root; do
+        flink=$(readlink $root_dir)
+        if [ "x$flink" != "x" ]; then
+            if [ "x${flink:0:${#prefix}}" = "x$prefix" ]; then
+                # this process is in the chroot...
+                pid=$(basename $(dirname "$root_dir"))
+                name=$(ps -p $pid -o comm=)
+                info "Killing chroot process: %s (%s)" "$name" "$pid"
+                kill -9 "$pid"
+            fi
+        fi
+    done
+}

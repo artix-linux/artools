@@ -91,6 +91,7 @@ prepare_build(){
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
     local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
+    [[ -f $AT_USERCONFDIR/makepkg-${target_arch}.conf ]] && makepkg_conf="$AT_USERCONFDIR/makepkg-${target_arch}.conf"
 
     mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
