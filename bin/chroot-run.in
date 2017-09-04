@@ -15,6 +15,7 @@ LIBDIR='@libdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-mount.sh
 
 working_dir=''
