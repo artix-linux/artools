@@ -105,11 +105,7 @@ init_artools_pkg(){
 
     chroots_pkg="${chroots_dir}/buildpkg"
 
-    make_conf_dir="${SYSCONFDIR}/make.conf.d"
-
     [[ -z ${repos_root} ]] && repos_root="${workspace_dir}/repos"
-
-#     repos_remote="/${repos_root##*/}"
 }
 
 init_artools_iso(){

@@ -22,12 +22,10 @@ find_pkg(){
 }
 
 build(){
-    local pkg="$1"
-    check_build "${pkg}"
-    msg "Start building [%s]" "${pkg}"
+    local pkg="$1" timer_start=$(get_timer)
+    #check_build "${pkg}"
+    msg "Start building [%s] (%s)" "${pkg}" "${repository}"
     cd ${pkg}
-        exec mkchrootpkg "${mkchrootpkg_args[@]}" || abort
-    cd ..
-    msg "Finished building [%s]" "${pkg}"
+    exec mkchrootpkg "${mkchrootpkg_args[@]}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
