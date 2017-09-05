@@ -129,4 +129,8 @@ ${nosetarch} && unset CARCH
 
 ${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"
 
+ret=$?
+
 kill_chroot_process "${working_dir}"
+
+exit $ret
