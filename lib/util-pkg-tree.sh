@@ -83,7 +83,7 @@ import_from_arch(){
             git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
             git pull origin "$branch" #&> /dev/null
-            local arch_dir arch_repo src
+            local arch_dir arch_repo src ver
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
                 case $repo in
@@ -91,39 +91,52 @@ import_from_arch(){
                         arch_repo=core
                         arch_dir=packages
                         src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
+                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
+                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
                             src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
+                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
                         fi
                     ;;
                     world)
                         arch_repo=extra
                         arch_dir=packages
                         src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
+                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
+                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
                             src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
+                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
                         fi
                     ;;
                     galaxy)
                         arch_repo=community
                         arch_dir=$arch_repo
                         src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
+                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
+                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
                             src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
+                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any
                         fi
                     ;;
                 esac
-                rsync "${rsync_args[@]}" -n "$src/" "${tree_dir_artix}/$repo/$pkg/"
+#                 msg2 "src: %s" "$src"
+                ver=$(get_full_version $pkg)
+                msg2 "package: %s-%s" "$pkg" "$ver"
+                rsync "${rsync_args[@]}"  "$src/" "${tree_dir_artix}/$repo/$pkg/"
                 if $(is_dirty) || $(is_untracked); then
-                    msg2 "package: %s" "$pkg"
                     git add "$pkg"
-                    cd "$pkg"
-                        local ver=$(get_full_version $pkg)
-                        msg2 "Archlinux import: [%s]" "$pkg-$ver"
-                        git commit -m "Archlinux import: $pkg-$ver"
-                        sleep 10
-                        git push origin "$branch" #&> /dev/null
-                    cd ..
+                    source $pkg/PKGBUILD
+                    msg2 "Archlinux import: [%s]" "$pkg-$ver"
+                    git commit -m "Archlinux import: $pkg-$ver"
+                    sleep 10
+                    git push origin "$branch" #&> /dev/null
                 fi
+                unset ver
             done
         fi
     done
