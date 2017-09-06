@@ -83,37 +83,40 @@ import_from_arch(){
             git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
             git pull origin "$branch" #&> /dev/null
-            local arch_dir=packages arch_repo src
-            case $repo in
-                system)
-                    arch_repo=core
-                    if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64 ]] \
-                    && [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$testing-x86_64 ]];then
-                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$testing-x86_64
-                    fi
-                ;;
-                world)
-                    arch_repo=extra
-                    if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64 ]] \
-                    && [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$testing-x86_64 ]];then
-                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$testing-x86_64
-                    fi
-                ;;
-                galaxy)
-                    arch_repo=community
-                    arch_dir=$arch_repo
-                    if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64 ]] \
-                    && [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-$testing-x86_64 ]];then
-                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-$testing-x86_64
-                    fi
-                ;;
-            esac
+            local arch_dir arch_repo src
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
-                rsync "${rsync_args[@]}" $src/ ${tree_dir_artix}/$repo/$pkg/
+                case $repo in
+                    system)
+                        arch_repo=core
+                        arch_dir=packages
+                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
+                        fi
+                    ;;
+                    world)
+                        arch_repo=extra
+                        arch_dir=packages
+                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
+                        fi
+                    ;;
+                    galaxy)
+                        arch_repo=community
+                        arch_dir=$arch_repo
+                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
+                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
+                        fi
+                    ;;
+                esac
+                rsync "${rsync_args[@]}" -n "$src/" "${tree_dir_artix}/$repo/$pkg/"
                 if $(is_dirty) || $(is_untracked); then
-                    git add $pkg
-                    cd $pkg
+                    msg2 "package: %s" "$pkg"
+                    git add "$pkg"
+                    cd "$pkg"
                         local ver=$(get_full_version $pkg)
                         msg2 "Archlinux import: [%s]" "$pkg-$ver"
                         git commit -m "Archlinux import: $pkg-$ver"
