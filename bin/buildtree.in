@@ -40,6 +40,7 @@ display_settings(){
     msg2 "verbose: %s" "${verbose}"
     msg2 "arch: %s" "${arch}"
     msg2 "import_arch: %s" "${import_arch}"
+    msg2 "gitpush: %s" "${gitpush}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -61,6 +62,7 @@ pretend=false
 arch=false
 import_arch=false
 verbose=false
+gitpush=false
 
 rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs -v --stats)
 
@@ -68,6 +70,7 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch packages'
+    echo '    -p            Push import packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -77,12 +80,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='aiqh'
+opts='aipqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         a) arch=true ;;
         i) import_arch=true ;;
+        p) gitpush=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -98,4 +102,4 @@ ${pretend} && display_settings && exit 1
 
 ${arch} && sync_tree_arch
 
-${import_arch} && import_from_arch
+${import_arch} && import_from_arch ${gitpush}

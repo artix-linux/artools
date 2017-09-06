@@ -75,15 +75,15 @@ is_untracked(){
 }
 
 import_from_arch(){
-    local timer=$(get_timer) branch='testing'
+    local timer=$(get_timer) branch='testing' push="$1"
     for repo in ${repo_tree_import[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
             git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-            git pull origin "$branch" #&> /dev/null
-            local arch_dir arch_repo src ver
+            git pull origin "$branch"
+            local arch_dir arch_repo src
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
                 case $repo in
@@ -124,19 +124,20 @@ import_from_arch(){
                         fi
                     ;;
                 esac
-#                 msg2 "src: %s" "$src"
-                ver=$(get_full_version $pkg)
+                source $pkg/PKGBUILD
+                local ver=$(get_full_version $pkg)
                 msg2 "package: %s-%s" "$pkg" "$ver"
-                rsync "${rsync_args[@]}"  "$src/" "${tree_dir_artix}/$repo/$pkg/"
+                rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
                 if $(is_dirty) || $(is_untracked); then
-                    git add "$pkg"
-                    source $pkg/PKGBUILD
+                    ${push} && git add "$pkg"
                     msg2 "Archlinux import: [%s]" "$pkg-$ver"
-                    git commit -m "Archlinux import: $pkg-$ver"
-                    sleep 10
-                    git push origin "$branch" #&> /dev/null
+                    if ${push};then
+                        git commit -m "Archlinux import: $pkg-$ver"
+                        sleep 10
+                        git push origin "$branch"
+                    fi
                 fi
-                unset ver
+                unset pkgver epoch pkgrel
             done
         fi
     done
