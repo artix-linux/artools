@@ -16,6 +16,7 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
 import ${LIBDIR}/util-pkg-tree.sh
 
 show_imports(){
@@ -61,13 +62,12 @@ arch=false
 import_arch=false
 verbose=false
 
-rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs)
+rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs -v --stats)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a            Sync arch tree"
     echo '    -i            Import arch packages'
-    echo '    -v            Verbose import output'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -77,13 +77,12 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='aivqh'
+opts='aiqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         a) arch=true ;;
         i) import_arch=true ;;
-        v) verbose=true; rsync_args+=(-v --stats) ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
