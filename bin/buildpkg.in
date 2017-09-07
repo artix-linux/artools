@@ -95,7 +95,7 @@ prepare_build(){
 
     mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
-    mkchrootpkg_args+=(-r ${work_dir})
+    mkchrootpkg_args+=(-r "${work_dir}" "${makepkg_args[@]}")
 
     timer_start=$(get_timer)
 }
