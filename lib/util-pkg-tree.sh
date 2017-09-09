@@ -74,6 +74,21 @@ is_untracked(){
     return 0
 }
 
+disinfect_glibc(){
+    local pkg="$1"
+    cd $pkg
+        patch -p1 -i $DATADIR/patches/glibc.patch
+    cd ..
+}
+
+artix_bash_fix(){
+    local pkg="$1"
+    cd $pkg
+        patch -p1 -i $DATADIR/patches/bash.patch
+        updpkgsums
+    cd ..
+}
+
 import_from_arch(){
     local timer=$(get_timer) branch='testing' push="$1"
     for repo in ${repo_tree_import[@]};do
@@ -128,6 +143,10 @@ import_from_arch(){
                 local ver=$(get_full_version $pkg)
                 msg2 "package: %s-%s" "$pkg" "$ver"
                 rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
+                case $pkg in
+                    'glibc') disinfect_glibc "$pkg" ;;
+                    'bash') artix_bash_fix "$pkg";;
+                esac
                 if $(is_dirty) || $(is_untracked); then
                     ${push} && git add "$pkg"
                     msg2 "Archlinux import: [%s]" "$pkg-$ver"

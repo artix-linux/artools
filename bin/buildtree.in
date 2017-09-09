@@ -13,6 +13,7 @@ version=@version@
 
 LIBDIR='@libdir@'
 SYSCONFDIR='@sysconfdir@'
+DATADIR='@datadir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh

@@ -43,6 +43,9 @@ LIBS_PKG = \
 SHARED_PKG = \
 	$(wildcard data/makepkg-*.conf)
 
+PATCHES = \
+	$(wildcard data/patches/*.patch)
+
 BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
@@ -136,6 +139,9 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
 	install -m0644 ${SHARED_PKG} $(DESTDIR)$(PREFIX)/share/artools
 
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/patches
+	install -m0644 ${PATCHES} $(DESTDIR)$(PREFIX)/share/artools/patches
+
 install_isobase:
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
 	install -m0644 ${BASE} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
@@ -192,6 +198,7 @@ uninstall_pkg:
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
 	rm -f $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_isobase:
