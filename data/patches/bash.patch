@@ -9,7 +9,7 @@
  depends=('readline>=7.0' 'glibc' 'ncurses')
  optdepends=('bash-completion: for tab completion')
  provides=('sh')
-@@ -22,7 +22,9 @@
+@@ -22,7 +22,8 @@
          dot.bash_profile
          dot.bash_logout
          system.bashrc
@@ -19,7 +19,7 @@
  validpgpkeys=('7C0135FB088AAF6C66C650B9BB5869F064EA74AB') # Chet Ramey
 
  if [[ $((10#${_patchlevel})) -gt 0 ]]; then
-@@ -45,8 +47,8 @@
+@@ -45,8 +46,8 @@
 
    _bashconfig=(-DDEFAULT_PATH_VALUE=\'\"/usr/local/sbin:/usr/local/bin:/usr/bin\"\'
                 -DSTANDARD_UTILS_PATH=\'\"/usr/bin\"\'
@@ -30,7 +30,7 @@
                 -DNON_INTERACTIVE_LOGIN_SHELLS)
    export CFLAGS="${CFLAGS} ${_bashconfig[@]}"
 
-@@ -63,10 +65,14 @@
+@@ -63,10 +64,13 @@
    make -C $pkgname-$_basever DESTDIR="$pkgdir" install
    ln -s bash "$pkgdir"/usr/bin/sh
 
@@ -44,43 +44,7 @@
 +
 +  # artix bashrc
 +  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc
-+  install -m644 functions.bashrc "$pkgdir"/etc/bash/bashrc.d/functions.bashrc
 
    # user configuration file skeletons
    install -m644 dot.bashrc "$pkgdir"/etc/skel/.bashrc
---- a/bash/dot.bashrc
-+++ b/bash/dot.bashrc
-@@ -5,5 +5,5 @@
- # If not running interactively, don't do anything
- [[ $- != *i* ]] && return
-
--alias ls='ls --color=auto'
--PS1='[\u@\h \W]\$ '
-+# alias ls='ls --color=auto'
-+# PS1='[\u@\h \W]\$ '
---- a/bash/system.bash_logout
-+++ b/bash/system.bash_logout
-@@ -1,3 +1,3 @@
- #
--# /etc/bash.bash_logout
-+# /etc/bash/bash_logout
- #
---- a/bash/system.bashrc
-+++ b/bash/system.bashrc
-@@ -1,5 +1,5 @@
- #
--# /etc/bash.bashrc
-+# /etc/bash/bashrc
- #
-
- # If not running interactively, don't do anything
-@@ -19,4 +19,8 @@
-     ;;
- esac
-
-+for sh in /etc/bash/bashrc.d/*.bashrc ; do
-+	[[ -r ${sh} ]] && source "${sh}"
-+done
-+
- [ -r /usr/share/bash-completion/bash_completion   ] && . /usr/share/bash-completion/bash_completion
 

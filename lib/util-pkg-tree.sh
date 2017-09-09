@@ -82,7 +82,10 @@ patch_pkg(){
         ;;
         'bash')
             patch -p1 -i $DATADIR/patches/bash.patch
-            cp $DATADIR/patches/artix.bashrc $pkg
+            patch -p1 -i $DATADIR/patches/dot-bashrc.patch
+            patch -p1 -i $DATADIR/patches/system-bashrc.patch
+            patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
+            patch -p1 -i $DATADIR/patches/artix-bashrc.patch
             cd $pkg
                 updpkgsums
             cd ..
@@ -159,7 +162,7 @@ import_from_arch(){
                         git push origin "$branch"
                     fi
                 fi
-                unset pkgver epoch pkgrel
+                unset pkgver epoch pkgrel ver
             done
         fi
     done
