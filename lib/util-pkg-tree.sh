@@ -74,19 +74,63 @@ is_untracked(){
     return 0
 }
 
-disinfect_glibc(){
+patch_pkg(){
     local pkg="$1"
-    cd $pkg
-        patch -p1 -i $DATADIR/patches/glibc.patch
-    cd ..
+    case $pkg in
+        'glibc')
+            patch -p1 -i $DATADIR/patches/glibc.patch
+        ;;
+        'bash')
+            patch -p1 -i $DATADIR/patches/bash.patch
+            cp $DATADIR/patches/artix.bashrc $pkg
+            cd $pkg
+                updpkgsums
+            cd ..
+        ;;
+    esac
 }
 
-artix_bash_fix(){
-    local pkg="$1"
-    cd $pkg
-        patch -p1 -i $DATADIR/patches/bash.patch
-        updpkgsums
-    cd ..
+set_import_path(){
+    local arch_dir arch_repo
+    local repo="$1" pkg="$2"
+    case $repo in
+        system)
+            arch_repo=core
+            arch_dir=packages
+            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
+            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
+            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
+            fi
+        ;;
+        world)
+            arch_repo=extra
+            arch_dir=packages
+            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
+            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
+            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
+            fi
+        ;;
+        galaxy)
+            arch_repo=community
+            arch_dir=$arch_repo
+            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
+            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
+            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any
+            fi
+        ;;
+    esac
 }
 
 import_from_arch(){
@@ -98,56 +142,15 @@ import_from_arch(){
             git checkout $branch &> /dev/null
             $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
             git pull origin "$branch"
-            local arch_dir arch_repo src
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
-                case $repo in
-                    system)
-                        arch_repo=core
-                        arch_dir=packages
-                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
-                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
-                        fi
-                    ;;
-                    world)
-                        arch_repo=extra
-                        arch_dir=packages
-                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
-                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
-                        fi
-                    ;;
-                    galaxy)
-                        arch_repo=community
-                        arch_dir=$arch_repo
-                        src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-                        if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
-                        elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any ]];then
-                            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any
-                        fi
-                    ;;
-                esac
                 source $pkg/PKGBUILD
                 local ver=$(get_full_version $pkg)
                 msg2 "package: %s-%s" "$pkg" "$ver"
+                set_import_path "$repo" "$pkg"
                 rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
-                case $pkg in
-                    'glibc') disinfect_glibc "$pkg" ;;
-                    'bash') artix_bash_fix "$pkg";;
-                esac
                 if $(is_dirty) || $(is_untracked); then
+                    patch_pkg "$pkg"
                     ${push} && git add "$pkg"
                     msg2 "Archlinux import: [%s]" "$pkg-$ver"
                     if ${push};then

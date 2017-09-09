@@ -44,7 +44,8 @@ SHARED_PKG = \
 	$(wildcard data/makepkg-*.conf)
 
 PATCHES = \
-	$(wildcard data/patches/*.patch)
+	$(wildcard data/patches/*.patch) \
+	$(wildcard data/patches/*.bashrc)
 
 BIN_ISO = \
 	bin/buildiso \
