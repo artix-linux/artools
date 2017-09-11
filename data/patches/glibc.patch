@@ -1,0 +1,14 @@
+--- a/glibc/PKGBUILD
++++ b/glibc/PKGBUILD
+@@ -107,9 +107,8 @@
+
+   cd glibc
+
+-  install -dm755 "$pkgdir"/usr/lib/{locale,systemd/system,tmpfiles.d}
++  install -dm755 "$pkgdir"/usr/lib/{locale,tmpfiles.d}
+   install -m644 nscd/nscd.conf "$pkgdir/etc/nscd.conf"
+-  install -m644 nscd/nscd.service "$pkgdir/usr/lib/systemd/system"
+   install -m644 nscd/nscd.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/nscd.conf"
+   install -dm755 "$pkgdir/var/db/nscd"
+
+

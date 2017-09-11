@@ -18,11 +18,11 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg-publish.sh
 
-show_transfer(){
-    local repo="$1"
-    msg2 "local: %s" "${repos_local}/$repo/"
-    msg2 "remote: %s" "${repos_remote}/$repo/"
-}
+# show_transfer(){
+#     local repo="$1"
+#     msg2 "local: %s" "${repos_root}/$repo/"
+#     msg2 "remote: %s" "${repos_remote}/$repo/"
+# }
 
 display_settings(){
     show_version
@@ -30,55 +30,47 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
-    msg2 "package: %s" "${package}"
+    msg2 "package: %s" "${package[@]}"
     msg2 "target_arch: %s" "${target_arch}"
 
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
     msg2 "del_pkg: %s" "${del_pkg}"
-    msg2 "copy_pkg: %s" "${copy_pkg}"
-    msg2 "download: %s" "${download}"
-    msg2 "upload: %s" "${upload}"
-    msg2 "verbose: %s" "${verbose}"
 
-    msg "REMOTE:"
-    msg2 "account: %s" "${account}"
-    msg2 "host: %s" "${host}"
-    msg2 "project: %s" "${project}"
+#     msg "REMOTE:"
+#     msg2 "account: %s" "${account}"
+#     msg2 "file_host: %s" "${file_host}"
+#     msg2 "project: %s" "${project}"
 
-    msg "SYNC:"
-    show_transfer "${repository}"
+#     msg "SYNC:"
+#     show_transfer "${repository}"
 }
 
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
 
 pretend=false
-upload=false
-download=false
 verbose=false
 verbose=false
 add_pkg=false
 del_pkg=false
 copy_pkg=false
 package=''
-repository='system'
+repository=${PWD##*/}
 
 rsync_args=(-rtxisP --progress --delete -e ssh)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a                 Repository arch [default:${target_arch}]"
-    echo "    -r                 Repository to sync [default:${repository}]"
-    echo "    -u                 Upload repository"
-    echo '    -d                 Download repository'
+    echo "    -r                 Repository [default:${repository}]"
     echo "    -p                 Package name to add/delete"
     echo '    -x                 Add package to repository'
-    echo '    -c                 Copy instead of symlink package to repository'
     echo '    -y                 Delete package from repository'
     echo '    -q                 Query settings and pretend upload'
-    echo '    -v                 Verbose output'
     echo '    -h                 This help'
     echo ''
     echo ''
@@ -87,7 +79,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:xyducvqh'
+opts='p:a:r:xyqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -96,11 +88,7 @@ while getopts "${opts}" arg; do
         p) package="$OPTARG" ;;
         x) add_pkg=true ;;
         y) del_pkg=true ;;
-        c) copy_pkg=true ;;
-        d) download=true ;;
-        u) upload=true; rsync_args+=(-L) ;;
-        v) verbose=true; rsync_args+=(-v --stats) ;;
-        q) pretend=true; rsync_args+=(-n) ;;
+        q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
     esac
@@ -110,12 +98,12 @@ shift $(($OPTIND - 1))
 
 timer_start=$(get_timer)
 
-prepare_dir "${repos_local}"
+prepare_dir "${repos_root}"
 
 ${pretend} && display_settings #&& exit 1
 
-${add_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "add" "${copy_pkg}"
-${del_pkg} && repo_update "${repository}" "${target_arch}" "${package}" "remove"
+${del_pkg} && del_from_repo "${repository}" "${target_arch}" "${package}"
 
-${download} && repo_download "${repository}"
-${upload} && repo_upload "${repository}"
+${add_pkg} && add_to_repo "${repository}" "${target_arch}" "${package}"
+
+exit 0

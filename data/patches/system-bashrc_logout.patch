@@ -1,0 +1,8 @@
+--- a/bash/system.bash_logout
++++ a/bash/system.bash_logout
+@@ -1,3 +1,3 @@
+ #
+-# /etc/bash.bash_logout
++# /etc/bash/bash_logout
+ #
+

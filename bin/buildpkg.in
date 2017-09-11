@@ -39,26 +39,14 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "arch: %s" "${target_arch}"
-    msg2 "repository: %s" "${repository}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
+    msg2 "repository: %s" "${repository}"
+    msg2 "stablility: %s" "${stablility}"
 
     msg "ARGS:"
     msg2 "create_first: %s" "${create_first}"
-    msg2 "delete_first: %s" "${delete_first}"
-    msg2 "clean_first: %s" "${clean_first}"
-    msg2 "update_first: %s" "${update_first}"
-    msg2 "namcap: %s" "${namcap}"
-    msg2 "sign: %s" "${sign}"
-    msg2 "repo_add: %s" "${repo_add}"
-    msg2 "copy_pkg: %s" "${copy_pkg}"
-
-    msg "PATHS:"
-    msg2 "pkg_dir: %s" "${pkg_dir}"
-
-    if ${create_first};then
-        msg "PKG:"
-        msg2 "packages: %s" "${packages[*]}"
-    fi
+    msg2 "makepkg_args: %s" "${makepkg_args[*]}"
+    msg2 "mkchrootpkg_args: %s" "${mkchrootpkg_args[*]}"
 
     msg "BUILD:"
     show_pkg "${package}"
@@ -67,110 +55,85 @@ display_settings(){
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
-load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
-load_vars /etc/makepkg.conf
 
 create_first=false
-delete_first=false
-clean_first=false
-update_first=false
-namcap=false
 pretend=false
-sign=false
-is_multilib=false
-repo_add=false
-copy_pkg=false
 
 mkchroot_args=()
-mkchrootpkg_args=()
-deploypkg_args=(-x)
+mkchrootpkg_args=(-c -n)
 
 install_pkgs=()
-repository=${PWD##*/}
+
 package=''
+cmd=${0##*/}
+stablility=${cmd##*-}
+repository=${PWD##*/}
+base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default'
+    local pac_arch='default' pac_conf=
 
     if [[ "${target_arch}" == 'multilib' ]];then
         pac_arch='multilib'
-        is_multilib=true
+        base_devel+=('multilib-devel')
     fi
 
-    local pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_arch.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_arch.conf"
+    if [[ ${stablility} == 'buildpkg' ]];then
+        pac_conf=$pac_arch
+    else
+        pac_conf=$pac_arch-${stablility}
+    fi
 
-    work_dir="${chroots_pkg}/${target_arch}/${repository}"
-    pkg_dir="${cache_dir_pkg}/${target_arch}/${repository}"
-
-    local makepkg_conf=$(get_makepkg_conf "${target_arch}")
+    local pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
+    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
+    work_dir="${chroots_pkg}/${repository}-${target_arch}"
 
     [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
-    mkchroot_args+=(-C ${pacman_conf} -M ${makepkg_conf})
+    local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
+    [[ -f $AT_USERCONFDIR/makepkg-${target_arch}.conf ]] && makepkg_conf="$AT_USERCONFDIR/makepkg-${target_arch}.conf"
 
-    mkchrootpkg_args+=(-r ${work_dir})
-    deploypkg_args+=(-r ${repository})
+    mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
-    prepare_dir "${pkg_dir}"
-
-    prepare_dir "${work_dir}"
-
-    packages=('base-devel')
-    ${is_multilib} && packages+=('multilib-devel')
+    mkchrootpkg_args+=(-r "${work_dir}" "${makepkg_args[@]}")
 
     timer_start=$(get_timer)
 }
 
 usage() {
-    echo "Usage: ${0##*/} [options]"
+    echo "Usage: ${0##*/} [options] -- [makepkg_args]"
     echo "    -p <pkg>           Package to build [default: ${package}]"
     echo "    -a <arch>          Arch [default: ${target_arch}]"
-    echo '    -r <dir>           Chroots directory'
-    echo "                       [default: ${chroots_pkg}]"
-    echo '    -i <pkgs>          Install packages into the working copy of the chroot'
-    echo "    -z <repo>          The repo name to add the package(s) [default: ${repository}]"
-    echo '    -o                 Create chroot'
-    echo '    -d                 Delete chroot'
-    echo '    -c                 Clean chroot copy'
-    echo '    -u                 Update chroot copy'
-    echo '    -x                 Add the package(s) to the repo'
-    echo '    -l                 Copy the package(s) to the repo instead of symlink'
-    echo '    -n                 Install and run namcap check'
-    echo '    -s                 Sign packages'
+    echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
+    echo '    -z <repo>          Repo name'
+    echo '    -c                 Create root chroot'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
+    echo "Default makepkg_args args: ${makepkg_args[*]}"
     echo ''
     exit $1
 }
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:i:z:oldcunsxqh'
+opts='p:a:r:z:cqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
         a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
-        i) install_pkgs+=("$OPTARG"); mkchrootpkg_args+=(-I "${install_pkgs[*]}") ;;
         z) repository="$OPTARG" ;;
-        o) create_first=true ;;
-        d) delete_first=true ;;
-        c) clean_first=true ; mkchrootpkg_args+=(-c) ;;
-        u) update_first=true ; mkchrootpkg_args+=(-u) ;;
-        x) repo_add=true ;;
-        l) copy_pkg=true; deploypkg_args+=(-c) ;;
-        n) namcap=true; mkchrootpkg_args+=(-n) ;;
-        s) sign=true ;;
+        c) create_first=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;
     esac
 done
 
-shift $(($OPTIND - 1))
+# shift $(($OPTIND - 1))
+makepkg_args+=("${@:$OPTIND}")
 
 check_root
 
@@ -178,13 +141,28 @@ prepare_build
 
 ${pretend} && display_settings && exit
 
-if ${delete_first};then
-    delete_chroot "${work_dir}/root" "${work_dir}"
-    delete_chroot "${work_dir}/$OWNER" "${work_dir}"
-fi
-
 if ${create_first} || [[ ! -d ${work_dir}/root ]];then
-    create_chroot "${mkchroot_args[@]}" "${work_dir}/root" "${packages[@]}"
+    msg "Creating chroot for [%s] (%s)..." "${repository}" "${target_arch}"
+
+    for copy in "${work_dir}"/*; do
+        [[ -d $copy ]] || continue
+        msg2 "Deleting chroot copy '%s'..." "$(basename "${copy}")"
+
+        lock 9 "$copy.lock" "Locking chroot copy '%s'" "$copy"
+
+        subvolume_delete_recursive "${copy}"
+        rm -rf --one-file-system "${copy}"
+    done
+    lock_close 9
+
+    rm -rf --one-file-system "${work_dir}"
+    mkdir -p "${work_dir}"
+    setarch "${target_arch}" mkchroot \
+        "${mkchroot_args[@]}"  "${base_devel[@]}" || abort
+else
+    lock 9 "${work_dir}/root.lock" "Locking clean chroot"
+    chroot-run "${mkchroot_args[@]}" \
+        pacman -Syu --noconfirm || abort
 fi
 
 build "${package}"

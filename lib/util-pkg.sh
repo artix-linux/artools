@@ -107,16 +107,16 @@ find_cached_package() {
 
     case ${#results[*]} in
         0)
-        return 1
+            return 1
         ;;
         1)
-        printf '%s\n' "$results"
-        return 0
+            printf '%s\n' "$results"
+            return 0
         ;;
         *)
-        error 'Multiple packages found:'
-        printf '\t%s\n' "${results[@]}" >&2
-        return 1
+            error 'Multiple packages found:'
+            printf '\t%s\n' "${results[@]}" >&2
+            return 1
         ;;
     esac
 }

@@ -4,3 +4,9 @@ libappindicator
 libdbusmenu
 libftdi
 libindicator
+libdbi
+libpgm
+libsodium
+zeromq
+jansson
+libnewt

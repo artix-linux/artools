@@ -41,7 +41,7 @@ display_settings(){
 
     msg "REMOTE:"
     msg2 "account: %s" "${account}"
-    msg2 "host: %s" "${host}"
+    msg2 "file_host: %s" "${file_host}"
     msg2 "project: %s" "${project}"
 
     msg "UPLOAD:"

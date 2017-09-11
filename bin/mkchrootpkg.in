@@ -22,7 +22,7 @@ shopt -s nullglob
 init_variables() {
     default_makepkg_args=(--syncdeps --noconfirm --log --holdver --skipinteg)
     makepkg_args=("${default_makepkg_args[@]}")
-    repack=false
+    keepbuilddir=false
     update_first=false
     clean_first=false
     run_namcap=false
@@ -121,24 +121,24 @@ sync_chroot() {
 }
 
 # Usage: delete_chroot $copydir [$copy]
-# delete_chroot() {
-#     local copydir=$1
-#     local copy=${1:-$2}
-#
-#     stat_busy "Removing chroot copy [%s]" "$copy"
-#     if is_btrfs "$chrootdir" && ! mountpoint -q "$copydir"; then
-#         subvolume_delete_recursive "$copydir" ||
-#             die "Unable to delete subvolume %s" "$copydir"
-#     else
-#         # avoid change of filesystem in case of an umount failure
-#         rm --recursive --force --one-file-system "$copydir" ||
-#             die "Unable to delete %s" "$copydir"
-#     fi
-#
-#     # remove lock file
-#     rm -f "$copydir.lock"
-#     stat_done
-# }
+delete_chroot() {
+    local copydir=$1
+    local copy=${1:-$2}
+
+    stat_busy "Removing chroot copy [%s]" "$copy"
+    if is_btrfs "$chrootdir" && ! mountpoint -q "$copydir"; then
+        subvolume_delete_recursive "$copydir" ||
+            die "Unable to delete subvolume %s" "$copydir"
+    else
+        # avoid change of filesystem in case of an umount failure
+        rm --recursive --force --one-file-system "$copydir" ||
+            die "Unable to delete %s" "$copydir"
+    fi
+
+    # remove lock file
+    rm -f "$copydir.lock"
+    stat_done
+}
 
 # Usage: install_packages $copydir $pkgs...
 install_packages() {
@@ -159,17 +159,17 @@ install_packages() {
     return $ret
 }
 
-# Usage: prepare_chroot $copydir $HOME $repack $run_namcap
+# Usage: prepare_chroot $copydir $HOME $keepbuilddir $run_namcap
 # Globals:
 #  - MAKEFLAGS
 #  - PACKAGER
 prepare_chroot() {
     local copydir=$1
     local USER_HOME=$2
-    local repack=$3
+    local keepbuilddir=$3
     local run_namcap=$4
 
-    $repack || rm -rf "$copydir/build"
+    $keepbuilddir || rm -rf "$copydir/build"
 
     local builduser_uid="${SUDO_UID:-$UID}"
     local builduser_gid="$(id -g "$builduser_uid")"
@@ -332,13 +332,13 @@ main() {
     # Pass all arguments after -- right to makepkg
     makepkg_args+=("${@:$OPTIND}")
 
-    # See if -R was passed to makepkg
-    for arg in "${@:OPTIND}"; do
+    # See if -R or -e was passed to makepkg
+    for arg in "${makepkg_args[@]}"; do
         case ${arg%%=*} in
-            -*R*|--repackage)
-                repack=true
-                break 2
-                ;;
+            --repackage|--noextract) keepbuilddir=true; break ;;
+            --repackage|--noextract) keepbuilddir=true; break ;;
+            --*) ;;
+            -*R*|-*e*) keepbuilddir=true; break ;;
         esac
     done
 
@@ -379,7 +379,7 @@ main() {
 
     download_sources "$copydir" "$src_owner"
 
-    prepare_chroot "$copydir" "$USER_HOME" "$repack" "$run_namcap"
+    prepare_chroot "$copydir" "$USER_HOME" "$keepbuilddir"
 
     bindmounts_rw+=("${PWD}:/startdir" "${SRCDEST}:/srcdest")
 

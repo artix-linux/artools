@@ -23,6 +23,9 @@ create_min_fs(){
     mkdir -m 0755 -p $1/var/{cache/pacman/pkg,lib/pacman,log} $1/{dev,etc}
     mkdir -m 1777 -p $1/{tmp,run}
     mkdir -m 0555 -p $1/{sys,proc}
+    if [[ ! -f $1/etc/machine-id ]];then
+        touch $1/etc/machine-id
+    fi
 }
 
 is_btrfs() {
@@ -69,51 +72,19 @@ default_mirror(){
     echo "Server = $mirror" > $mnt/etc/pacman.d/mirrorlist
 }
 
-create_chroot(){
-    local timer=$(get_timer)
-    setarch "${target_arch}" \
-        mkchroot "$@"
-    show_elapsed_time "${FUNCNAME}" "${timer}"
-}
-
-delete_chroot() {
-    local copydir=$1
-    local copy=${1:-$2}
-
-    stat_busy "Removing chroot copy [%s]" "$copy"
-    if is_btrfs "$chrootdir" && ! mountpoint -q "$copydir"; then
-        subvolume_delete_recursive "$copydir" ||
-            die "Unable to delete subvolume %s" "$copydir"
-    else
-        # avoid change of filesystem in case of an umount failure
-        rm --recursive --force --one-file-system "$copydir" ||
-            die "Unable to delete %s" "$copydir"
-    fi
-
-    # remove lock file
-    rm -f "$copydir.lock"
-    stat_done
-}
-
 # $1: chroot
-# kill_chroot_process(){
-#     # enable to have more debug info
-#     #msg "machine-id (etc): $(cat $1/etc/machine-id)"
-#     #[[ -e $1/var/lib/dbus/machine-id ]] && msg "machine-id (lib): $(cat $1/var/lib/dbus/machine-id)"
-#     #msg "running processes: "
-#     #lsof | grep $1
-#
-#     local prefix="$1" flink pid name
-#     for root_dir in /proc/*/root; do
-#         flink=$(readlink $root_dir)
-#         if [ "x$flink" != "x" ]; then
-#             if [ "x${flink:0:${#prefix}}" = "x$prefix" ]; then
-#                 # this process is in the chroot...
-#                 pid=$(basename $(dirname "$root_dir"))
-#                 name=$(ps -p $pid -o comm=)
-#                 info "Killing chroot process: %s (%s)" "$name" "$pid"
-#                 kill -9 "$pid"
-#             fi
-#         fi
-#     done
-# }
+kill_chroot_process(){
+    local prefix="$1" flink pid name
+    for root_dir in /proc/*/root; do
+        flink=$(readlink $root_dir)
+        if [ "x$flink" != "x" ]; then
+            if [ "x${flink:0:${#prefix}}" = "x$prefix" ]; then
+                # this process is in the chroot...
+                pid=$(basename $(dirname "$root_dir"))
+                name=$(ps -p $pid -o comm=)
+                info "Killing chroot process: %s (%s)" "$name" "$pid"
+                kill -9 "$pid"
+            fi
+        fi
+    done
+}

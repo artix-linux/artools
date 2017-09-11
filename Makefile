@@ -1,4 +1,4 @@
-Version=0.5
+Version=0.6
 
 PREFIX = /usr/local
 SYSCONFDIR = /etc
@@ -22,14 +22,7 @@ LIBS_BASE = \
 	lib/util-fstab.sh
 
 SHARED_BASE = \
-	data/pacman-default.conf \
-	data/pacman-multilib.conf
-
-LIST_PKG = \
-	$(wildcard data/pkg.list.d/*.list)
-
-ARCH_CONF = \
-	$(wildcard data/make.conf.d/*.conf)
+	$(wildcard data/pacman-*.conf)
 
 LIST_IMPORT = \
 	$(wildcard data/import.list.d/*.list)
@@ -39,7 +32,6 @@ BIN_PKG = \
 	bin/lddd \
 	bin/finddeps \
 	bin/find-libdeps \
-	bin/signpkgs \
 	bin/mkchrootpkg \
 	bin/buildpkg \
 	bin/buildtree \
@@ -49,7 +41,11 @@ LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
 
 SHARED_PKG = \
-	data/makepkg.conf
+	$(wildcard data/makepkg-*.conf)
+
+PATCHES = \
+	$(wildcard data/patches/*.patch) \
+	$(wildcard data/patches/*.bashrc)
 
 BIN_ISO = \
 	bin/buildiso \
@@ -131,11 +127,10 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 	install -m0644 ${LIST_IMPORT} $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
 
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
-	install -m0644 ${ARCH_CONF} $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d
-
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
+
+	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
@@ -145,10 +140,10 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
 	install -m0644 ${SHARED_PKG} $(DESTDIR)$(PREFIX)/share/artools
 
-install_isobase:
-# 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
-# 	install -m0644 ${INFO} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles
+	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/patches
+	install -m0644 ${PATCHES} $(DESTDIR)$(PREFIX)/share/artools/patches
 
+install_isobase:
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
 	install -m0644 ${BASE} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
 
@@ -179,7 +174,6 @@ install_iso:
 
 	install -m0755 ${CPIO} $(DESTDIR)$(SYSCONFDIR)/initcpio
 
-
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
 	install -m0644 ${SHARED_ISO} $(DESTDIR)$(PREFIX)/share/artools
 
@@ -201,14 +195,14 @@ uninstall_base:
 
 uninstall_pkg:
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
-	for f in ${ARCH_CONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/make.conf.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_isobase:
-# 	for f in ${INFO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/$$f; done
 	for f in ${BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/$$f; done
 	for f in ${LIVE_ETC}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/$$f; done
 	for f in ${LIVE_ETC_DEFAULT}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default/$$f; done

@@ -15,6 +15,7 @@ LIBDIR='@libdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-mount.sh
 
 working_dir=''
@@ -91,6 +92,7 @@ copy_hostconf () {
 
 chroot_extra_mount() {
     chroot_mount "/etc/resolv.conf" "$1/etc/resolv.conf" -B
+    chroot_mount "/etc/machine-id" "$1/etc/machine-id" -B
     chroot_mount "${cache_dirs[0]}" "$1${cache_dirs[0]}" -B
 
     for cache_dir in ${cache_dirs[@]:1}; do
@@ -126,3 +128,9 @@ eval $(grep '^CARCH=' "$working_dir/etc/makepkg.conf")
 ${nosetarch} && unset CARCH
 
 ${CARCH:+setarch "$CARCH"} chroot "${working_dir}" "$@"
+
+ret=$?
+
+kill_chroot_process "${working_dir}"
+
+exit $ret

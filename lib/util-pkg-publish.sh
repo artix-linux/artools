@@ -9,67 +9,49 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-repo_update(){
-    local repo="$1" arch="$2" pkg="$3" action="$4" copy="$5"
-    if [[ $action == "add" ]];then
-        if [[ -f ${repos_local}/$repo/os/$arch/$pkg \
-            && -f ${repos_local}/$repo/os/$arch/$pkg.sig ]];then
-            rm ${repos_local}/$repo/os/$arch/$pkg
-            rm ${repos_local}/$repo/os/$arch/$pkg.sig
-        fi
-        local cmd='ln -s'
-        $copy && cmd='cp'
-        $cmd ${cache_dir_pkg}/$arch/$repo/$pkg{,.sig} ${repos_local}/$repo/os/$arch/
-    fi
-    local dest=${repos_local}/$repo/os/$arch/$pkg
-    [[ $action == "remove" ]] && dest=$pkg
-    repo-$action -R ${repos_local}/$repo/os/$arch/$repo.db.tar.xz $dest
+import ${LIBDIR}/util-pkg.sh
+
+del_from_repo(){
+    local repo="$1" destarch="$2" pkg="$3" ver pkgfile ext=pkg.tar.xz result
+    cd $pkg
+        source PKGBUILD
+        local repo_db=${repos_root}/$repo/os/$destarch/$repo.db.tar.xz
+        for name in ${pkgname[@]};do
+            [[ $arch == any ]] && CARCH=any
+            ver=$(get_full_version $name)
+            if ! result=$(find_cached_package "$name" "$ver" "$CARCH");then
+                pkgfile=$name-$ver-$CARCH.$ext
+                repo-remove -R $repo_db $name
+                rm ${repos_root}/$repo/os/$destarch/$pkgfile{,.sig}
+            fi
+        done
+    cd ..
 }
 
-update_lock(){
-    local repo="$1"
-    rsync "${rsync_args[@]}" --exclude='os' "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
+add_to_repo(){
+    local repo="$1" destarch="$2" pkg="$3" ext=pkg.tar.xz ver pkgfile result
+    cd $pkg
+        source PKGBUILD
+        local repo_db=${repos_root}/$repo/os/$destarch/$repo.db.tar.xz dest=$pkg
+        for name in ${pkgname[@]};do
+            [[ $arch == any ]] && CARCH=any
+            ver=$(get_full_version $name)
+            if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
+                pkgfile=$name-$ver-$CARCH.$ext
+                [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
+                [[ -e $dest.sig ]] && rm $dest.sig
+                signfile $dest
+                repo-add -R $repo_db $dest
+                ln -sf $dest{,.sig} ${repos_root}/$repo/os/$destarch/
+            fi
+        done
+    cd ..
 }
 
-is_locked(){
-    local repo="$1" url="https://${host}/projects/${project}/files/repos"
-    if wget --spider -v $url/$repo/$repo.lock &>/dev/null;then
-        return 0
-    else
-        return 1
-    fi
-}
-
-repo_lock(){
-    local repo="$1"
-    if [[ ! -f ${repos_local}/$repo/$repo.lock ]];then
-        warning "Locking %s" "$repo"
-        touch ${repos_local}/$repo/$repo.lock
-        update_lock "$repo"
-    fi
-}
-
-repo_unlock(){
-    local repo="$1"
-    if [[ -f ${repos_local}/$repo/$repo.lock ]];then
-        warning "Unlocking %s" "$repo"
-        rm ${repos_local}/$repo/$repo.lock
-        update_lock "$repo"
-    fi
-}
-
-repo_download(){
-    local repo="$1"
-    if is_locked "$repo"; then
-        die "The '%s' repository is locked" "$repo"
-    else
-        rsync "${rsync_args[@]}" "$(connect)${repos_remote}/$repo/" "${repos_local}/$repo/"
-    fi
-}
-
-repo_upload(){
-    local repo="$1"
-    repo_lock "$repo"
-    rsync "${rsync_args[@]}" "${repos_local}/$repo/" "$(connect)${repos_remote}/$repo/"
-    repo_unlock "$repo"
-}
+# upload(){
+#     local pkg="$1" repo="$2" arch="$3" ext='db.tar.xz'
+#     sftp ${account}@${file_host}
+#     cd $repo/os/$arch
+#     put $pkg{,.sig} $repo.$ext{,.old}
+#     bye
+# }
