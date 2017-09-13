@@ -78,15 +78,15 @@ patch_pkg(){
     local pkg="$1"
     case $pkg in
         'glibc')
-#             patch -p1 -i $DATADIR/patches/glibc.patch
-            sed -e 's|/usr/lib/{locale,systemd/system,tmpfiles.d}|/usr/lib/{locale,tmpfiles.d}|' \
-                -e 's|install -m644 nscd/nscd.service "$pkgdir/usr/lib/systemd/system"|d' \
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
                 -i $pkg/PKGBUILD
         ;;
         'bash')
-#             patch -p1 -i $DATADIR/patches/bash.patch
-            sed -e 's|system.bash_logout)|system.bash_logout artix.bashrc)|' \
+            sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
                 -e 's|etc/bash.|etc/bash/|g' \
+                -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
+                -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
                 -i $pkg/PKGBUILD
 
             patch -p1 -i $DATADIR/patches/dot-bashrc.patch
