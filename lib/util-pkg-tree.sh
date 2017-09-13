@@ -78,10 +78,17 @@ patch_pkg(){
     local pkg="$1"
     case $pkg in
         'glibc')
-            patch -p1 -i $DATADIR/patches/glibc.patch
+#             patch -p1 -i $DATADIR/patches/glibc.patch
+            sed -e 's|/usr/lib/{locale,systemd/system,tmpfiles.d}|/usr/lib/{locale,tmpfiles.d}|' \
+                -e 's|install -m644 nscd/nscd.service "$pkgdir/usr/lib/systemd/system"|d' \
+                -i $pkg/PKGBUILD
         ;;
         'bash')
-            patch -p1 -i $DATADIR/patches/bash.patch
+#             patch -p1 -i $DATADIR/patches/bash.patch
+            sed -e 's|system.bash_logout)|system.bash_logout artix.bashrc)|' \
+                -e 's|etc/bash.|etc/bash/|g' \
+                -i $pkg/PKGBUILD
+
             patch -p1 -i $DATADIR/patches/dot-bashrc.patch
             patch -p1 -i $DATADIR/patches/system-bashrc.patch
             patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
