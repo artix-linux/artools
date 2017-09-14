@@ -18,19 +18,13 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg-publish.sh
 
-# show_transfer(){
-#     local repo="$1"
-#     msg2 "local: %s" "${repos_root}/$repo/"
-#     msg2 "remote: %s" "${repos_remote}/$repo/"
-# }
-
 display_settings(){
     show_version
     show_config
 
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
-    msg2 "repository_move: %s" "${repository_move}"
+    msg2 "to_repository: %s" "${to_repository}"
     msg2 "package: %s" "${package[@]}"
     msg2 "target_arch: %s" "${target_arch}"
 
