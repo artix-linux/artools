@@ -67,17 +67,6 @@ init_artools_base(){
 
     tmp_dir='/tmp'
 
-    [[ -z ${file_host} ]] && file_host="sourceforge.net"
-#     file_host="leviathan.mief.nl"
-
-    [[ -z ${git_host} ]] && git_host='https://github.com'
-
-    [[ -z ${host_mirrors[@]} ]] && host_mirrors=('netcologne' 'freefr' 'netix' 'kent' '10gbps-io')
-
-    [[ -z ${project} ]] && project="artix-linux"
-
-    [[ -z ${account} ]] && account="[SetUser]"
-
     [[ -z ${workspace_dir} ]] && workspace_dir=/home/${OWNER}/artools-workspace
 
     [[ -z ${gpg_args[@]} ]] && gpg_args=(--detach-sign --use-agent)
@@ -136,6 +125,14 @@ init_artools_iso(){
     [[ -z ${tracker_url} ]] && tracker_url='udp://mirror.strits.dk:6969'
 
     [[ -z ${piece_size} ]] && piece_size=21
+
+    [[ -z ${file_host} ]] && file_host="sourceforge.net"
+
+    [[ -z ${project} ]] && project="artix-linux"
+
+    [[ -z ${account} ]] && account="[SetUser]"
+
+    [[ -z ${host_mirrors[@]} ]] && host_mirrors=('netcologne' 'freefr' 'netix' 'kent' '10gbps-io')
 
     torrent_meta="$(get_osname)"
 }
@@ -209,12 +206,3 @@ check_root() {
         exec su root -c "$(printf ' %q' "${orig_argv[@]}")"
     fi
 }
-
-connect(){
-    local home="/home/frs/project/${project}"
-    echo "${account},${project}@frs.${file_host}:${home}"
-}
-
-# connect_to_repo(){
-#
-# }
