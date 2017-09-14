@@ -82,6 +82,10 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/PKGBUILD
         ;;
+        'linux-lts')
+            sed -e 's|"${pkgbase}" = "linux"|"${pkgbase}" = "linux-lts"|' \
+                -i $pkg/PKGBUILD
+        ;;
         'bash')
             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
                 -e 's|etc/bash.|etc/bash/|g' \
@@ -138,6 +142,14 @@ set_import_path(){
                 src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
             elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any ]];then
                 src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any
+            fi
+        ;;
+        lib32)
+            arch_repo=multilib
+            arch_dir=community
+            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
+            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
+                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
             fi
         ;;
     esac

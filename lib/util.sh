@@ -89,7 +89,7 @@ init_artools_pkg(){
 
     [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${workspace_dir}/artix
 
-    [[ -z ${repo_tree_import[@]} ]] && repo_tree_import=('system' 'world' 'galaxy')
+    [[ -z ${repo_tree_import[@]} ]] && repo_tree_import=('system' 'world' 'galaxy' 'lib32')
 
     [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
 
