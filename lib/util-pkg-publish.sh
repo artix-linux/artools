@@ -25,6 +25,24 @@ del_from_repo(){
     done
 }
 
+move_to_repo(){
+    local repo_src="$1" repo_dest="$2" repo_arch="$3"
+    local repo_path=${repos_root}/$repo_src/os/$repo_arch
+    local src=$PWD list=${workspace_dir}/$repo_src.move.txt
+    [[ -n ${PKGDEST} ]] && src=${PKGDEST}
+    cd $repo_path
+    ls *.tar.pkg.xz > $list
+    rm -v *
+    repo-add $repo_src.db.tar.xz
+#     rsync -v --files-from="$list" $repo_path "$src"
+    repo_path=${repos_root}/$repo_dest/os/$repo_arch
+    for f in $(cat $list);do
+        ln -sf $src/$f{,.sig} $repo_path/
+    done
+    cd $repo_path
+    repo-add -R $repo_dest.db.tar.xz *.pkg.tar.xz
+}
+
 add_to_repo(){
     local repo="$1" destarch="$2" pkg="$3" ver pkgfile result
     local repo_path=${repos_root}/$repo/os/$destarch
