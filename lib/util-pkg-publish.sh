@@ -28,19 +28,25 @@ del_from_repo(){
 move_to_repo(){
     local repo_src="$1" repo_dest="$2" repo_arch="$3"
     local repo_path=${repos_root}/$repo_src/os/$repo_arch
-    local src=$PWD list=${workspace_dir}/$repo_src.move.txt
+    local src=$PWD
+    local filelist=${workspace_dir}/$repo_src.files.txt
+    local pkglist=${workspace_dir}/$repo_src.pkgs.txt
     [[ -n ${PKGDEST} ]] && src=${PKGDEST}
     cd $repo_path
-    ls *.tar.pkg.xz > $list
+    msg "Writing repo lists [%s]" "$repo_src"
+    ls *.pkg.tar.xz{,.sig} > $filelist
+    ls *.pkg.tar.xz > $pkglist
     rm -v *
     repo-add $repo_src.db.tar.xz
-#     rsync -v --files-from="$list" $repo_path "$src"
+#     rsync -v --files-from="$filelist" $repo_path "$src"
     repo_path=${repos_root}/$repo_dest/os/$repo_arch
-    for f in $(cat $list);do
-        ln -sf $src/$f{,.sig} $repo_path/
+    local move=$(cat $filelist) pkgs=$(cat $pkglist)
+    msg "Reading repo lists [%s]" "$repo_dest"
+    for f in ${move[@]};do
+        ln -sfv $src/$f $repo_path/
     done
     cd $repo_path
-    repo-add -R $repo_dest.db.tar.xz *.pkg.tar.xz
+    repo-add -R $repo_dest.db.tar.xz ${pkgs[@]}
 }
 
 add_to_repo(){
