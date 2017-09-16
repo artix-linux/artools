@@ -67,9 +67,9 @@ check_root
 newroot=$1; shift
 pacman_args=("${@:-base}")
 
-${hostcache} && pacman_args+=(--cachedir="$newroot/var/cache/pacman/pkg")
+${hostcache} || pacman_args+=(--cachedir="$newroot/var/cache/pacman/pkg")
 
-${interactive} && pacman_args+=(--noconfirm)
+${interactive} || pacman_args+=(--noconfirm)
 
 [[ -n $pacman_conf ]] && pacman_args+=(--config="$pacman_conf")
 
