@@ -41,11 +41,8 @@ load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.co
 load_vars /etc/makepkg.conf
 
 pretend=false
-verbose=false
-verbose=false
 add_pkg=false
 del_pkg=false
-copy_pkg=false
 move_pkg=false
 package=''
 repository=${PWD##*/}
@@ -94,7 +91,7 @@ timer_start=$(get_timer)
 
 prepare_dir "${repos_root}"
 
-${pretend} && display_settings #&& exit 1
+${pretend} && display_settings && exit 1
 
 ${move_pkg} && move_to_repo "${repository}" "${to_repository}" "${target_arch}"
 
