@@ -231,3 +231,4 @@ poppler
 bc
 cups-filters
 xdg-utils
+xf86-input-libinput
