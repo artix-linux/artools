@@ -36,9 +36,10 @@ move_to_repo(){
     msg "Writing repo lists [%s]" "$repo_src"
     ls *.pkg.tar.xz{,.sig} > $filelist
     ls *.pkg.tar.xz > $pkglist
+    # uncomment for local test run
+#     rsync -v --files-from="$filelist" $repo_path "$src"
     rm -v *
     repo-add $repo_src.db.tar.xz
-#     rsync -v --files-from="$filelist" $repo_path "$src"
     repo_path=${repos_root}/$repo_dest/os/$repo_arch
     local move=$(cat $filelist) pkgs=$(cat $pkglist)
     msg "Reading repo lists [%s]" "$repo_dest"
