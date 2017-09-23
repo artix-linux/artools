@@ -82,10 +82,10 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/PKGBUILD
         ;;
-        'linux-lts')
-            sed -e 's|"${pkgbase}" = "linux"|"${pkgbase}" = "linux-lts"|' \
-                -i $pkg/PKGBUILD
-        ;;
+#         'linux-lts')
+#             sed -e 's|"${pkgbase}" = "linux"|"${pkgbase}" = "linux-lts"|' \
+#                 -i $pkg/PKGBUILD
+#         ;;
         'bash')
             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
                 -e 's|etc/bash.|etc/bash/|g' \

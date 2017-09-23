@@ -9,24 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-write_machineid_conf(){
-    local conf="${modules_dir}/machineid.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo '---' > "$conf"
-    echo "systemd: false" >> $conf
-    echo "dbus: true" >> $conf
-    echo "symlink: true" >> $conf
-}
-
-write_finished_conf(){
-    msg2 "Writing %s ..." "finished.conf"
-    local conf="${modules_dir}/finished.conf" cmd="loginctl reboot"
-    echo '---' > "$conf"
-    echo 'restartNowEnabled: true' >> "$conf"
-    echo 'restartNowChecked: false' >> "$conf"
-    echo "restartNowCommand: \"${cmd}\"" >> "$conf"
-}
-
 get_preset(){
     local p=${tmp_dir}/${kernel}.preset
     cp ${DATADIR}/linux.preset $p
@@ -71,21 +53,6 @@ write_servicescfg_conf(){
     done
 }
 
-write_displaymanager_conf(){
-    local conf="${modules_dir}/displaymanager.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "displaymanagers:" >> "$conf"
-    echo "  - lightdm" >> "$conf"
-    echo "  - gdm" >> "$conf"
-    echo "  - mdm" >> "$conf"
-    echo "  - sddm" >> "$conf"
-    echo "  - lxdm" >> "$conf"
-    echo "  - slim" >> "$conf"
-    echo '' >> "$conf"
-    echo "basicSetup: false" >> "$conf"
-}
-
 write_initcpio_conf(){
     local conf="${modules_dir}/initcpio.conf"
     msg2 "Writing %s ..." "${conf##*/}"
@@ -112,39 +79,6 @@ write_users_conf(){
     echo "avatarFilePath:  ~/.face" >> "$conf" # mostly used file-name for avatar
 }
 
-write_welcome_conf(){
-    local conf="${modules_dir}/welcome.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf" >> "$conf"
-    echo "showSupportUrl:         true" >> "$conf"
-    echo "showKnownIssuesUrl:     true" >> "$conf"
-    echo "showReleaseNotesUrl:    true" >> "$conf"
-    echo '' >> "$conf"
-    echo "requirements:" >> "$conf"
-    echo "    requiredStorage:    7.9" >> "$conf"
-    echo "    requiredRam:        1.0" >> "$conf"
-    echo "    internetCheckUrl:   https://github.com/cromnix" >> "$conf"
-    echo "    check:" >> "$conf"
-    echo "      - storage" >> "$conf"
-    echo "      - ram" >> "$conf"
-    echo "      - power" >> "$conf"
-    echo "      - internet" >> "$conf"
-    echo "      - root" >> "$conf"
-    echo "    required:" >> "$conf"
-    echo "      - storage" >> "$conf"
-    echo "      - ram" >> "$conf"
-    echo "      - root" >> "$conf"
-    echo "      - internet" >> "$conf"
-}
-
-write_umount_conf(){
-    local conf="${modules_dir}/umount.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo 'srcLog: "/root/.cache/Calamares/Calamares/Calamares.log"' >> "$conf"
-    echo 'destLog: "/var/log/Calamares.log"' >> "$conf"
-}
-
 get_yaml(){
     echo "netgroups-${initsys}.yaml"
 }
@@ -156,14 +90,6 @@ write_netinstall_conf(){
     echo "groupsUrl: ${netgroups}/$(get_yaml)" >> "$conf"
 }
 
-write_locale_conf(){
-    local conf="${modules_dir}/locale.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "localeGenPath: /etc/locale.gen" >> "$conf"
-    echo "geoipUrl: freegeoip.net" >> "$conf"
-}
-
 write_settings_conf(){
     local conf="$1/etc/calamares/settings.conf"
     msg2 "Writing %s ..." "${conf##*/}"
@@ -172,8 +98,8 @@ write_settings_conf(){
     echo '' >> "$conf"
     echo "sequence:" >> "$conf"
     echo "    - show:" >> "$conf"
-    echo "        - welcome" >> "$conf" && write_welcome_conf
-    echo "        - locale" >> "$conf" && write_locale_conf
+    echo "        - welcome" >> "$conf"
+    echo "        - locale" >> "$conf"
     echo "        - keyboard" >> "$conf"
     echo "        - partition" >> "$conf"
     echo "        - users" >> "$conf" && write_users_conf
@@ -184,7 +110,7 @@ write_settings_conf(){
     echo "        - mount" >> "$conf"
     echo "        - chrootcfg" >> "$conf"
     echo "        - networkcfg" >> "$conf"
-    echo "        - machineid" >> "$conf" && write_machineid_conf
+    echo "        - machineid" >> "$conf"
     echo "        - fstab" >> "$conf"
     echo "        - locale" >> "$conf"
     echo "        - keyboard" >> "$conf"
@@ -194,7 +120,7 @@ write_settings_conf(){
     echo "        - initcpiocfg" >> "$conf"
     echo "        - initcpio" >> "$conf" && write_initcpio_conf
     echo "        - users" >> "$conf"
-    echo "        - displaymanager" >> "$conf" && write_displaymanager_conf
+    echo "        - displaymanager" >> "$conf"
     echo "        - hwclock" >> "$conf"
     case ${initsys} in
         'openrc') echo "        - servicescfg" >> "$conf" && write_servicescfg_conf ;;
@@ -202,9 +128,9 @@ write_settings_conf(){
     echo "        - grubcfg" >> "$conf"
     echo "        - bootloader" >> "$conf" && write_bootloader_conf
     echo "        - postcfg" >> "$conf"
-    echo "        - umount" >> "$conf" && write_umount_conf
+    echo "        - umount" >> "$conf"
     echo "    - show:" >> "$conf"
-    echo "        - finished" >> "$conf" && write_finished_conf
+    echo "        - finished" >> "$conf"
     echo '' >> "$conf"
     echo "branding: ${os_id}" >> "$conf"
     echo '' >> "$conf"
