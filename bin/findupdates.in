@@ -18,6 +18,8 @@ LIBDIR='@libdir@'
 import ${LIBDIR}/util-pkg.sh
 import ${LIBDIR}/util-pkg-tree.sh
 
+load_user_info
+
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 green="\x1b[32m"
