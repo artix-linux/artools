@@ -27,8 +27,6 @@ green="\x1b[32m"
 red="\x1b[31m"
 nocolor="\x1b[0m"
 
-printf "${green}%-10s : %-30s  %-30s %-30s ${nocolor}\n" Repository package "Artix version" "Arch version"
-
 declare -A UPDATES
 
 msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
