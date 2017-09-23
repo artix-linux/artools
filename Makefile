@@ -31,6 +31,7 @@ BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
 	bin/finddeps \
+	bin/findupdates \
 	bin/find-libdeps \
 	bin/mkchrootpkg \
 	bin/buildpkg \
