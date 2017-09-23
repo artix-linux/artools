@@ -31,38 +31,41 @@ printf "${green}%-10s : %-30s  %-30s %-30s ${nocolor}\n" Repository package "Art
 
 declare -A UPDATES
 
+msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+
 for repo in ${repo_tree_import[@]}; do
-  for pkg in artix/$repo/*; do
-	[[ -f $pkg/PKGBUILD ]] && {
-		artixPKGBUILD=$pkg/PKGBUILD
-		source $artixPKGBUILD 2>/dev/null
-		package=$(basename $pkg)
-		artixfv=$(get_full_version $package)
-	} || continue
-	printf "%-10s : %-30s  %-30s " $repo $package $artixfv
-	unset src
-	set_import_path $repo $package
-	archrepo=$src
-	archPKGBUILD="archlinux$archrepo/PKGBUILD"
-	if [[ -f $archPKGBUILD ]];then
-		source $archPKGBUILD 2>/dev/null
-		archfv=$(get_full_version $package)
-	else
-		printf "\n"
-		continue
-	fi
-	color=$nocolor
-	if (( $(vercmp $artixfv $archfv) < 0 ));then
-		color=$red
-		packages+=$package
-		UPDATES[$package]="$archPKGBUILD $artixPKGBUILD"
-	fi
-	printf "$color %-30s $nocolor\n" $archfv
-  done
+    for pkg in ${tree_dir_artix}/$repo/*; do
+        if [[ -f $pkg/PKGBUILD ]];then
+            artixPKGBUILD=$pkg/PKGBUILD
+            source $artixPKGBUILD 2>/dev/null
+            package=$(basename $pkg)
+            artixfv=$(get_full_version $package)
+        else
+            continue
+        fi
+        set_import_path $repo $package
+        archrepo=$src
+        archPKGBUILD="$src/PKGBUILD"
+        if [[ -f $archPKGBUILD ]];then
+            source $archPKGBUILD 2>/dev/null
+            archfv=$(get_full_version $package)
+        else
+            continue
+        fi
+        if (( $(vercmp $artixfv $archfv) < 0 ));then
+            packages+=$package
+            UPDATES[$package]="$archPKGBUILD $artixPKGBUILD"
+            msg_column_notify "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixfv" "$archfv"
+        else
+            msg_column "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixfv" "$archfv"
+        fi
+
+        unset pkgver epoch pkgrel
+    done
 done
 
 for pkg in ${packages[@]}; do
-	echo "Processing ${UPDATES[$pkg]}"
-	meld ${UPDATES[$pkg]}
+    echo "Processing ${UPDATES[$pkg]}"
+    [[ -f /usr/bin/meld ]] && meld ${UPDATES[$pkg]}
 done
 

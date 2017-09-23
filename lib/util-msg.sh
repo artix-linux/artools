@@ -115,6 +115,21 @@ die() {
     cleanup 255
 }
 
+msg_table_header(){
+    local mesg=$1; shift
+    printf "${GREEN} ${mesg} ${ALL_OFF}\n" "$@" >&2
+}
+
+msg_column(){
+    local mesg=$1; shift
+    printf "${BOLD} ${mesg} ${ALL_OFF}\n" "$@" >&2
+}
+
+msg_column_notify(){
+    local mesg=$1; shift
+    printf "${yellow} ${mesg} ${ALL_OFF}\n" "$@" >&2
+}
+
 import(){
     if [[ -r "$1" ]];then
         source "$1"
