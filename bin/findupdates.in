@@ -53,7 +53,7 @@ for repo in ${repo_tree_import[@]}; do
             continue
         fi
         if (( $(vercmp $artixfv $archfv) < 0 ));then
-            packages+=$package
+            packages+=" $package"
             UPDATES[$package]="$archPKGBUILD $artixPKGBUILD"
             msg_column_notify "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixfv" "$archfv"
         else
