@@ -82,10 +82,6 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/PKGBUILD
         ;;
-#         'linux-lts')
-#             sed -e 's|"${pkgbase}" = "linux"|"${pkgbase}" = "linux-lts"|' \
-#                 -i $pkg/PKGBUILD
-#         ;;
         'bash')
             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
                 -e 's|etc/bash.|etc/bash/|g' \
@@ -105,51 +101,58 @@ patch_pkg(){
 }
 
 set_import_path(){
-    local arch_dir arch_repo
+    local arch_dir arch_repo import_path
     local repo="$1" pkg="$2"
     case $repo in
-        system)
-            arch_repo=core
-            arch_dir=packages
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
+        system|world)
+            if [[ "$repo" == 'system' ]];then
+                arch_repo=core
+                arch_dir=packages
             fi
-        ;;
-        world)
-            arch_repo=extra
-            arch_dir=packages
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
+            if [[ "$repo" == 'world' ]];then
+                arch_repo=extra
+                arch_dir=packages
+            fi
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+            src=$import_path/$arch_repo-x86_64
+            if [[ -d $import_path/$arch_repo-any ]];then
+                src=$import_path/$arch_repo-any
+            elif [[ -d $import_path/testing-x86_64 ]];then
+                src=$import_path/testing-x86_64
+            elif [[ -d $import_path/testing-any ]];then
+                src=$import_path/testing-any
             fi
         ;;
         galaxy)
             arch_repo=community
             arch_dir=$arch_repo
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
+            src=$import_path-x86_64
+            if [[ -d $import_path-any ]];then
+                src=$import_path-any
+            elif [[ -d $import_path-testing-x86_64 ]];then
+                src=$import_path-testing-x86_64
+            elif [[ -d $import_path-testing-any ]];then
+                src=$import_path-testing-any
             fi
         ;;
         lib32)
-            arch_repo=multilib
-            arch_dir=community
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
+            if [[ "$pkg" == 'llvm' ]];then
+                arch_repo=extra
+                arch_dir=packages
+                import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+                src=$import_path/extra-x86_64
+                if [[ -d $import_path/testing-x86_64 ]];then
+                    src=$import_path/testing-x86_64
+                fi
+            else
+                arch_repo=multilib
+                arch_dir=community
+                import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+                src=$import_path/$arch_repo-x86_64
+                if [[ -d $import_path/$arch_repo-testing-x86_64 ]];then
+                    src=$import_path/$arch_repo-testing-x86_64
+                fi
             fi
         ;;
     esac
