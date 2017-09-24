@@ -24,28 +24,26 @@ load_user_info
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 declare -A UPDATES
-
 msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-
 for repo in ${repo_tree_import[@]}; do
     for pkg in ${tree_dir_artix}/$repo/*; do
         if [[ -f $pkg/PKGBUILD ]];then
             source $pkg/PKGBUILD 2>/dev/null
             package=${pkg##*/}
-            artixfv=$(get_full_version $package)
+            artixver=$(get_full_version $package)
             set_import_path "$repo" "$package"
             if [[ -f $src/PKGBUILD ]];then
                 source $src/PKGBUILD 2>/dev/null
-                archfv=$(get_full_version $package)
+                archver=$(get_full_version $package)
             fi
-            if [ $(vercmp $artixfv $archfv) -lt 0 ];then
+            if [ $(vercmp $artixver $archver) -lt 0 ];then
                 UPDATES[$package]="$src/PKGBUILD $pkg/PKGBUILD"
-                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixfv" "$archfv"
+                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
             else
-                msg_row "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixfv" "$archfv"
+                msg_row "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
             fi
         fi
-        unset pkgver epoch pkgrel artixfv archfv package
+        unset pkgver epoch pkgrel artixver archver package
     done
 done
 
@@ -53,4 +51,3 @@ for upd in "${!UPDATES[@]}"; do
     msg "Diff: %s" "$upd"
     diff -u ${UPDATES[$upd]}
 done
-
