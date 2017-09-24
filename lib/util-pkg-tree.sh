@@ -22,8 +22,39 @@ is_dirty() {
     return 0
 }
 
+show_version_table(){
+    declare -A UPDATES
+    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+    for repo in ${repo_tree_import[@]}; do
+        for pkg in ${tree_dir_artix}/$repo/*; do
+            if [[ -f $pkg/PKGBUILD ]];then
+                source $pkg/PKGBUILD 2>/dev/null
+                package=${pkg##*/}
+                artixver=$(get_full_version $package)
+                set_import_path "$repo" "$package"
+                if [[ -f $src/PKGBUILD ]];then
+                    source $src/PKGBUILD 2>/dev/null
+                    archver=$(get_full_version $package)
+                fi
+                if [ $(vercmp $artixver $archver) -lt 0 ];then
+                    UPDATES[$package]="$src/PKGBUILD $pkg/PKGBUILD"
+                    msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+                else
+                    msg_row "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+                fi
+            fi
+            unset pkgver epoch pkgrel artixver archver package
+        done
+    done
+    for upd in "${!UPDATES[@]}"; do
+        msg "Diff: %s" "$upd"
+        diff -u ${UPDATES[$upd]}
+    done
+}
+
 sync_tree(){
     local branch="master" repo="$1"
+    git checkout $branch
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer)
@@ -58,6 +89,20 @@ sync_tree_arch(){
                 cd ..
             else
                 clone_tree "${repo}" "${host_tree_arch}/${repo}"
+            fi
+        done
+    cd ..
+}
+
+sync_tree_artix(){
+    cd ${tree_dir_artix}
+        for repo in ${repo_tree_import[@]};do
+            if [[ -d ${repo} ]];then
+                cd ${repo}
+                    sync_tree "${repo}"
+                cd ..
+            else
+                clone_tree "${repo}" "${host_tree_artix}/${repo}"
             fi
         done
     cd ..
@@ -169,7 +214,7 @@ import_from_arch(){
             git pull origin "$branch"
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
-                source $pkg/PKGBUILD
+                source $pkg/PKGBUILD 2>/dev/null
                 local ver=$(get_full_version $pkg)
                 msg2 "package: %s-%s" "$pkg" "$ver"
                 set_import_path "$repo" "$pkg"

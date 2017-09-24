@@ -61,6 +61,8 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 
 pretend=false
 arch=false
+artix=false
+compare=false
 import_arch=false
 verbose=false
 gitpush=false
@@ -70,6 +72,8 @@ rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs -v --stats)
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a            Sync arch tree"
+    echo "    -s            Sync artix tree"
+    echo "    -c            Compare artix and arch versions"
     echo '    -i            Import arch packages'
     echo '    -p            Push import packages'
     echo '    -q            Query settings'
@@ -81,11 +85,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='aipqh'
+opts='aipscqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         a) arch=true ;;
+        s) artix=true ;;
+        c) compare=true ;;
         i) import_arch=true ;;
         p) gitpush=true ;;
         q) pretend=true ;;
@@ -101,6 +107,10 @@ prepare_dir "${tree_dir_arch}"
 
 ${pretend} && display_settings && exit 1
 
+${artix} && sync_tree_artix
+
 ${arch} && sync_tree_arch
+
+${compare} && show_version_table
 
 ${import_arch} && import_from_arch ${gitpush}

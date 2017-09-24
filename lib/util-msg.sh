@@ -120,14 +120,14 @@ msg_table_header(){
     printf "${GREEN} ${mesg} ${ALL_OFF}\n" "$@" >&2
 }
 
-msg_column(){
+msg_row(){
     local mesg=$1; shift
-    printf "${BOLD} ${mesg} ${ALL_OFF}\n" "$@" >&2
+    printf "${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
-msg_column_notify(){
+msg_row_update(){
     local mesg=$1; shift
-    printf "${yellow} ${mesg} ${ALL_OFF}\n" "$@" >&2
+    printf "${RED}${BOLD} ${mesg} ${ALL_OFF}\n" "$@" >&2
 }
 
 import(){
