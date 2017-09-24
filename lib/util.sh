@@ -94,6 +94,8 @@ init_artools_pkg(){
 
     chroots_pkg="${chroots_dir}/buildpkg"
 
+    [[ -z ${patches_dir} ]] && patches_dir=${workspace_dir}/archlinux-patches
+
     [[ -z ${repos_root} ]] && repos_root="${workspace_dir}/repos"
 }
 

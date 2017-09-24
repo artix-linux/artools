@@ -37,18 +37,17 @@ show_version_table(){
                     archver=$(get_full_version $package)
                 fi
                 if [ $(vercmp $artixver $archver) -lt 0 ];then
-                    UPDATES[$package]="$src/PKGBUILD $pkg/PKGBUILD"
+                    UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
                     msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
-                else
-                    msg_row "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
                 fi
             fi
             unset pkgver epoch pkgrel artixver archver package
         done
     done
+    rm ${patches_dir/*.patch
     for upd in "${!UPDATES[@]}"; do
-        msg "Diff: %s" "$upd"
-        diff -u ${UPDATES[$upd]}
+        msg "Writing %s update patch ..." "$upd"
+        diff -u ${UPDATES[$upd]} > ${patches_dir/"$upd"-archlinux.patch
     done
 }
 
