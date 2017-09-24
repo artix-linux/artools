@@ -44,10 +44,10 @@ show_version_table(){
             unset pkgver epoch pkgrel artixver archver package
         done
     done
-    rm ${patches_dir/*.patch
+    rm ${patches_dir}/*.patch
     for upd in "${!UPDATES[@]}"; do
         msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir/"$upd"-archlinux.patch
+        diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
     done
 }
 
