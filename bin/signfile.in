@@ -32,7 +32,7 @@ fi
 
 msg2 "Signing [%s] with key %s" "${file_to_sign##*/}" "${GPGKEY}..."
 if [[ "${BUILDBOT_GPGP}x" != "x" ]]; then
-    gpg --batch --passphrase "${BUILDOT_GPGP}" --detach-sign
+    gpg --batch --passphrase "${BUILDBOT_GPGP}" --detach-sign
 else
     if [[ -f /usr/bin/hellhound ]]; then
         gpg --batch --passphrase $(hellhound retrieve) --detach-sign
