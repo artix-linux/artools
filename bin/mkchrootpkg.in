@@ -222,6 +222,7 @@ EOF
 # so no global variables
 _chrootbuild() {
     export LANG=en_US.UTF-8
+    #exec </dev/console
     . /etc/profile
     sudo -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
 }
