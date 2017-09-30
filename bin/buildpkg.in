@@ -21,7 +21,6 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-pkg.sh
-import ${LIBDIR}/util-pkg-chroot.sh
 
 show_pkg(){
     check_build "$1"
@@ -98,6 +97,18 @@ prepare_build(){
     mkchrootpkg_args+=(-r "${work_dir}" "${makepkg_args[@]}")
 
     timer_start=$(get_timer)
+}
+
+build(){
+    local timer_start=$(get_timer)
+    if [[ -f ${package}/PKGBUILD ]];then
+        cd ${package}
+    else
+        die "Directory must contain a PKGBUILD!"
+    fi
+    msg "Start building [%s] (%s)" "${pkg}" "${repository}"
+    exec mkchrootpkg "${mkchrootpkg_args[@]}"
+    show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
 
 usage() {

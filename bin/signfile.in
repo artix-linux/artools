@@ -31,7 +31,7 @@ if [ ! -e "$1" ]; then
 fi
 
 msg2 "Signing [%s] with key %s" "${file_to_sign##*/}" "${GPGKEY}..."
-if [[ "${BUILDBOT_GPGP}x" != "x" ]]; then
+if [[ -n "${BUILDBOT_GPGP}" ]]; then
     gpg --batch --passphrase "${BUILDBOT_GPGP}" --detach-sign
 else
     if [[ -f /usr/bin/hellhound ]]; then
