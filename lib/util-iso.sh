@@ -26,7 +26,7 @@ error_function() {
         error "A failure occurred in %s()." "$func"
         plain "Aborting..."
     fi
-    umount_fs
+    umount_overlay
     umount_img
     exit 2
 }
