@@ -45,8 +45,7 @@ SHARED_PKG = \
 	$(wildcard data/makepkg-*.conf)
 
 PATCHES = \
-	$(wildcard data/patches/*.patch) \
-	$(wildcard data/patches/*.bashrc)
+	$(wildcard data/patches/*.patch)
 
 BIN_ISO = \
 	bin/buildiso \
@@ -164,6 +163,8 @@ install_iso:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
+	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-testing
+
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_ISO} $(DESTDIR)$(PREFIX)/lib/artools
 
@@ -212,6 +213,7 @@ uninstall_isobase:
 
 uninstall_iso:
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-testing
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
 	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done

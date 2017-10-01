@@ -32,10 +32,17 @@ prepare_build(){
 
     load_profile "${profile}"
 
-    local pac_arch='default' pacman_conf
+    local pac_arch='default' pacman_conf pac_conf
     [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
 
-    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+    if [[ ${stablility} == 'buildiso' ]];then
+        pac_conf=$pac_arch
+    else
+        pac_conf=$pac_arch-${stablility}
+    fi
+
+    pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
+    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
 
     iso_file=$(gen_iso_fn).iso
 
@@ -141,6 +148,8 @@ verbose=false
 persist=false
 
 mkchroot_args=()
+cmd=${0##*/}
+stablility=${cmd##*-}
 
 usage() {
     echo "Usage: ${0##*/} [options]"
