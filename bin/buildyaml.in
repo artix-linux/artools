@@ -48,6 +48,7 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "group: %s" "${group}"
+    msg2 "calamares: %s" "${calamares}"
 
     msg "BUILD:"
     show_profile
@@ -60,6 +61,7 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 pretend=false
 group=false
 cache_dir_netinstall="${workspace_dir}/netinstall"
+calamares=false
 
 usage() {
     echo "Usage: ${0##*/} [options]"
@@ -68,6 +70,7 @@ usage() {
     echo "    -k <name>          Kernel to use[default: ${kernel}]"
     echo "    -i <name>          Init system to use [default: ${initsys}]"
     echo '    -g                 Enable pacman group accepted for -p'
+    echo '    -c                 Check also calamares yaml files generated for the profile'
     echo '    -q                 Query settings'
     echo '    -h                 This help'
     echo ''
@@ -77,7 +80,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:i:k:gqh'
+opts='p:a:i:k:gcqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -86,6 +89,7 @@ while getopts "${opts}" arg; do
         i) initsys="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
         g) group=true ;;
+        c) calamares=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
