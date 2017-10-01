@@ -25,6 +25,8 @@ newroot=/mnt
 hostcache=false
 copykeyring=true
 copymirrorlist=true
+directory=false
+interactive=false
 
 usage() {
     echo "usage: ${0##*/} [options] root [packages...]"
