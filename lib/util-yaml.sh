@@ -71,78 +71,30 @@ write_users_conf(){
     done
     unset IFS
     echo "autologinGroup:  autologin" >> "$conf"
-    echo "doAutologin:     false" >> "$conf" # can be either 'true' or 'false'
+    echo "doAutologin:     false" >> "$conf"
     echo "sudoersGroup:    wheel" >> "$conf"
-    echo "setRootPassword: true" >> "$conf" # must be true, else some options get hidden
+    echo "setRootPassword: true" >> "$conf"
     echo "doReusePassword: false" >> "$conf" # only used in old 'users' module
     echo "availableShells: /bin/bash, /bin/zsh" >> "$conf" # only used in new 'users' module
-    echo "avatarFilePath:  ~/.face" >> "$conf" # mostly used file-name for avatar
-}
-
-get_yaml(){
-    echo "netgroups-${initsys}.yaml"
+    echo "avatarFilePath:  ~/.face" >> "$conf"
 }
 
 write_netinstall_conf(){
     local conf="${modules_dir}/netinstall.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
-    echo "groupsUrl: ${netgroups}/$(get_yaml)" >> "$conf"
-}
-
-write_settings_conf(){
-    local conf="$1/etc/calamares/settings.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "modules-search: [ local ]" >> "$conf"
-    echo '' >> "$conf"
-    echo "sequence:" >> "$conf"
-    echo "    - show:" >> "$conf"
-    echo "        - welcome" >> "$conf"
-    echo "        - locale" >> "$conf"
-    echo "        - keyboard" >> "$conf"
-    echo "        - partition" >> "$conf"
-    echo "        - users" >> "$conf" && write_users_conf
-    echo "        - netinstall" >> "$conf" && write_netinstall_conf
-    echo "        - summary" >> "$conf"
-    echo "    - exec:" >> "$conf"
-    echo "        - partition" >> "$conf"
-    echo "        - mount" >> "$conf"
-    echo "        - chrootcfg" >> "$conf"
-    echo "        - networkcfg" >> "$conf"
-    echo "        - machineid" >> "$conf"
-    echo "        - fstab" >> "$conf"
-    echo "        - locale" >> "$conf"
-    echo "        - keyboard" >> "$conf"
-    echo "        - localecfg" >> "$conf"
-    echo "        - luksopenswaphookcfg" >> "$conf"
-    echo "        - luksbootkeyfile" >> "$conf"
-    echo "        - initcpiocfg" >> "$conf"
-    echo "        - initcpio" >> "$conf" && write_initcpio_conf
-    echo "        - users" >> "$conf"
-    echo "        - displaymanager" >> "$conf"
-    echo "        - hwclock" >> "$conf"
-    case ${initsys} in
-        'openrc') echo "        - servicescfg" >> "$conf" && write_servicescfg_conf ;;
-    esac
-    echo "        - grubcfg" >> "$conf"
-    echo "        - bootloader" >> "$conf" && write_bootloader_conf
-    echo "        - postcfg" >> "$conf"
-    echo "        - umount" >> "$conf"
-    echo "    - show:" >> "$conf"
-    echo "        - finished" >> "$conf"
-    echo '' >> "$conf"
-    echo "branding: ${os_id}" >> "$conf"
-    echo '' >> "$conf"
-    echo "prompt-install: false" >> "$conf"
-    echo '' >> "$conf"
-    echo "dont-chroot: false" >> "$conf"
+    echo "groupsUrl: ${netgroups}/netgroups-${initsys}.yaml" >> "$conf"
 }
 
 configure_calamares(){
     info "Configuring [Calamares]"
     modules_dir=$1/etc/calamares/modules
-    prepare_dir "${modules_dir}"
-    write_settings_conf "$1"
+    write_users_conf
+    write_netinstall_conf
+    write_initcpio_conf
+    case ${initsys} in
+        'openrc') write_servicescfg_conf ;;
+    esac
+    write_bootloader_conf
     info "Done configuring [Calamares]"
 }
