@@ -65,7 +65,7 @@ run_safe() {
 trap_exit() {
     local sig=$1; shift
     error "$@"
-    umount_fs
+    umount_overlay
     trap -- "$sig"
     kill "-$sig" "$$"
 }
@@ -390,39 +390,4 @@ prepare_images(){
     run_safe "make_grub"
 
     show_elapsed_time "${FUNCNAME}" "${timer}"
-}
-
-build(){
-    msg "Start building [%s]" "${profile}"
-    if ${clean_first};then
-        for copy in "${work_dir}"/*; do
-            [[ -d $copy ]] || continue
-            msg2 "Deleting chroot copy '%s'..." "$(basename "${copy}")"
-
-            lock 9 "$copy.lock" "Locking chroot copy '%s'" "$copy"
-
-            subvolume_delete_recursive "${copy}"
-            rm -rf --one-file-system "${copy}"
-        done
-        lock_close 9
-
-        rm -rf --one-file-system "${work_dir}"
-        clean_iso_root "${iso_root}"
-    fi
-
-    if ${iso_only}; then
-        [[ ! -d ${work_dir} ]] && die "Create images: buildiso -p %s -x" "${profile}"
-        compress_images
-        exit 1
-    fi
-    if ${images_only}; then
-        prepare_images
-        warning "Continue compress: buildiso -p %s -zc ..." "${profile}"
-        exit 1
-    else
-        prepare_images
-        compress_images
-    fi
-    msg "Finished building [%s]" "${profile}"
-    show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
