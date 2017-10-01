@@ -76,7 +76,7 @@ configure_live_image(){
     configure_hosts "$fs"
     configure_system "$fs"
     configure_services "$fs"
-    configure_calamares "$fs"
+    configure_calamares "$fs/etc/calamares/modules"
     write_live_session_conf "$fs"
     msg "Done configuring [livefs]"
 }

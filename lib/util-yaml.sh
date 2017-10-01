@@ -19,7 +19,7 @@ get_preset(){
 }
 
 write_bootloader_conf(){
-    local conf="${modules_dir}/bootloader.conf" efi_boot_loader='grub'
+    local conf="$1/bootloader.conf" efi_boot_loader='grub'
     msg2 "Writing %s ..." "${conf##*/}"
     source "$(get_preset)"
     echo '---' > "$conf"
@@ -37,7 +37,7 @@ write_bootloader_conf(){
 }
 
 write_servicescfg_conf(){
-    local conf="${modules_dir}/servicescfg.conf"
+    local conf="$1/servicescfg.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo '---' >  "$conf"
     echo '' >> "$conf"
@@ -54,14 +54,14 @@ write_servicescfg_conf(){
 }
 
 write_initcpio_conf(){
-    local conf="${modules_dir}/initcpio.conf"
+    local conf="$1/initcpio.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "kernel: ${kernel}" >> "$conf"
 }
 
 write_users_conf(){
-    local conf="${modules_dir}/users.conf"
+    local conf="$1/users.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "defaultGroups:" >> "$conf"
@@ -80,7 +80,7 @@ write_users_conf(){
 }
 
 write_netinstall_conf(){
-    local conf="${modules_dir}/netinstall.conf"
+    local conf="$1/netinstall.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "groupsUrl: ${netgroups}/netgroups-${initsys}.yaml" >> "$conf"
@@ -88,13 +88,13 @@ write_netinstall_conf(){
 
 configure_calamares(){
     info "Configuring [Calamares]"
-    modules_dir=$1/etc/calamares/modules
-    write_users_conf
-    write_netinstall_conf
-    write_initcpio_conf
+    local modules_dir="$1"
+    write_users_conf "$modules_dir"
+    write_netinstall_conf "$modules_dir"
+    write_initcpio_conf "$modules_dir"
     case ${initsys} in
-        'openrc') write_servicescfg_conf ;;
+        'openrc') write_servicescfg_conf "$modules_dir" ;;
     esac
-    write_bootloader_conf
+    write_bootloader_conf "$modules_dir"
     info "Done configuring [Calamares]"
 }
