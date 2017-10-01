@@ -50,4 +50,5 @@ build(){
         load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
         write_netgroup_yaml "${profile}" "$(gen_fn "Packages-Desktop")"
     fi
+    ${calamares} && configure_calamares "${yaml_dir}"
 }
