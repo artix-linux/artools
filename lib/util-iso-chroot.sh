@@ -118,8 +118,10 @@ clean_up_image(){
     fi
 
     find "$mnt" -name *.pacnew -name *.pacsave -name *.pacorig -delete
-    file=$mnt/boot/grub/grub.cfg
-    if [[ -f "$file" ]]; then
-        rm $file
+    if [[ -f "$mnt/boot/grub/grub.cfg" ]]; then
+        rm $mnt/boot/grub/grub.cfg
+    fi
+    if [[ -f "$mnt/etc/machine-id" ]]; then
+        rm $mnt/etc/machine-id
     fi
 }
