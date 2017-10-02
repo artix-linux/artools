@@ -76,7 +76,7 @@ configure_live_image(){
     configure_hosts "$fs"
     configure_system "$fs"
     configure_services "$fs"
-    [[ -f /usr/bin/calamares ]] && configure_calamares "$fs/etc/calamares/modules"
+    configure_calamares "$fs/etc/calamares/modules"
     write_live_session_conf "$fs"
     msg "Done configuring [livefs]"
 }
@@ -253,8 +253,6 @@ make_image_root() {
             "${mkchroot_args[@]}" "${rootfs}" "${packages[@]}" || abort
 
         copy_overlay "${root_overlay}" "${rootfs}"
-
-        configure_lsb "${rootfs}"
 
         clean_up_image "${rootfs}"
 

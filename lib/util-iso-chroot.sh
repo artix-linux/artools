@@ -28,15 +28,6 @@ configure_hosts(){
     sed -e "s|localhost.localdomain|localhost.localdomain ${hostname}|" -i $1/etc/hosts
 }
 
-configure_lsb(){
-    local conf=$1/etc/lsb-release
-    if [[ -e $conf ]] ; then
-        msg2 "Configuring lsb-release"
-        sed -i -e "s/^.*DISTRIB_RELEASE.*/DISTRIB_RELEASE=${dist_release}/" $conf
-#         sed -i -e "s/^.*DISTRIB_CODENAME.*/DISTRIB_CODENAME=${dist_codename}/" $conf
-    fi
-}
-
 configure_logind(){
     local conf=$1/etc/$2/logind.conf
     if [[ -e $conf ]];then

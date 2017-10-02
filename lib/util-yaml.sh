@@ -87,14 +87,16 @@ write_netinstall_conf(){
 }
 
 configure_calamares(){
-    info "Configuring [Calamares]"
     local modules_dir="$1"
-    write_users_conf "$modules_dir"
-    write_netinstall_conf "$modules_dir"
-    write_initcpio_conf "$modules_dir"
-    case ${initsys} in
-        'openrc') write_servicescfg_conf "$modules_dir" ;;
-    esac
-    write_bootloader_conf "$modules_dir"
-    info "Done configuring [Calamares]"
+    if [[ -d $modules_dir ]];then
+        info "Configuring [Calamares]"
+        write_users_conf "$modules_dir"
+        write_netinstall_conf "$modules_dir"
+        write_initcpio_conf "$modules_dir"
+        case ${initsys} in
+            'openrc') write_servicescfg_conf "$modules_dir" ;;
+        esac
+        write_bootloader_conf "$modules_dir"
+        info "Done configuring [Calamares]"
+    fi
 }
