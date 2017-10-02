@@ -25,7 +25,6 @@ display_settings(){
     msg "OPTIONS:"
     msg2 "profile: %s" "${profile}"
     msg2 "uplimit: %s kB/s" "${uplimit}"
-#     msg2 "dist_release: %s" "${dist_release}"
 
     msg "ARGS:"
     msg2 "update: %s" "${update}"
