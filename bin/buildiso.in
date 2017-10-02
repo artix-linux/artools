@@ -33,7 +33,7 @@ prepare_build(){
     load_profile "${profile}"
 
     local pac_arch='default' pacman_conf pac_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
+    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='lib32'
 
     if [[ ${stablility} == 'buildiso' ]];then
         pac_conf=$pac_arch
