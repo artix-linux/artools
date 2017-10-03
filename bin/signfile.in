@@ -37,6 +37,6 @@ else
     if [[ -f /usr/bin/hellhound ]]; then
         gpg --batch --passphrase $(hellhound retrieve) --detach-sign "$file_to_sign"
     else
-        gpg "${gpg_args[@]}" -u "${GPGKEY}" "$file_to_sign"
+        gpg --detach-sign --use-agent -u "${GPGKEY}" "$file_to_sign"
     fi
 fi

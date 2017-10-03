@@ -64,8 +64,6 @@ init_artools_base(){
 
     [[ -z ${workspace_dir} ]] && workspace_dir=/home/${OWNER}/artools-workspace
 
-    [[ -z ${gpg_args[@]} ]] && gpg_args=(--detach-sign --use-agent)
-
     prepare_dir "${workspace_dir}"
 }
 
@@ -73,7 +71,7 @@ init_artools_pkg(){
 
     [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${workspace_dir}/artix
 
-    [[ -z ${repo_tree_import[@]} ]] && repo_tree_import=('system' 'world' 'galaxy' 'lib32')
+    [[ -z ${repo_tree_artix[@]} ]] && repo_tree_artix=('system' 'world' 'galaxy' 'lib32')
 
     [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
 

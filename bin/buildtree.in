@@ -26,7 +26,7 @@ display_settings(){
 
     msg "REPOS:"
     msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
-    msg2 "repo_tree_import: %s" "${repo_tree_import[*]}"
+    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
 
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"

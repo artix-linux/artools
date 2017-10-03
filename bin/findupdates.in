@@ -25,7 +25,7 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 
 declare -A UPDATES
 msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-for repo in ${repo_tree_import[@]}; do
+for repo in ${repo_tree_artix[@]}; do
     for pkg in ${tree_dir_artix}/$repo/*; do
         if [[ -f $pkg/PKGBUILD ]];then
             source $pkg/PKGBUILD 2>/dev/null

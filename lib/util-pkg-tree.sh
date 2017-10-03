@@ -25,7 +25,7 @@ is_dirty() {
 show_version_table(){
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for repo in ${repo_tree_import[@]}; do
+    for repo in ${repo_tree_artix[@]}; do
         for pkg in ${tree_dir_artix}/$repo/*; do
             if [[ -f $pkg/PKGBUILD ]];then
                 source $pkg/PKGBUILD 2>/dev/null
@@ -95,7 +95,7 @@ sync_tree_arch(){
 
 sync_tree_artix(){
     cd ${tree_dir_artix}
-        for repo in ${repo_tree_import[@]};do
+        for repo in ${repo_tree_artix[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     sync_tree "${repo}"
@@ -204,7 +204,7 @@ set_import_path(){
 
 import_from_arch(){
     local timer=$(get_timer) branch='testing' push="$1"
-    for repo in ${repo_tree_import[@]};do
+    for repo in ${repo_tree_artix[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
