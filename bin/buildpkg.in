@@ -83,11 +83,11 @@ prepare_build(){
         pac_conf=$pac_arch-${stablility}
     fi
 
+    [[ "$pac_arch" == 'lib32' ]] && target_arch='x86_64'
+
     local pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
     [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
     work_dir="${chroots_pkg}/${repository}-${target_arch}"
-
-    [[ "$pac_arch" == 'lib32' ]] && target_arch='x86_64'
 
     local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
     [[ -f $AT_USERCONFDIR/makepkg-${target_arch}.conf ]] && makepkg_conf="$AT_USERCONFDIR/makepkg-${target_arch}.conf"
