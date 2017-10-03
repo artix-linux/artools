@@ -37,11 +37,6 @@ prepare_dir(){
     [[ ! -d $1 ]] && mkdir -p $1
 }
 
-get_distname(){
-    source /usr/lib/os-release
-    echo "${NAME%Linux}"
-}
-
 get_disturl(){
     source /usr/lib/os-release
     echo "${HOME_URL}"
@@ -108,13 +103,11 @@ init_artools_iso(){
 
     profile='base'
 
-    [[ -z ${dist_release} ]] && dist_release=$(date +%Y%m%d)
+    [[ -z ${iso_version} ]] && iso_version=$(date +%Y%m%d)
 
-    dist_name=$(get_distname)
+    iso_name=$(get_osid)
 
-    os_id=$(get_osid)
-
-    [[ -z ${dist_branding} ]] && dist_branding="ARTIX"
+    iso_label="ARTIX_$(date +%Y%m)"
 
     [[ -z ${initsys} ]] && initsys="openrc"
 

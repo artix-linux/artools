@@ -19,7 +19,7 @@ prepare_initcpio(){
 
 prepare_initramfs(){
     local mnt="$1"
-    cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${os_id}.conf
+    cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${iso_name}.conf
     if [[ -n ${gpgkey} ]]; then
         user_run "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
         exec 17<>${AT_USERCONFDIR}/gpgkey
@@ -27,7 +27,7 @@ prepare_initramfs(){
     local _kernel=$(cat $mnt/usr/lib/modules/*/version)
     ARTIX_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
         /usr/bin/mkinitcpio -k ${_kernel} \
-        -c /etc/mkinitcpio-${os_id}.conf \
+        -c /etc/mkinitcpio-${iso_name}.conf \
         -g /boot/initramfs.img
 
     if [[ -n ${gpgkey} ]]; then
@@ -83,7 +83,7 @@ prepare_grub(){
     grub-mkimage -d ${grub}/${platform} -o ${efi}/${img} -O ${platform} -p ${prefix} iso9660
 
     prepare_dir ${grub}/themes
-    cp -r ${theme}/themes/${os_id} ${grub}/themes/
+    cp -r ${theme}/themes/${iso_name} ${grub}/themes/
     cp ${data}/unicode.pf2 ${grub}
     cp -r ${theme}/{locales,tz} ${grub}
 

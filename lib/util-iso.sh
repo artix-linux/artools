@@ -106,7 +106,7 @@ make_sfs() {
         error "The path %s does not exist" "${src}"
         retrun 1
     fi
-    local timer=$(get_timer) dest=${iso_root}/${os_id}/${target_arch}
+    local timer=$(get_timer) dest=${iso_root}/${iso_name}/${target_arch}
     local name=${1##*/}
     local sfs="${dest}/${name}.sfs"
     mkdir -p ${dest}
@@ -176,7 +176,7 @@ assemble_iso(){
     xorriso -as mkisofs \
         --modification-date=${mod_date} \
         --protective-msdos-label \
-        -volid "${dist_branding}" \
+        -volid "${iso_label}" \
         -appid "$(get_osname) Live/Rescue CD" \
         -publisher "$(get_osname) <$(get_disturl)>" \
         -preparer "Prepared by artools/${0##*/}" \
@@ -223,9 +223,9 @@ make_iso() {
 
 gen_iso_fn(){
     local vars=() name
-    vars+=("${os_id}")
+    vars+=("${iso_name}")
     vars+=("${profile}")
-    vars+=("${dist_release}")
+    vars+=("${iso_version}")
     vars+=("${target_arch}")
     for n in ${vars[@]};do
         name=${name:-}${name:+-}${n}
@@ -336,9 +336,9 @@ make_image_boot() {
 
 configure_grub(){
     local conf="$1"
-    local default_args="artixbasedir=${os_id} artixlabel=${dist_branding}" boot_args=('quiet')
+    local default_args="artixbasedir=${iso_name} artixlabel=${iso_label}" boot_args=('quiet')
 
-    sed -e "s|@DIST_NAME@|${dist_name}|g" \
+    sed -e "s|@DIST_NAME@|${iso_name}|g" \
         -e "s|@ARCH@|${target_arch}|g" \
         -e "s|@DEFAULT_ARGS@|${default_args}|g" \
         -e "s|@BOOT_ARGS@|${boot_args[*]}|g" \
@@ -348,7 +348,7 @@ configure_grub(){
 
 configure_grub_theme(){
     local conf="$1"
-    sed -e "s|@DIST@|${os_id}|" -i "$conf"
+    sed -e "s|@DIST@|${iso_name}|" -i "$conf"
 }
 
 make_grub(){

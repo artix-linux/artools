@@ -92,10 +92,8 @@ display_settings(){
     msg2 "iso_only: %s" "${iso_only}"
     msg2 "persist: %s" "${persist}"
 
-    msg "DIST SETTINGS:"
-    msg2 "dist_name: %s" "${dist_name}"
-    msg2 "dist_release: %s" "${dist_release}"
-    msg2 "dist_branding: %s" "${dist_branding}"
+    msg "ISO SETTINGS:"
+    msg2 "iso_version: %s" "${iso_version}"
 
     msg "BUILD:"
     show_profile
