@@ -19,14 +19,6 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso.sh
 
-prepare_traps(){
-    for sig in TERM HUP QUIT; do
-        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
-    done
-    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
-#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
-}
-
 prepare_build(){
     timer_start=$(get_timer)
 

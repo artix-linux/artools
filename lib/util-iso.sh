@@ -70,6 +70,14 @@ trap_exit() {
     kill "-$sig" "$$"
 }
 
+prepare_traps(){
+    for sig in TERM HUP QUIT; do
+        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
+    done
+    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
+#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
+}
+
 configure_live_image(){
     local fs="$1"
     msg "Configuring [livefs]"
@@ -233,6 +241,12 @@ gen_iso_fn(){
     echo $name
 }
 
+install_packages(){
+    local fs="$1"
+    setarch "${target_arch}" mkchroot \
+        "${mkchroot_args[@]}" "${fs}" "${packages[@]}"
+}
+
 copy_overlay(){
     local src="$1" dest="$2"
     if [[ -e "$src" ]];then
@@ -241,16 +255,14 @@ copy_overlay(){
     fi
 }
 
-# Base installation (rootfs)
-make_image_root() {
+make_rootfs() {
     if [[ ! -e ${work_dir}/rootfs.lock ]]; then
         msg "Prepare [Base installation] (rootfs)"
         local rootfs="${work_dir}/rootfs"
 
         prepare_dir "${rootfs}"
 
-        setarch "${target_arch}" mkchroot \
-            "${mkchroot_args[@]}" "${rootfs}" "${packages[@]}" || abort
+        install_packages "${rootfs}"
 
         copy_overlay "${root_overlay}" "${rootfs}"
 
@@ -260,7 +272,7 @@ make_image_root() {
     fi
 }
 
-make_image_desktop() {
+make_desktopfs() {
     if [[ ! -e ${work_dir}/desktopfs.lock ]]; then
         msg "Prepare [Desktop installation] (desktopfs)"
         local desktopfs="${work_dir}/desktopfs"
@@ -269,8 +281,7 @@ make_image_desktop() {
 
         mount_overlay "${desktopfs}" "${work_dir}"
 
-        setarch "${target_arch}" mkchroot \
-            "${mkchroot_args[@]}" "${desktopfs}" "${packages[@]}" || abort
+        install_packages "${desktopfs}"
 
         copy_overlay "${desktop_overlay}" "${desktopfs}"
 
@@ -281,7 +292,7 @@ make_image_desktop() {
     fi
 }
 
-make_image_live() {
+make_livefs() {
     if [[ ! -e ${work_dir}/livefs.lock ]]; then
         msg "Prepare [Live installation] (livefs)"
         local livefs="${work_dir}/livefs"
@@ -290,8 +301,7 @@ make_image_live() {
 
         mount_overlay "${livefs}" "${work_dir}" "${desktop_list}"
 
-        setarch "${target_arch}" mkchroot \
-            "${mkchroot_args[@]}" "${livefs}" "${packages[@]}" || abort
+        install_packages "${livefs}"
 
         copy_overlay "${live_overlay}" "${livefs}"
 
@@ -307,7 +317,7 @@ make_image_live() {
     fi
 }
 
-make_image_boot() {
+make_bootfs() {
     if [[ ! -e ${work_dir}/bootfs.lock ]]; then
         msg "Prepare [/iso/boot]"
         local boot="${iso_root}/boot"
@@ -375,16 +385,16 @@ compress_images(){
 prepare_images(){
     local timer=$(get_timer)
     load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
-    run_safe "make_image_root"
+    run_safe "make_rootfs"
     if [[ -f "${desktop_list}" ]] ; then
         load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
-        run_safe "make_image_desktop"
+        run_safe "make_desktopfs"
     fi
     if [[ -f ${live_list} ]]; then
         load_pkgs "${live_list}" "${target_arch}" "${initsys}" "${kernel}"
-        run_safe "make_image_live"
+        run_safe "make_livefs"
     fi
-    run_safe "make_image_boot"
+    run_safe "make_bootfs"
     run_safe "make_grub"
 
     show_elapsed_time "${FUNCNAME}" "${timer}"
