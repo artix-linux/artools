@@ -52,7 +52,7 @@ compare=false
 import_arch=false
 gitpush=false
 
-rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs -v --stats)
+rsync_args=(-aWxv --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
