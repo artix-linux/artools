@@ -22,8 +22,38 @@ is_dirty() {
     return 0
 }
 
+show_version_table(){
+    declare -A UPDATES
+    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+    for repo in ${repo_tree_artix[@]}; do
+        for pkg in ${tree_dir_artix}/$repo/*; do
+            if [[ -f $pkg/PKGBUILD ]];then
+                source $pkg/PKGBUILD 2>/dev/null
+                package=${pkg##*/}
+                artixver=$(get_full_version $package)
+                set_import_path "$repo" "$package"
+                if [[ -f $src/PKGBUILD ]];then
+                    source $src/PKGBUILD 2>/dev/null
+                    archver=$(get_full_version $package)
+                fi
+                if [ $(vercmp $artixver $archver) -lt 0 ];then
+                    UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
+                    msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+                fi
+            fi
+            unset pkgver epoch pkgrel artixver archver package
+        done
+    done
+    rm ${patches_dir}/*.patch
+    for upd in "${!UPDATES[@]}"; do
+        msg "Writing %s update patch ..." "$upd"
+        diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
+    done
+}
+
 sync_tree(){
     local branch="master" repo="$1"
+    git checkout $branch
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer)
@@ -63,6 +93,20 @@ sync_tree_arch(){
     cd ..
 }
 
+sync_tree_artix(){
+    cd ${tree_dir_artix}
+        for repo in ${repo_tree_artix[@]};do
+            if [[ -d ${repo} ]];then
+                cd ${repo}
+                    sync_tree "${repo}"
+                cd ..
+            else
+                clone_tree "${repo}" "${host_tree_artix}/${repo}"
+            fi
+        done
+    cd ..
+}
+
 read_import_list(){
     local repo="$1"
     local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
@@ -78,10 +122,17 @@ patch_pkg(){
     local pkg="$1"
     case $pkg in
         'glibc')
-            patch -p1 -i $DATADIR/patches/glibc.patch
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
+                -i $pkg/PKGBUILD
         ;;
         'bash')
-            patch -p1 -i $DATADIR/patches/bash.patch
+            sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
+                -e 's|etc/bash.|etc/bash/|g' \
+                -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
+                -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
+                -i $pkg/PKGBUILD
+
             patch -p1 -i $DATADIR/patches/dot-bashrc.patch
             patch -p1 -i $DATADIR/patches/system-bashrc.patch
             patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
@@ -94,43 +145,58 @@ patch_pkg(){
 }
 
 set_import_path(){
-    local arch_dir arch_repo
+    local arch_dir arch_repo import_path
     local repo="$1" pkg="$2"
     case $repo in
-        system)
-            arch_repo=core
-            arch_dir=packages
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
+        system|world)
+            if [[ "$repo" == 'system' ]];then
+                arch_repo=core
+                arch_dir=packages
             fi
-        ;;
-        world)
-            arch_repo=extra
-            arch_dir=packages
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-x86_64
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/testing-any
+            if [[ "$repo" == 'world' ]];then
+                arch_repo=extra
+                arch_dir=packages
+            fi
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+            src=$import_path/$arch_repo-x86_64
+            if [[ -d $import_path/$arch_repo-any ]];then
+                src=$import_path/$arch_repo-any
+            elif [[ -d $import_path/testing-x86_64 ]];then
+                src=$import_path/testing-x86_64
+            elif [[ -d $import_path/testing-any ]];then
+                src=$import_path/testing-any
             fi
         ;;
         galaxy)
             arch_repo=community
             arch_dir=$arch_repo
-            src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-x86_64
-            if [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-any
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64 ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-x86_64
-            elif [[ -d ${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any ]];then
-                src=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo-testing-any
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
+            src=$import_path-x86_64
+            if [[ -d $import_path-any ]];then
+                src=$import_path-any
+            elif [[ -d $import_path-testing-x86_64 ]];then
+                src=$import_path-testing-x86_64
+            elif [[ -d $import_path-testing-any ]];then
+                src=$import_path-testing-any
+            fi
+        ;;
+        lib32)
+            if [[ "$pkg" == 'llvm' ]];then
+                arch_repo=extra
+                arch_dir=packages
+                import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+                src=$import_path/extra-x86_64
+                if [[ -d $import_path/testing-x86_64 ]];then
+                    src=$import_path/testing-x86_64
+                fi
+            else
+                arch_repo=multilib
+                arch_dir=community
+                import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+                src=$import_path/$arch_repo-x86_64
+                if [[ -d $import_path/$arch_repo-testing-x86_64 ]];then
+                    src=$import_path/$arch_repo-testing-x86_64
+                fi
             fi
         ;;
     esac
@@ -138,7 +204,7 @@ set_import_path(){
 
 import_from_arch(){
     local timer=$(get_timer) branch='testing' push="$1"
-    for repo in ${repo_tree_import[@]};do
+    for repo in ${repo_tree_artix[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
@@ -147,7 +213,7 @@ import_from_arch(){
             git pull origin "$branch"
             msg "Import into [%s]" "$repo"
             for pkg in ${import_list[@]};do
-                source $pkg/PKGBUILD
+                source $pkg/PKGBUILD 2>/dev/null
                 local ver=$(get_full_version $pkg)
                 msg2 "package: %s-%s" "$pkg" "$ver"
                 set_import_path "$repo" "$pkg"

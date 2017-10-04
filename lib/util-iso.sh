@@ -26,7 +26,7 @@ error_function() {
         error "A failure occurred in %s()." "$func"
         plain "Aborting..."
     fi
-    umount_fs
+    umount_overlay
     umount_img
     exit 2
 }
@@ -65,9 +65,17 @@ run_safe() {
 trap_exit() {
     local sig=$1; shift
     error "$@"
-    umount_fs
+    umount_overlay
     trap -- "$sig"
     kill "-$sig" "$$"
+}
+
+prepare_traps(){
+    for sig in TERM HUP QUIT; do
+        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
+    done
+    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
+#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
 }
 
 configure_live_image(){
@@ -76,7 +84,7 @@ configure_live_image(){
     configure_hosts "$fs"
     configure_system "$fs"
     configure_services "$fs"
-    configure_calamares "$fs"
+    configure_calamares "$fs/etc/calamares/modules"
     write_live_session_conf "$fs"
     msg "Done configuring [livefs]"
 }
@@ -106,7 +114,7 @@ make_sfs() {
         error "The path %s does not exist" "${src}"
         retrun 1
     fi
-    local timer=$(get_timer) dest=${iso_root}/${os_id}/${target_arch}
+    local timer=$(get_timer) dest=${iso_root}/${iso_name}/${target_arch}
     local name=${1##*/}
     local sfs="${dest}/${name}.sfs"
     mkdir -p ${dest}
@@ -176,7 +184,7 @@ assemble_iso(){
     xorriso -as mkisofs \
         --modification-date=${mod_date} \
         --protective-msdos-label \
-        -volid "${dist_branding}" \
+        -volid "${iso_label}" \
         -appid "$(get_osname) Live/Rescue CD" \
         -publisher "$(get_osname) <$(get_disturl)>" \
         -preparer "Prepared by artools/${0##*/}" \
@@ -223,14 +231,20 @@ make_iso() {
 
 gen_iso_fn(){
     local vars=() name
-    vars+=("${os_id}")
+    vars+=("${iso_name}")
     vars+=("${profile}")
-    vars+=("${dist_release}")
+    vars+=("${iso_version}")
     vars+=("${target_arch}")
     for n in ${vars[@]};do
         name=${name:-}${name:+-}${n}
     done
     echo $name
+}
+
+install_packages(){
+    local fs="$1"
+    setarch "${target_arch}" mkchroot \
+        "${mkchroot_args[@]}" "${fs}" "${packages[@]}"
 }
 
 copy_overlay(){
@@ -241,20 +255,16 @@ copy_overlay(){
     fi
 }
 
-# Base installation (rootfs)
-make_image_root() {
+make_rootfs() {
     if [[ ! -e ${work_dir}/rootfs.lock ]]; then
         msg "Prepare [Base installation] (rootfs)"
         local rootfs="${work_dir}/rootfs"
 
         prepare_dir "${rootfs}"
 
-        setarch "${target_arch}" mkchroot \
-            "${mkchroot_args[@]}" "${rootfs}" "${packages[@]}" || abort
+        install_packages "${rootfs}"
 
         copy_overlay "${root_overlay}" "${rootfs}"
-
-        configure_lsb "${rootfs}"
 
         clean_up_image "${rootfs}"
 
@@ -262,7 +272,7 @@ make_image_root() {
     fi
 }
 
-make_image_desktop() {
+make_desktopfs() {
     if [[ ! -e ${work_dir}/desktopfs.lock ]]; then
         msg "Prepare [Desktop installation] (desktopfs)"
         local desktopfs="${work_dir}/desktopfs"
@@ -271,8 +281,7 @@ make_image_desktop() {
 
         mount_overlay "${desktopfs}" "${work_dir}"
 
-        setarch "${target_arch}" mkchroot \
-            "${mkchroot_args[@]}" "${desktopfs}" "${packages[@]}" || abort
+        install_packages "${desktopfs}"
 
         copy_overlay "${desktop_overlay}" "${desktopfs}"
 
@@ -283,7 +292,7 @@ make_image_desktop() {
     fi
 }
 
-make_image_live() {
+make_livefs() {
     if [[ ! -e ${work_dir}/livefs.lock ]]; then
         msg "Prepare [Live installation] (livefs)"
         local livefs="${work_dir}/livefs"
@@ -292,8 +301,7 @@ make_image_live() {
 
         mount_overlay "${livefs}" "${work_dir}" "${desktop_list}"
 
-        setarch "${target_arch}" mkchroot \
-            "${mkchroot_args[@]}" "${livefs}" "${packages[@]}" || abort
+        install_packages "${livefs}"
 
         copy_overlay "${live_overlay}" "${livefs}"
 
@@ -309,7 +317,7 @@ make_image_live() {
     fi
 }
 
-make_image_boot() {
+make_bootfs() {
     if [[ ! -e ${work_dir}/bootfs.lock ]]; then
         msg "Prepare [/iso/boot]"
         local boot="${iso_root}/boot"
@@ -338,9 +346,9 @@ make_image_boot() {
 
 configure_grub(){
     local conf="$1"
-    local default_args="artixbasedir=${os_id} artixlabel=${dist_branding}" boot_args=('quiet')
+    local default_args="artixbasedir=${iso_name} artixlabel=${iso_label}" boot_args=('quiet')
 
-    sed -e "s|@DIST_NAME@|${dist_name}|g" \
+    sed -e "s|@DIST_NAME@|${iso_name}|g" \
         -e "s|@ARCH@|${target_arch}|g" \
         -e "s|@DEFAULT_ARGS@|${default_args}|g" \
         -e "s|@BOOT_ARGS@|${boot_args[*]}|g" \
@@ -350,7 +358,7 @@ configure_grub(){
 
 configure_grub_theme(){
     local conf="$1"
-    sed -e "s|@DIST@|${os_id}|" -i "$conf"
+    sed -e "s|@DIST@|${iso_name}|" -i "$conf"
 }
 
 make_grub(){
@@ -377,52 +385,17 @@ compress_images(){
 prepare_images(){
     local timer=$(get_timer)
     load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
-    run_safe "make_image_root"
+    run_safe "make_rootfs"
     if [[ -f "${desktop_list}" ]] ; then
         load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
-        run_safe "make_image_desktop"
+        run_safe "make_desktopfs"
     fi
     if [[ -f ${live_list} ]]; then
         load_pkgs "${live_list}" "${target_arch}" "${initsys}" "${kernel}"
-        run_safe "make_image_live"
+        run_safe "make_livefs"
     fi
-    run_safe "make_image_boot"
+    run_safe "make_bootfs"
     run_safe "make_grub"
 
     show_elapsed_time "${FUNCNAME}" "${timer}"
-}
-
-build(){
-    msg "Start building [%s]" "${profile}"
-    if ${clean_first};then
-        for copy in "${work_dir}"/*; do
-            [[ -d $copy ]] || continue
-            msg2 "Deleting chroot copy '%s'..." "$(basename "${copy}")"
-
-            lock 9 "$copy.lock" "Locking chroot copy '%s'" "$copy"
-
-            subvolume_delete_recursive "${copy}"
-            rm -rf --one-file-system "${copy}"
-        done
-        lock_close 9
-
-        rm -rf --one-file-system "${work_dir}"
-        clean_iso_root "${iso_root}"
-    fi
-
-    if ${iso_only}; then
-        [[ ! -d ${work_dir} ]] && die "Create images: buildiso -p %s -x" "${profile}"
-        compress_images
-        exit 1
-    fi
-    if ${images_only}; then
-        prepare_images
-        warning "Continue compress: buildiso -p %s -zc ..." "${profile}"
-        exit 1
-    else
-        prepare_images
-        compress_images
-    fi
-    msg "Finished building [%s]" "${profile}"
-    show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }

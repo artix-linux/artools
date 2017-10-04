@@ -31,6 +31,7 @@ BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
 	bin/finddeps \
+	bin/findupdates \
 	bin/find-libdeps \
 	bin/mkchrootpkg \
 	bin/buildpkg \
@@ -44,18 +45,21 @@ SHARED_PKG = \
 	$(wildcard data/makepkg-*.conf)
 
 PATCHES = \
-	$(wildcard data/patches/*.patch) \
-	$(wildcard data/patches/*.bashrc)
+	$(wildcard data/patches/*.patch)
 
 BIN_ISO = \
 	bin/buildiso \
-	bin/deployiso
+	bin/deployiso \
+	bin/buildyaml
 
 LIBS_ISO = \
-	$(wildcard lib/util-iso*.sh)
+	$(wildcard lib/util-iso*.sh) \
+	$(wildcard lib/util-yaml*.sh) \
+	lib/util-profile.sh
 
 SHARED_ISO = \
-	data/mkinitcpio.conf
+	data/mkinitcpio.conf \
+	data/linux.preset
 
 CPIOHOOKS = \
 	$(wildcard initcpio/hooks/*)
@@ -65,16 +69,6 @@ CPIOINST = \
 
 CPIO = \
 	initcpio/script/artix_shutdown
-
-BIN_YAML = \
-	bin/buildyaml
-
-LIBS_YAML = \
-	$(wildcard lib/util-yaml*.sh) \
-	lib/util-profile.sh
-
-SHARED_YAML = \
-	data/linux.preset
 
 BASE = \
 	$(wildcard data/base/Packages-*) \
@@ -93,7 +87,7 @@ LIVE_ETC_PAM = \
 LIVE_ETC_SUDOERS = \
 	$(wildcard data/base/live-overlay/etc/sudoers.d/*)
 
-all: $(BIN_BASE) $(BIN_PKG) $(BIN_ISO) $(BIN_YAML)
+all: $(BIN_BASE) $(BIN_PKG) $(BIN_ISO)
 
 edit = sed -e "s|@datadir[@]|$(DESTDIR)$(PREFIX)/share/artools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/artools|g" \
@@ -163,6 +157,8 @@ install_iso:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
+	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-testing
+
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_ISO} $(DESTDIR)$(PREFIX)/lib/artools
 
@@ -176,16 +172,6 @@ install_iso:
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
 	install -m0644 ${SHARED_ISO} $(DESTDIR)$(PREFIX)/share/artools
-
-install_yaml:
-	install -dm0755 $(DESTDIR)$(PREFIX)/bin
-	install -m0755 ${BIN_YAML} $(DESTDIR)$(PREFIX)/bin
-
-	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
-	install -m0644 ${LIBS_YAML} $(DESTDIR)$(PREFIX)/lib/artools
-
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
-	install -m0644 ${SHARED_YAML} $(DESTDIR)$(PREFIX)/share/artools
 
 uninstall_base:
 	for f in ${SYSCONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/$$f; done
@@ -211,6 +197,7 @@ uninstall_isobase:
 
 uninstall_iso:
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-testing
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
 	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
@@ -218,14 +205,9 @@ uninstall_iso:
 	for f in ${CPIOINST}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
 	for f in ${CPIO}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
 
-uninstall_yaml:
-	for f in ${BIN_YAML}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	for f in ${LIBS_YAML}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
-	for f in ${SHARED_YAML}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+install: install_base install_pkg install_iso install_isobase
 
-install: install_base install_pkg install_iso install_yaml install_isobase
-
-uninstall: uninstall_base uninstall_pkg uninstall_iso uninstall_yaml uninstall_isobase
+uninstall: uninstall_base uninstall_pkg uninstall_iso uninstall_isobase
 
 dist:
 	git archive --format=tar --prefix=artools-$(Version)/ $(Version) | gzip -9 > artools-$(Version).tar.gz

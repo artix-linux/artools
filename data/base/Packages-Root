@@ -43,6 +43,7 @@ man-pages
 memtest86+
 mkinitcpio-openswap
 nano
+net-tools
 ntfs-3g
 >openrc acpid-openrc
 >openrc cronie-openrc

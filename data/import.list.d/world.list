@@ -71,7 +71,6 @@ slang
 dhcp
 dbus-python
 lirc
-llvm
 qt5-3d
 qt5-canvas3d
 qt5-charts
@@ -229,5 +228,5 @@ js
 imagemagick
 poppler
 bc
-cups-filters
 xdg-utils
+xf86-input-libinput

@@ -20,39 +20,25 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
 import ${LIBDIR}/util-pkg-tree.sh
 
-show_imports(){
-    for repo in ${repo_tree_import[@]};do
-        read_import_list "$repo"
-        for p in ${import_list[@]};do
-            msg2 "%s: %s" ""$repo "$p"
-        done
-    done
-}
-
 display_settings(){
     show_version
     show_config
 
     msg "REPOS:"
     msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
-    msg2 "repo_tree_import: %s" "${repo_tree_import[*]}"
+    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
 
     msg "ARGS:"
-    msg2 "verbose: %s" "${verbose}"
+    msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
+    msg2 "compare: %s" "${compare}"
     msg2 "import_arch: %s" "${import_arch}"
     msg2 "gitpush: %s" "${gitpush}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-
-    if ${verbose}; then
-        if ${import_arch};then
-            msg "IMPORT QUEUE:"
-            show_imports
-        fi
-    fi
+    msg2 "patches_dir: %s" "${patches_dir}"
 }
 
 load_user_info
@@ -61,15 +47,18 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 
 pretend=false
 arch=false
+artix=false
+compare=false
 import_arch=false
-verbose=false
 gitpush=false
 
-rsync_args=(-aWx --progress --delete --no-R --no-implied-dirs -v --stats)
+rsync_args=(-aWxv --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a            Sync arch tree"
+    echo "    -s            Sync artix tree"
+    echo "    -c            Compare artix and arch versions"
     echo '    -i            Import arch packages'
     echo '    -p            Push import packages'
     echo '    -q            Query settings'
@@ -81,11 +70,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='aipqh'
+opts='aipscqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         a) arch=true ;;
+        s) artix=true ;;
+        c) compare=true ;;
         i) import_arch=true ;;
         p) gitpush=true ;;
         q) pretend=true ;;
@@ -98,9 +89,14 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
+prepare_dir "${patches_dir}"
 
 ${pretend} && display_settings && exit 1
 
+${artix} && sync_tree_artix
+
 ${arch} && sync_tree_arch
+
+${compare} && show_version_table
 
 ${import_arch} && import_from_arch ${gitpush}

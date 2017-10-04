@@ -9,6 +9,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+connect(){
+    local home="/home/frs/project/${project}"
+    echo "${account},${project}@frs.${file_host}:${home}"
+}
+
 gen_webseed(){
     local webseed seed="$1"
     for mirror in ${host_mirrors[@]};do

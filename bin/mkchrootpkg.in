@@ -221,6 +221,7 @@ EOF
 # These functions aren't run in makechrootpkg,
 # so no global variables
 _chrootbuild() {
+    exec </dev/console
     export LANG=en_US.UTF-8
     . /etc/profile
     sudo -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"

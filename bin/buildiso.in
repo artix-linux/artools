@@ -19,23 +19,22 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-iso.sh
 
-prepare_traps(){
-    for sig in TERM HUP QUIT; do
-        trap "trap_exit $sig \"$(gettext "%s signal caught. Exiting...")\" \"$sig\"" "$sig"
-    done
-    trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
-#     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
-}
-
 prepare_build(){
     timer_start=$(get_timer)
 
     load_profile "${profile}"
 
-    local pac_arch='default' pacman_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='multilib'
+    local pac_arch='default' pacman_conf pac_conf
+    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='lib32'
 
-    pacman_conf="${DATADIR}/pacman-$pac_arch.conf"
+    if [[ ${stablility} == 'buildiso' ]];then
+        pac_conf=$pac_arch
+    else
+        pac_conf=$pac_arch-${stablility}
+    fi
+
+    pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
+    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
 
     iso_file=$(gen_iso_fn).iso
 
@@ -85,13 +84,46 @@ display_settings(){
     msg2 "iso_only: %s" "${iso_only}"
     msg2 "persist: %s" "${persist}"
 
-    msg "DIST SETTINGS:"
-    msg2 "dist_name: %s" "${dist_name}"
-    msg2 "dist_release: %s" "${dist_release}"
-    msg2 "dist_branding: %s" "${dist_branding}"
+    msg "ISO SETTINGS:"
+    msg2 "iso_version: %s" "${iso_version}"
 
     msg "BUILD:"
     show_profile
+}
+
+build(){
+    msg "Start building [%s]" "${profile}"
+    if ${clean_first};then
+        for copy in "${work_dir}"/*; do
+            [[ -d $copy ]] || continue
+            msg2 "Deleting chroot copy '%s'..." "$(basename "${copy}")"
+
+            lock 9 "$copy.lock" "Locking chroot copy '%s'" "$copy"
+
+            subvolume_delete_recursive "${copy}"
+            rm -rf --one-file-system "${copy}"
+        done
+        lock_close 9
+
+        rm -rf --one-file-system "${work_dir}"
+        clean_iso_root "${iso_root}"
+    fi
+
+    if ${iso_only}; then
+        [[ ! -d ${work_dir} ]] && die "Create images: buildiso -p %s -x" "${profile}"
+        compress_images
+        exit 1
+    fi
+    if ${images_only}; then
+        prepare_images
+        warning "Continue compress: buildiso -p %s -zc ..." "${profile}"
+        exit 1
+    else
+        prepare_images
+        compress_images
+    fi
+    msg "Finished building [%s]" "${profile}"
+    show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
 
 load_user_info
@@ -106,6 +138,8 @@ verbose=false
 persist=false
 
 mkchroot_args=()
+cmd=${0##*/}
+stablility=${cmd##*-}
 
 usage() {
     echo "Usage: ${0##*/} [options]"

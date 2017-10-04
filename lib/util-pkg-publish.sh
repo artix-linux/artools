@@ -12,46 +12,60 @@
 import ${LIBDIR}/util-pkg.sh
 
 del_from_repo(){
-    local repo="$1" destarch="$2" pkg="$3" ver pkgfile ext=pkg.tar.xz result
-    cd $pkg
-        source PKGBUILD
-        local repo_db=${repos_root}/$repo/os/$destarch/$repo.db.tar.xz
-        for name in ${pkgname[@]};do
-            [[ $arch == any ]] && CARCH=any
-            ver=$(get_full_version $name)
-            if ! result=$(find_cached_package "$name" "$ver" "$CARCH");then
-                pkgfile=$name-$ver-$CARCH.$ext
-                repo-remove -R $repo_db $name
-                rm ${repos_root}/$repo/os/$destarch/$pkgfile{,.sig}
-            fi
-        done
-    cd ..
+    local repo="$1" destarch="$2" pkg="$3" ver result
+    local repo_path=${repos_root}/$repo/os/$destarch
+    source $pkg/PKGBUILD
+    for name in ${pkgname[@]};do
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if ! result=$(find_cached_package "$name" "$ver" "$CARCH");then
+            cd $repo_path
+            repo-remove -R $repo.db.tar.xz $name
+        fi
+    done
+}
+
+move_to_repo(){
+    local repo_src="$1" repo_dest="$2" repo_arch="$3"
+    local repo_path=${repos_root}/$repo_src/os/$repo_arch
+    local src=$PWD
+    local filelist=${workspace_dir}/$repo_src.files.txt
+    local pkglist=${workspace_dir}/$repo_src.pkgs.txt
+    [[ -n ${PKGDEST} ]] && src=${PKGDEST}
+    cd $repo_path
+    msg "Writing repo lists [%s]" "$repo_src"
+    ls *.pkg.tar.xz{,.sig} > $filelist
+    ls *.pkg.tar.xz > $pkglist
+    # uncomment for local test run
+#     rsync -v --files-from="$filelist" $repo_path "$src"
+    rm -v *
+    repo-add $repo_src.db.tar.xz
+    repo_path=${repos_root}/$repo_dest/os/$repo_arch
+    local move=$(cat $filelist) pkgs=$(cat $pkglist)
+    msg "Reading repo lists [%s]" "$repo_dest"
+    for f in ${move[@]};do
+        ln -sfv $src/$f $repo_path/
+    done
+    cd $repo_path
+    repo-add -R $repo_dest.db.tar.xz ${pkgs[@]}
 }
 
 add_to_repo(){
-    local repo="$1" destarch="$2" pkg="$3" ext=pkg.tar.xz ver pkgfile result
-    cd $pkg
-        source PKGBUILD
-        local repo_db=${repos_root}/$repo/os/$destarch/$repo.db.tar.xz dest=$pkg
-        for name in ${pkgname[@]};do
-            [[ $arch == any ]] && CARCH=any
-            ver=$(get_full_version $name)
-            if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
-                pkgfile=$name-$ver-$CARCH.$ext
-                [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
-                [[ -e $dest.sig ]] && rm $dest.sig
-                signfile $dest
-                repo-add -R $repo_db $dest
-                ln -sf $dest{,.sig} ${repos_root}/$repo/os/$destarch/
-            fi
-        done
-    cd ..
+    local repo="$1" destarch="$2" pkg="$3" ver pkgfile result
+    local repo_path=${repos_root}/$repo/os/$destarch
+    source $pkg/PKGBUILD
+    local dest=$pkg
+    for name in ${pkgname[@]};do
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            pkgfile=$name-$ver-$CARCH.pkg.tar.xz
+            [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
+            [[ -e $dest.sig ]] && rm $dest.sig
+            signfile $dest
+            ln -sf $dest{,.sig} $repo_path/
+            cd $repo_path
+            repo-add -R $repo.db.tar.xz $pkgfile
+        fi
+    done
 }
-
-# upload(){
-#     local pkg="$1" repo="$2" arch="$3" ext='db.tar.xz'
-#     sftp ${account}@${file_host}
-#     cd $repo/os/$arch
-#     put $pkg{,.sig} $repo.$ext{,.old}
-#     bye
-# }

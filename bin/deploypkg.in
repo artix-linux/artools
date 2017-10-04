@@ -18,32 +18,20 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg-publish.sh
 
-# show_transfer(){
-#     local repo="$1"
-#     msg2 "local: %s" "${repos_root}/$repo/"
-#     msg2 "remote: %s" "${repos_remote}/$repo/"
-# }
-
 display_settings(){
     show_version
     show_config
 
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
+    msg2 "to_repository: %s" "${to_repository}"
     msg2 "package: %s" "${package[@]}"
     msg2 "target_arch: %s" "${target_arch}"
 
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
     msg2 "del_pkg: %s" "${del_pkg}"
-
-#     msg "REMOTE:"
-#     msg2 "account: %s" "${account}"
-#     msg2 "file_host: %s" "${file_host}"
-#     msg2 "project: %s" "${project}"
-
-#     msg "SYNC:"
-#     show_transfer "${repository}"
+    msg2 "move_pkg: %s" "${move_pkg}"
 }
 
 load_user_info
@@ -53,13 +41,12 @@ load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.co
 load_vars /etc/makepkg.conf
 
 pretend=false
-verbose=false
-verbose=false
 add_pkg=false
 del_pkg=false
-copy_pkg=false
+move_pkg=false
 package=''
 repository=${PWD##*/}
+to_repository=${PWD##*/}
 
 rsync_args=(-rtxisP --progress --delete -e ssh)
 
@@ -67,9 +54,11 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -a                 Repository arch [default:${target_arch}]"
     echo "    -r                 Repository [default:${repository}]"
+    echo "    -t                 Repository to move to [default:${to_repository}]"
     echo "    -p                 Package name to add/delete"
     echo '    -x                 Add package to repository'
     echo '    -y                 Delete package from repository'
+    echo '    -m                 Move packages from source to destination repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -h                 This help'
     echo ''
@@ -79,13 +68,15 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:xyqh'
+opts='p:a:r:t:xymqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         a) target_arch="$OPTARG" ;;
         r) repository="$OPTARG" ;;
         p) package="$OPTARG" ;;
+        t) to_repository="$OPTARG" ;;
+        m) move_pkg=true ;;
         x) add_pkg=true ;;
         y) del_pkg=true ;;
         q) pretend=true ;;
@@ -100,7 +91,9 @@ timer_start=$(get_timer)
 
 prepare_dir "${repos_root}"
 
-${pretend} && display_settings #&& exit 1
+${pretend} && display_settings && exit 1
+
+${move_pkg} && move_to_repo "${repository}" "${to_repository}" "${target_arch}"
 
 ${del_pkg} && del_from_repo "${repository}" "${target_arch}" "${package}"
 

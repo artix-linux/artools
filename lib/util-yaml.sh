@@ -9,24 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-write_machineid_conf(){
-    local conf="${modules_dir}/machineid.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo '---' > "$conf"
-    echo "systemd: false" >> $conf
-    echo "dbus: true" >> $conf
-    echo "symlink: true" >> $conf
-}
-
-write_finished_conf(){
-    msg2 "Writing %s ..." "finished.conf"
-    local conf="${modules_dir}/finished.conf" cmd="loginctl reboot"
-    echo '---' > "$conf"
-    echo 'restartNowEnabled: true' >> "$conf"
-    echo 'restartNowChecked: false' >> "$conf"
-    echo "restartNowCommand: \"${cmd}\"" >> "$conf"
-}
-
 get_preset(){
     local p=${tmp_dir}/${kernel}.preset
     cp ${DATADIR}/linux.preset $p
@@ -37,7 +19,7 @@ get_preset(){
 }
 
 write_bootloader_conf(){
-    local conf="${modules_dir}/bootloader.conf" efi_boot_loader='grub'
+    local conf="$1/bootloader.conf" efi_boot_loader='grub'
     msg2 "Writing %s ..." "${conf##*/}"
     source "$(get_preset)"
     echo '---' > "$conf"
@@ -55,7 +37,7 @@ write_bootloader_conf(){
 }
 
 write_servicescfg_conf(){
-    local conf="${modules_dir}/servicescfg.conf"
+    local conf="$1/servicescfg.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo '---' >  "$conf"
     echo '' >> "$conf"
@@ -71,30 +53,15 @@ write_servicescfg_conf(){
     done
 }
 
-write_displaymanager_conf(){
-    local conf="${modules_dir}/displaymanager.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "displaymanagers:" >> "$conf"
-    echo "  - lightdm" >> "$conf"
-    echo "  - gdm" >> "$conf"
-    echo "  - mdm" >> "$conf"
-    echo "  - sddm" >> "$conf"
-    echo "  - lxdm" >> "$conf"
-    echo "  - slim" >> "$conf"
-    echo '' >> "$conf"
-    echo "basicSetup: false" >> "$conf"
-}
-
 write_initcpio_conf(){
-    local conf="${modules_dir}/initcpio.conf"
+    local conf="$1/initcpio.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "kernel: ${kernel}" >> "$conf"
 }
 
 write_users_conf(){
-    local conf="${modules_dir}/users.conf"
+    local conf="$1/users.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "defaultGroups:" >> "$conf"
@@ -104,119 +71,32 @@ write_users_conf(){
     done
     unset IFS
     echo "autologinGroup:  autologin" >> "$conf"
-    echo "doAutologin:     false" >> "$conf" # can be either 'true' or 'false'
+    echo "doAutologin:     false" >> "$conf"
     echo "sudoersGroup:    wheel" >> "$conf"
-    echo "setRootPassword: true" >> "$conf" # must be true, else some options get hidden
+    echo "setRootPassword: true" >> "$conf"
     echo "doReusePassword: false" >> "$conf" # only used in old 'users' module
     echo "availableShells: /bin/bash, /bin/zsh" >> "$conf" # only used in new 'users' module
-    echo "avatarFilePath:  ~/.face" >> "$conf" # mostly used file-name for avatar
-}
-
-write_welcome_conf(){
-    local conf="${modules_dir}/welcome.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf" >> "$conf"
-    echo "showSupportUrl:         true" >> "$conf"
-    echo "showKnownIssuesUrl:     true" >> "$conf"
-    echo "showReleaseNotesUrl:    true" >> "$conf"
-    echo '' >> "$conf"
-    echo "requirements:" >> "$conf"
-    echo "    requiredStorage:    7.9" >> "$conf"
-    echo "    requiredRam:        1.0" >> "$conf"
-    echo "    internetCheckUrl:   https://github.com/cromnix" >> "$conf"
-    echo "    check:" >> "$conf"
-    echo "      - storage" >> "$conf"
-    echo "      - ram" >> "$conf"
-    echo "      - power" >> "$conf"
-    echo "      - internet" >> "$conf"
-    echo "      - root" >> "$conf"
-    echo "    required:" >> "$conf"
-    echo "      - storage" >> "$conf"
-    echo "      - ram" >> "$conf"
-    echo "      - root" >> "$conf"
-    echo "      - internet" >> "$conf"
-}
-
-write_umount_conf(){
-    local conf="${modules_dir}/umount.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo 'srcLog: "/root/.cache/Calamares/Calamares/Calamares.log"' >> "$conf"
-    echo 'destLog: "/var/log/Calamares.log"' >> "$conf"
-}
-
-get_yaml(){
-    echo "netgroups-${initsys}.yaml"
+    echo "avatarFilePath:  ~/.face" >> "$conf"
 }
 
 write_netinstall_conf(){
-    local conf="${modules_dir}/netinstall.conf"
+    local conf="$1/netinstall.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
-    echo "groupsUrl: ${netgroups}/$(get_yaml)" >> "$conf"
-}
-
-write_locale_conf(){
-    local conf="${modules_dir}/locale.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "localeGenPath: /etc/locale.gen" >> "$conf"
-    echo "geoipUrl: freegeoip.net" >> "$conf"
-}
-
-write_settings_conf(){
-    local conf="$1/etc/calamares/settings.conf"
-    msg2 "Writing %s ..." "${conf##*/}"
-    echo "---" > "$conf"
-    echo "modules-search: [ local ]" >> "$conf"
-    echo '' >> "$conf"
-    echo "sequence:" >> "$conf"
-    echo "    - show:" >> "$conf"
-    echo "        - welcome" >> "$conf" && write_welcome_conf
-    echo "        - locale" >> "$conf" && write_locale_conf
-    echo "        - keyboard" >> "$conf"
-    echo "        - partition" >> "$conf"
-    echo "        - users" >> "$conf" && write_users_conf
-    echo "        - netinstall" >> "$conf" && write_netinstall_conf
-    echo "        - summary" >> "$conf"
-    echo "    - exec:" >> "$conf"
-    echo "        - partition" >> "$conf"
-    echo "        - mount" >> "$conf"
-    echo "        - chrootcfg" >> "$conf"
-    echo "        - networkcfg" >> "$conf"
-    echo "        - machineid" >> "$conf" && write_machineid_conf
-    echo "        - fstab" >> "$conf"
-    echo "        - locale" >> "$conf"
-    echo "        - keyboard" >> "$conf"
-    echo "        - localecfg" >> "$conf"
-    echo "        - luksopenswaphookcfg" >> "$conf"
-    echo "        - luksbootkeyfile" >> "$conf"
-    echo "        - initcpiocfg" >> "$conf"
-    echo "        - initcpio" >> "$conf" && write_initcpio_conf
-    echo "        - users" >> "$conf"
-    echo "        - displaymanager" >> "$conf" && write_displaymanager_conf
-    echo "        - hwclock" >> "$conf"
-    case ${initsys} in
-        'openrc') echo "        - servicescfg" >> "$conf" && write_servicescfg_conf ;;
-    esac
-    echo "        - grubcfg" >> "$conf"
-    echo "        - bootloader" >> "$conf" && write_bootloader_conf
-    echo "        - postcfg" >> "$conf"
-    echo "        - umount" >> "$conf" && write_umount_conf
-    echo "    - show:" >> "$conf"
-    echo "        - finished" >> "$conf" && write_finished_conf
-    echo '' >> "$conf"
-    echo "branding: ${os_id}" >> "$conf"
-    echo '' >> "$conf"
-    echo "prompt-install: false" >> "$conf"
-    echo '' >> "$conf"
-    echo "dont-chroot: false" >> "$conf"
+    echo "groupsUrl: ${netgroups}/netgroups-${initsys}.yaml" >> "$conf"
 }
 
 configure_calamares(){
-    info "Configuring [Calamares]"
-    modules_dir=$1/etc/calamares/modules
-    prepare_dir "${modules_dir}"
-    write_settings_conf "$1"
-    info "Done configuring [Calamares]"
+    local modules_dir="$1"
+    if [[ -d $modules_dir ]];then
+        info "Configuring [Calamares]"
+        write_users_conf "$modules_dir"
+        write_netinstall_conf "$modules_dir"
+        write_initcpio_conf "$modules_dir"
+        case ${initsys} in
+            'openrc') write_servicescfg_conf "$modules_dir" ;;
+        esac
+        write_bootloader_conf "$modules_dir"
+        info "Done configuring [Calamares]"
+    fi
 }

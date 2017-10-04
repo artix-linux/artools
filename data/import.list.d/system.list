@@ -2,11 +2,13 @@ tzdata
 iana-etc
 linux-api-headers
 binutils
+glibc
 gcc
 attr
 acl
 ncurses
 readline
+bash
 sed
 diffutils
 expat
@@ -146,3 +148,4 @@ ipw2100-fw
 ipw2200-fw
 isdn4k-utils
 curl
+sudo

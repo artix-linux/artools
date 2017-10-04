@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
+import ${LIBDIR}/util-pkg-tree.sh
+
+load_user_info
+
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+
+declare -A UPDATES
+msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+for repo in ${repo_tree_artix[@]}; do
+    for pkg in ${tree_dir_artix}/$repo/*; do
+        if [[ -f $pkg/PKGBUILD ]];then
+            source $pkg/PKGBUILD 2>/dev/null
+            package=${pkg##*/}
+            artixver=$(get_full_version $package)
+            set_import_path "$repo" "$package"
+            if [[ -f $src/PKGBUILD ]];then
+                source $src/PKGBUILD 2>/dev/null
+                archver=$(get_full_version $package)
+            fi
+            if [ $(vercmp $artixver $archver) -lt 0 ];then
+                UPDATES[$package]="$src/PKGBUILD $pkg/PKGBUILD"
+                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+            else
+                msg_row "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+            fi
+        fi
+        unset pkgver epoch pkgrel artixver archver package
+    done
+done
+
+for upd in "${!UPDATES[@]}"; do
+    msg "Diff: %s" "$upd"
+    diff -u ${UPDATES[$upd]}
+done

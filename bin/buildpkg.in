@@ -21,7 +21,6 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-pkg.sh
-import ${LIBDIR}/util-pkg-chroot.sh
 
 show_pkg(){
     check_build "$1"
@@ -73,8 +72,8 @@ base_devel=('base-devel')
 prepare_build(){
     local pac_arch='default' pac_conf=
 
-    if [[ "${target_arch}" == 'multilib' ]];then
-        pac_arch='multilib'
+    if [[ "${target_arch}" == 'lib32' ]];then
+        pac_arch='lib32'
         base_devel+=('multilib-devel')
     fi
 
@@ -84,11 +83,11 @@ prepare_build(){
         pac_conf=$pac_arch-${stablility}
     fi
 
+    [[ "$pac_arch" == 'lib32' ]] && target_arch='x86_64'
+
     local pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
     [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
     work_dir="${chroots_pkg}/${repository}-${target_arch}"
-
-    [[ "$pac_arch" == 'multilib' ]] && target_arch='x86_64'
 
     local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
     [[ -f $AT_USERCONFDIR/makepkg-${target_arch}.conf ]] && makepkg_conf="$AT_USERCONFDIR/makepkg-${target_arch}.conf"
@@ -98,6 +97,18 @@ prepare_build(){
     mkchrootpkg_args+=(-r "${work_dir}" "${makepkg_args[@]}")
 
     timer_start=$(get_timer)
+}
+
+build(){
+    local timer_start=$(get_timer)
+    if [[ -f ${package}/PKGBUILD ]];then
+        cd ${package}
+    else
+        die "Directory must contain a PKGBUILD!"
+    fi
+    msg "Start building [%s] (%s)" "${package}" "${repository}"
+    exec mkchrootpkg "${mkchrootpkg_args[@]}"
+    show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
 
 usage() {
