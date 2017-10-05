@@ -11,9 +11,9 @@
 
 import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-iso-grub.sh
-import ${LIBDIR}/util-yaml.sh
+import ${LIBDIR}/util-iso-yaml.sh
 import ${LIBDIR}/util-iso-mount.sh
-import ${LIBDIR}/util-profile.sh
+import ${LIBDIR}/util-iso-profile.sh
 
 error_function() {
     if [[ -p $logpipe ]]; then
