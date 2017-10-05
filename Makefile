@@ -52,9 +52,7 @@ BIN_ISO = \
 	bin/deployiso
 
 LIBS_ISO = \
-	$(wildcard lib/util-iso*.sh) \
-	lib/util-yaml.sh \
-	lib/util-profile.sh
+	$(wildcard lib/util-iso*.sh)
 
 SHARED_ISO = \
 	data/mkinitcpio.conf \
