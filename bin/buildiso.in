@@ -24,6 +24,8 @@ prepare_build(){
 
     load_profile "${profile}"
 
+    netgroups=${netgroups_url}/netgroups-${initsys}.yaml
+
     local pac_arch='default' pacman_conf pac_conf
     [[ "${target_arch}" == 'x86_64' ]] && pac_arch='lib32'
 
@@ -54,7 +56,7 @@ show_profile(){
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
 
-        msg2 "netgroups: %s" "$(get_yaml)"
+        msg2 "netgroups: %s" "${netgroups}"
 
         msg2 "hostname: %s" "${hostname}"
         msg2 "username: %s" "${username}"

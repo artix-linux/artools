@@ -59,7 +59,7 @@ load_profile(){
 
     enable_live=('artix-live' 'pacman-init')
 
-    [[ -z ${netgroups} ]] && netgroups="https://raw.githubusercontent.com/artix-linux/netgroups/master"
+    [[ -z ${netgroups_url} ]] && netgroups_url="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
     return 0
 }

@@ -198,14 +198,11 @@ assemble_iso(){
         -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
         -eltorito-alt-boot \
         -append_partition 2 0xef ${iso_root}/efi.img \
-        -e --interval:appended_partition_2:all:: \
+        -e --interval:appended_partition_2:all:: -iso_mbr_part_type 0x00 \
         -no-emul-boot \
         -iso-level 3 \
         -o ${iso_dir}/${iso_file} \
         ${iso_root}/
-
-#         arg to add with xorriso-1.4.7
-#         -iso_mbr_part_type 0x00
 }
 
 # Build ISO
@@ -346,19 +343,11 @@ make_bootfs() {
 
 configure_grub(){
     local conf="$1"
-    local default_args="artixbasedir=${iso_name} artixlabel=${iso_label}" boot_args=('quiet')
 
-    sed -e "s|@DIST_NAME@|${iso_name}|g" \
-        -e "s|@ARCH@|${target_arch}|g" \
-        -e "s|@DEFAULT_ARGS@|${default_args}|g" \
-        -e "s|@BOOT_ARGS@|${boot_args[*]}|g" \
-        -e "s|@PROFILE@|${profile}|g" \
+    sed -e "s|@arch@|${target_arch}|g" \
+        -e "s|@iso_label@|${iso_label}|" \
+        -e "s|@iso_name@|${iso_name}|g" \
         -i $conf
-}
-
-configure_grub_theme(){
-    local conf="$1"
-    sed -e "s|@DIST@|${iso_name}|" -i "$conf"
 }
 
 make_grub(){
@@ -368,7 +357,6 @@ make_grub(){
         prepare_grub "${work_dir}/rootfs" "${work_dir}/livefs" "${iso_root}"
 
         configure_grub "${iso_root}/boot/grub/kernels.cfg"
-        configure_grub_theme "${iso_root}/boot/grub/variable.cfg"
 
         : > ${work_dir}/grub.lock
         msg "Done [/iso/boot/grub]"

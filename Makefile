@@ -49,12 +49,11 @@ PATCHES = \
 
 BIN_ISO = \
 	bin/buildiso \
-	bin/deployiso \
-	bin/buildyaml
+	bin/deployiso
 
 LIBS_ISO = \
 	$(wildcard lib/util-iso*.sh) \
-	$(wildcard lib/util-yaml*.sh) \
+	lib/util-yaml.sh \
 	lib/util-profile.sh
 
 SHARED_ISO = \
