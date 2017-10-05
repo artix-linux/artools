@@ -46,6 +46,15 @@ prepare_boot_extras(){
     cp $src/usr/share/licenses/common/GPL2/license.txt $dest/memtest.COPYING
 }
 
+configure_grub(){
+    local conf="$1"
+
+    sed -e "s|@arch@|${target_arch}|g" \
+        -e "s|@iso_label@|${iso_label}|" \
+        -e "s|@iso_name@|${iso_name}|g" \
+        -i $conf
+}
+
 prepare_grub(){
     local platform=i386-pc img='core.img' grub=$3/boot/grub efi=$3/efi/boot \
         lib=$1/usr/lib/grub prefix=/boot/grub theme=$2/usr/share/grub data=$1/usr/share/grub

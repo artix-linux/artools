@@ -502,15 +502,6 @@ make_bootfs() {
     fi
 }
 
-configure_grub(){
-    local conf="$1"
-
-    sed -e "s|@arch@|${target_arch}|g" \
-        -e "s|@iso_label@|${iso_label}|" \
-        -e "s|@iso_name@|${iso_name}|g" \
-        -i $conf
-}
-
 make_grub(){
     if [[ ! -e ${work_dir}/grub.lock ]]; then
         msg "Prepare [/iso/boot/grub]"
