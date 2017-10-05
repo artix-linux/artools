@@ -83,7 +83,7 @@ write_netinstall_conf(){
     local conf="$1/netinstall.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
-    echo "groupsUrl: ${netgroups}/netgroups-${initsys}.yaml" >> "$conf"
+    echo "groupsUrl: ${netgroups}" >> "$conf"
 }
 
 configure_calamares(){

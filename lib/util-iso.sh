@@ -10,11 +10,64 @@
 # GNU General Public License for more details.
 
 import ${LIBDIR}/util-chroot.sh
-import ${LIBDIR}/util-iso-chroot.sh
 import ${LIBDIR}/util-iso-grub.sh
-import ${LIBDIR}/util-yaml.sh
-import ${LIBDIR}/util-iso-mount.sh
-import ${LIBDIR}/util-profile.sh
+import ${LIBDIR}/util-iso-yaml.sh
+import ${LIBDIR}/util-iso-profile.sh
+
+track_img() {
+    info "mount: [%s]" "$2"
+    mount "$@" && IMG_ACTIVE_MOUNTS=("$2" "${IMG_ACTIVE_MOUNTS[@]}")
+}
+
+mount_img() {
+    IMG_ACTIVE_MOUNTS=()
+    mkdir -p "$2"
+    track_img "$1" "$2"
+}
+
+umount_img() {
+    if [[ -n ${IMG_ACTIVE_MOUNTS[@]} ]];then
+        info "umount: [%s]" "${IMG_ACTIVE_MOUNTS[@]}"
+        umount "${IMG_ACTIVE_MOUNTS[@]}"
+        unset IMG_ACTIVE_MOUNTS
+        rm -r "$1"
+    fi
+}
+
+track_fs() {
+    info "overlayfs mount: [%s]" "$5"
+    mount "$@" && FS_ACTIVE_MOUNTS=("$5" "${FS_ACTIVE_MOUNTS[@]}")
+}
+
+mount_overlay(){
+    FS_ACTIVE_MOUNTS=()
+    local lower= upper="$1" work="$2" pkglist="$3"
+    local fs=${upper##*/}
+    local rootfs="$work/rootfs" desktopfs="$work/desktopfs" livefs="$work/livefs"
+    mkdir -p "${mnt_dir}/work"
+    mkdir -p "$upper"
+    case $fs in
+        desktopfs) lower="$rootfs" ;;
+        livefs)
+            lower="$rootfs"
+            [[ -f $pkglist ]] && lower="$desktopfs":"$rootfs"
+        ;;
+        bootfs)
+            lower="$livefs":"$rootfs"
+            [[ -f $pkglist ]] && lower="$livefs":"$desktopfs":"$rootfs"
+        ;;
+    esac
+    track_fs -t overlay overlay -olowerdir="$lower",upperdir="$upper",workdir="${mnt_dir}/work" "$upper"
+}
+
+umount_overlay(){
+    if [[ -n ${FS_ACTIVE_MOUNTS[@]} ]];then
+        info "overlayfs umount: [%s]" "${FS_ACTIVE_MOUNTS[@]}"
+        umount "${FS_ACTIVE_MOUNTS[@]}"
+        unset FS_ACTIVE_MOUNTS
+        rm -rf "${mnt_dir}/work"
+    fi
+}
 
 error_function() {
     if [[ -p $logpipe ]]; then
@@ -76,6 +129,114 @@ prepare_traps(){
     done
     trap 'trap_exit INT "$(gettext "Aborted by user! Exiting...")"' INT
 #     trap 'trap_exit USR1 "$(gettext "An unknown error has occurred. Exiting...")"' ERR
+}
+
+add_svc_rc(){
+    local mnt="$1" name="$2" rlvl="$3"
+    if [[ -f $mnt/etc/init.d/$name ]];then
+        msg2 "Setting %s ..." "$name"
+        chroot $mnt rc-update add $name $rlvl &>/dev/null
+    fi
+}
+
+set_xdm(){
+    if [[ -f $1/etc/conf.d/xdm ]];then
+        local conf='DISPLAYMANAGER="'${displaymanager}'"'
+        sed -i -e "s|^.*DISPLAYMANAGER=.*|${conf}|" $1/etc/conf.d/xdm
+    fi
+}
+
+configure_hosts(){
+    sed -e "s|localhost.localdomain|localhost.localdomain ${hostname}|" -i $1/etc/hosts
+}
+
+configure_logind(){
+    local conf=$1/etc/$2/logind.conf
+    if [[ -e $conf ]];then
+        msg2 "Configuring logind ..."
+        sed -i 's/#\(HandleSuspendKey=\)suspend/\1ignore/' "$conf"
+        sed -i 's/#\(HandleLidSwitch=\)suspend/\1ignore/' "$conf"
+        sed -i 's/#\(HandleHibernateKey=\)hibernate/\1ignore/' "$conf"
+    fi
+}
+
+configure_services(){
+    local mnt="$1"
+    info "Configuring [%s]" "${initsys}"
+    case ${initsys} in
+        'openrc')
+            for svc in ${openrc_boot[@]}; do
+                add_svc_rc "$mnt" "$svc" "boot"
+            done
+            for svc in ${openrc_default[@]}; do
+                [[ $svc == "xdm" ]] && set_xdm "$mnt"
+                add_svc_rc "$mnt" "$svc" "default"
+            done
+            for svc in ${enable_live[@]}; do
+                add_svc_rc "$mnt" "$svc" "default"
+            done
+        ;;
+    esac
+    info "Done configuring [%s]" "${initsys}"
+}
+
+configure_system(){
+    local mnt="$1"
+    case ${initsys} in
+        'openrc')
+            configure_logind "$mnt" "elogind"
+        ;;
+    esac
+    echo ${hostname} > $mnt/etc/hostname
+}
+
+clean_iso_root(){
+    local dest="$1"
+    msg "Deleting isoroot [%s] ..." "${dest##*/}"
+    rm -rf --one-file-system "$dest"
+}
+
+clean_up_image(){
+    local path mnt="$1"
+    msg2 "Cleaning [%s]" "${mnt##*/}"
+
+    default_locale "reset" "$mnt"
+    path=$mnt/boot
+    if [[ -d "$path" ]]; then
+        find "$path" -name 'initramfs*.img' -delete &> /dev/null
+    fi
+    path=$mnt/var/lib/pacman/sync
+    if [[ -d $path ]];then
+        find "$path" -type f -delete &> /dev/null
+    fi
+    path=$mnt/var/cache/pacman/pkg
+    if [[ -d $path ]]; then
+        find "$path" -type f -delete &> /dev/null
+    fi
+    path=$mnt/var/log
+    if [[ -d $path ]]; then
+        find "$path" -type f -delete &> /dev/null
+    fi
+    path=$mnt/var/tmp
+    if [[ -d $path ]];then
+        find "$path" -mindepth 1 -delete &> /dev/null
+    fi
+    path=$mnt/tmp
+    if [[ -d $path ]];then
+        find "$path" -mindepth 1 -delete &> /dev/null
+    fi
+
+    if [[ ${mnt##*/} == 'livefs' ]];then
+        rm -rf "$mnt/etc/pacman.d/gnupg"
+    fi
+
+    find "$mnt" -name *.pacnew -name *.pacsave -name *.pacorig -delete
+    if [[ -f "$mnt/boot/grub/grub.cfg" ]]; then
+        rm $mnt/boot/grub/grub.cfg
+    fi
+    if [[ -f "$mnt/etc/machine-id" ]]; then
+        rm $mnt/etc/machine-id
+    fi
 }
 
 configure_live_image(){
@@ -198,14 +359,11 @@ assemble_iso(){
         -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
         -eltorito-alt-boot \
         -append_partition 2 0xef ${iso_root}/efi.img \
-        -e --interval:appended_partition_2:all:: \
+        -e --interval:appended_partition_2:all:: -iso_mbr_part_type 0x00 \
         -no-emul-boot \
         -iso-level 3 \
         -o ${iso_dir}/${iso_file} \
         ${iso_root}/
-
-#         arg to add with xorriso-1.4.7
-#         -iso_mbr_part_type 0x00
 }
 
 # Build ISO
@@ -344,23 +502,6 @@ make_bootfs() {
     fi
 }
 
-configure_grub(){
-    local conf="$1"
-    local default_args="artixbasedir=${iso_name} artixlabel=${iso_label}" boot_args=('quiet')
-
-    sed -e "s|@DIST_NAME@|${iso_name}|g" \
-        -e "s|@ARCH@|${target_arch}|g" \
-        -e "s|@DEFAULT_ARGS@|${default_args}|g" \
-        -e "s|@BOOT_ARGS@|${boot_args[*]}|g" \
-        -e "s|@PROFILE@|${profile}|g" \
-        -i $conf
-}
-
-configure_grub_theme(){
-    local conf="$1"
-    sed -e "s|@DIST@|${iso_name}|" -i "$conf"
-}
-
 make_grub(){
     if [[ ! -e ${work_dir}/grub.lock ]]; then
         msg "Prepare [/iso/boot/grub]"
@@ -368,7 +509,6 @@ make_grub(){
         prepare_grub "${work_dir}/rootfs" "${work_dir}/livefs" "${iso_root}"
 
         configure_grub "${iso_root}/boot/grub/kernels.cfg"
-        configure_grub_theme "${iso_root}/boot/grub/variable.cfg"
 
         : > ${work_dir}/grub.lock
         msg "Done [/iso/boot/grub]"
