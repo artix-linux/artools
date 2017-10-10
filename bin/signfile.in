@@ -16,6 +16,8 @@ LIBDIR='@libdir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
 
+load_user_info
+
 load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
 
@@ -30,9 +32,5 @@ msg2 "Signing [%s] with key %s" "${file_to_sign##*/}" "${GPGKEY}..."
 if [[ -n "${BUILDBOT_GPGP}" ]]; then
     gpg --batch --passphrase "${BUILDBOT_GPGP}" --detach-sign "$file_to_sign"
 else
-    if [[ -f /usr/bin/hellhound ]]; then
-        gpg --batch --passphrase $(hellhound retrieve) --detach-sign "$file_to_sign"
-    else
-        gpg --detach-sign --use-agent -u "${GPGKEY}" "$file_to_sign"
-    fi
+    gpg --detach-sign --use-agent -u "${GPGKEY}" "$file_to_sign"
 fi
