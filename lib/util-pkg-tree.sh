@@ -131,12 +131,15 @@ set_import_path(){
                 arch_dir=packages
             fi
             import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+
             src=$import_path/$arch_repo-x86_64
+            if [[ -d $import_path/testing-x86_64 ]];then
+                src=$import_path/testing-x86_64
+            fi
             if [[ -d $import_path/$arch_repo-any ]];then
                 src=$import_path/$arch_repo-any
-            elif [[ -d $import_path/testing-x86_64 ]];then
-                src=$import_path/testing-x86_64
-            elif [[ -d $import_path/testing-any ]];then
+            fi
+            if [[ -d $import_path/testing-any ]];then
                 src=$import_path/testing-any
             fi
         ;;
@@ -144,12 +147,15 @@ set_import_path(){
             arch_repo=community
             arch_dir=$arch_repo
             import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
+
             src=$import_path-x86_64
+            if [[ -d $import_path-testing-x86_64 ]];then
+                src=$import_path-testing-x86_64
+            fi
             if [[ -d $import_path-any ]];then
                 src=$import_path-any
-            elif [[ -d $import_path-testing-x86_64 ]];then
-                src=$import_path-testing-x86_64
-            elif [[ -d $import_path-testing-any ]];then
+            fi
+            if [[ -d $import_path-testing-any ]];then
                 src=$import_path-testing-any
             fi
         ;;
@@ -211,22 +217,19 @@ import_from_arch(){
         git checkout $branch &> /dev/null
         $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
         git pull origin "$branch"
-        msg "Import into [%s]" "$repo"
         for pkg in ${import_list[@]};do
-            source $pkg/PKGBUILD 2>/dev/null
-            local ver=$(get_full_version $pkg)
-            msg2 "package: %s-%s" "$pkg" "$ver"
             set_import_path "$repo" "$pkg"
+            source $src/PKGBUILD 2>/dev/null
+            local ver=$(get_full_version $pkg)
+            msg "Package: %s-%s" "$pkg" "$ver"
+#             msg2 "src: %s" "$src"
             rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
-            if $(is_dirty) || $(is_untracked); then
-                patch_pkg "$pkg"
-                ${push} && git add "$pkg"
-                msg2 "Archlinux import: [%s]" "$pkg-$ver"
-                if ${push};then
-                    git commit -m "Archlinux import: $pkg-$ver"
-                    sleep 10
-                    git push origin "$branch"
-                fi
+            patch_pkg "$pkg"
+            if ${push};then
+                git add "$pkg"
+                git commit -m "$pkg-$ver"
+                sleep 10
+                git push origin "$branch"
             fi
             unset pkgver epoch pkgrel ver
         done
