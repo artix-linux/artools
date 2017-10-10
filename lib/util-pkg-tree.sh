@@ -22,36 +22,6 @@ is_dirty() {
     return 0
 }
 
-show_version_table(){
-    local repo="$1"
-    declare -A UPDATES
-    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-#     for repo in ${repo_tree_artix[@]}; do
-        for pkg in ${tree_dir_artix}/$repo/*; do
-            if [[ -f $pkg/PKGBUILD ]];then
-                source $pkg/PKGBUILD 2>/dev/null
-                package=${pkg##*/}
-                artixver=$(get_full_version $package)
-                set_import_path "$repo" "$package"
-                if [[ -f $src/PKGBUILD ]];then
-                    source $src/PKGBUILD 2>/dev/null
-                    archver=$(get_full_version $package)
-                fi
-                if [ $(vercmp $artixver $archver) -lt 0 ];then
-                    UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
-                    msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
-                fi
-            fi
-            unset pkgver epoch pkgrel artixver archver package
-        done
-#     done
-    rm ${patches_dir}/*.patch
-    for upd in "${!UPDATES[@]}"; do
-        msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
-    done
-}
-
 sync_tree(){
     local branch="master" repo="$1"
     git checkout $branch
@@ -83,7 +53,7 @@ clone_tree(){
 sync_tree_arch(){
     local repo="$1"
     cd ${tree_dir_arch}
-#         for repo in ${repo_tree_arch[@]};do
+        for repo in ${repo_tree_arch[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     sync_tree "${repo}"
@@ -91,14 +61,14 @@ sync_tree_arch(){
             else
                 clone_tree "${repo}" "${host_tree_arch}/${repo}"
             fi
-#         done
+        done
     cd ..
 }
 
 sync_tree_artix(){
     local repo="$1"
     cd ${tree_dir_artix}
-#         for repo in ${repo_tree_artix[@]};do
+        for repo in ${repo_tree_artix[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     sync_tree "${repo}"
@@ -106,7 +76,7 @@ sync_tree_artix(){
             else
                 clone_tree "${repo}" "${host_tree_artix}/${repo}"
             fi
-#         done
+        done
     cd ..
 }
 
@@ -205,35 +175,61 @@ set_import_path(){
     esac
 }
 
+show_version_table(){
+    local repo="$1"
+    declare -A UPDATES
+    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+    for pkg in ${tree_dir_artix}/$repo/*; do
+        if [[ -f $pkg/PKGBUILD ]];then
+            source $pkg/PKGBUILD 2>/dev/null
+            package=${pkg##*/}
+            artixver=$(get_full_version $package)
+            set_import_path "$repo" "$package"
+            if [[ -f $src/PKGBUILD ]];then
+                source $src/PKGBUILD 2>/dev/null
+                archver=$(get_full_version $package)
+            fi
+            if [ $(vercmp $artixver $archver) -lt 0 ];then
+                UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
+                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+            fi
+        fi
+        unset pkgver epoch pkgrel artixver archver package
+    done
+    rm ${patches_dir}/*.patch
+    for upd in "${!UPDATES[@]}"; do
+        msg "Writing %s update patch ..." "$upd"
+        diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
+    done
+}
+
 import_from_arch(){
     local timer=$(get_timer) branch='testing' repo="$1" push="$2"
-#     for repo in ${repo_tree_artix[@]};do
-        read_import_list "$repo"
-        if [[ -n ${import_list[@]} ]];then
-            cd ${tree_dir_artix}/$repo
-            git checkout $branch &> /dev/null
-            $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-            git pull origin "$branch"
-            msg "Import into [%s]" "$repo"
-            for pkg in ${import_list[@]};do
-                source $pkg/PKGBUILD 2>/dev/null
-                local ver=$(get_full_version $pkg)
-                msg2 "package: %s-%s" "$pkg" "$ver"
-                set_import_path "$repo" "$pkg"
-                rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
-                if $(is_dirty) || $(is_untracked); then
-                    patch_pkg "$pkg"
-                    ${push} && git add "$pkg"
-                    msg2 "Archlinux import: [%s]" "$pkg-$ver"
-                    if ${push};then
-                        git commit -m "Archlinux import: $pkg-$ver"
-                        sleep 10
-                        git push origin "$branch"
-                    fi
+    read_import_list "$repo"
+    if [[ -n ${import_list[@]} ]];then
+        cd ${tree_dir_artix}/$repo
+        git checkout $branch &> /dev/null
+        $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
+        git pull origin "$branch"
+        msg "Import into [%s]" "$repo"
+        for pkg in ${import_list[@]};do
+            source $pkg/PKGBUILD 2>/dev/null
+            local ver=$(get_full_version $pkg)
+            msg2 "package: %s-%s" "$pkg" "$ver"
+            set_import_path "$repo" "$pkg"
+            rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
+            if $(is_dirty) || $(is_untracked); then
+                patch_pkg "$pkg"
+                ${push} && git add "$pkg"
+                msg2 "Archlinux import: [%s]" "$pkg-$ver"
+                if ${push};then
+                    git commit -m "Archlinux import: $pkg-$ver"
+                    sleep 10
+                    git push origin "$branch"
                 fi
-                unset pkgver epoch pkgrel ver
-            done
-        fi
-#     done
+            fi
+            unset pkgver epoch pkgrel ver
+        done
+    fi
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }

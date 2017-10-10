@@ -60,12 +60,12 @@ rsync_args=(-aWxv --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
+    echo "    -r <repo>     Repository [default:${repository}]"
     echo "    -a            Sync arch tree"
     echo "    -s            Sync artix tree"
     echo "    -c            Compare artix and arch versions"
     echo '    -i            Import arch packages'
     echo '    -p            Push import packages'
-    echo "    -r            Repository [default:${repository}]"
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -99,9 +99,9 @@ prepare_dir "${patches_dir}"
 
 ${pretend} && display_settings && exit 1
 
-${artix} && sync_tree_artix "${repository}"
+${artix} && sync_tree_artix
 
-${arch} && sync_tree_arch "${repository}"
+${arch} && sync_tree_arch
 
 ${compare} && show_version_table "${repository}"
 
