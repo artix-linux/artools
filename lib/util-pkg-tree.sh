@@ -23,9 +23,10 @@ is_dirty() {
 }
 
 show_version_table(){
+    local repo="$1"
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for repo in ${repo_tree_artix[@]}; do
+#     for repo in ${repo_tree_artix[@]}; do
         for pkg in ${tree_dir_artix}/$repo/*; do
             if [[ -f $pkg/PKGBUILD ]];then
                 source $pkg/PKGBUILD 2>/dev/null
@@ -43,7 +44,7 @@ show_version_table(){
             fi
             unset pkgver epoch pkgrel artixver archver package
         done
-    done
+#     done
     rm ${patches_dir}/*.patch
     for upd in "${!UPDATES[@]}"; do
         msg "Writing %s update patch ..." "$upd"
@@ -80,8 +81,9 @@ clone_tree(){
 }
 
 sync_tree_arch(){
+    local repo="$1"
     cd ${tree_dir_arch}
-        for repo in ${repo_tree_arch[@]};do
+#         for repo in ${repo_tree_arch[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     sync_tree "${repo}"
@@ -89,13 +91,14 @@ sync_tree_arch(){
             else
                 clone_tree "${repo}" "${host_tree_arch}/${repo}"
             fi
-        done
+#         done
     cd ..
 }
 
 sync_tree_artix(){
+    local repo="$1"
     cd ${tree_dir_artix}
-        for repo in ${repo_tree_artix[@]};do
+#         for repo in ${repo_tree_artix[@]};do
             if [[ -d ${repo} ]];then
                 cd ${repo}
                     sync_tree "${repo}"
@@ -103,7 +106,7 @@ sync_tree_artix(){
             else
                 clone_tree "${repo}" "${host_tree_artix}/${repo}"
             fi
-        done
+#         done
     cd ..
 }
 
@@ -203,8 +206,8 @@ set_import_path(){
 }
 
 import_from_arch(){
-    local timer=$(get_timer) branch='testing' push="$1"
-    for repo in ${repo_tree_artix[@]};do
+    local timer=$(get_timer) branch='testing' repo="$1" push="$2"
+#     for repo in ${repo_tree_artix[@]};do
         read_import_list "$repo"
         if [[ -n ${import_list[@]} ]];then
             cd ${tree_dir_artix}/$repo
@@ -231,6 +234,6 @@ import_from_arch(){
                 unset pkgver epoch pkgrel ver
             done
         fi
-    done
+#     done
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }

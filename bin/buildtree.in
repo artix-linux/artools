@@ -28,6 +28,9 @@ display_settings(){
     msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
     msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
 
+    msg "OPTIONS:"
+    msg2 "repository: %s" "${repository}"
+
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
@@ -51,6 +54,7 @@ artix=false
 compare=false
 import_arch=false
 gitpush=false
+repository=${PWD##*/}
 
 rsync_args=(-aWxv --progress --delete-before --no-R --no-implied-dirs)
 
@@ -61,6 +65,7 @@ usage() {
     echo "    -c            Compare artix and arch versions"
     echo '    -i            Import arch packages'
     echo '    -p            Push import packages'
+    echo "    -r            Repository [default:${repository}]"
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -70,10 +75,11 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='aipscqh'
+opts='r:aipscqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
+        r) repository="$OPTARG" ;;
         a) arch=true ;;
         s) artix=true ;;
         c) compare=true ;;
@@ -93,10 +99,10 @@ prepare_dir "${patches_dir}"
 
 ${pretend} && display_settings && exit 1
 
-${artix} && sync_tree_artix
+${artix} && sync_tree_artix "${repository}"
 
-${arch} && sync_tree_arch
+${arch} && sync_tree_arch "${repository}"
 
-${compare} && show_version_table
+${compare} && show_version_table "${repository}"
 
-${import_arch} && import_from_arch ${gitpush}
+${import_arch} && import_from_arch "${repository}" "${gitpush}"
