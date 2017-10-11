@@ -68,7 +68,6 @@ libqmi
 glib-networking
 gsettings-desktop-schemas
 slang
-dhcp
 dbus-python
 lirc
 qt5-3d
