@@ -152,7 +152,7 @@ set_import_path(){
                 arch_dir=community
                 import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
                 src=$import_path/$arch_repo-x86_64
-                if [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
+                [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
             fi
         ;;
     esac
