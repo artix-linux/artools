@@ -56,7 +56,7 @@ import_arch=false
 gitpush=false
 repository=${PWD##*/}
 
-rsync_args=(-aWxv --progress --delete-before --no-R --no-implied-dirs)
+rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
