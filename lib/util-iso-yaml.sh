@@ -10,7 +10,7 @@
 # GNU General Public License for more details.
 
 get_preset(){
-    local p=${tmp_dir}/${kernel}.preset
+    local p=/tmp/${kernel}.preset
     cp ${DATADIR}/linux.preset $p
     sed -e "s|@kernel@|$kernel|g" \
         -e "s|@arch@|${target_arch}|g"\
