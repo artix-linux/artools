@@ -262,9 +262,9 @@ make_sig () {
 
 make_checksum(){
     local idir="$1" file="$2"
-    msg2 "Creating md5sum ..."
+    msg2 "Creating sha512sum ..."
     cd $idir
-    md5sum $file.sfs > $file.md5
+    sha512sum $file.sfs > $file.sha512
     cd ${OLDPWD}
 }
 

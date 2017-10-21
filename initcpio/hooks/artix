@@ -102,7 +102,7 @@ _mnt_dev() {
 _verify_checksum() {
     local _status
     cd "/run/artix/bootmnt/${artixbasedir}/${arch}"
-    md5sum -c $1.md5 > /tmp/checksum.log 2>&1
+    sha512sum -c $1.sha512 > /tmp/checksum.log 2>&1
     _status=$?
     cd "${OLDPWD}"
     return ${_status}
@@ -160,7 +160,7 @@ artix_mount_handler() {
     if [[ "${checksum}" == "y" ]]; then
         for fs in rootfs desktopfs livefs;do
             if [[ -f "/run/artix/bootmnt/${artixbasedir}/${arch}/${fs}.sfs" ]]; then
-                if [[ -f "/run/artix/bootmnt/${artixbasedir}/${arch}/${fs}.md5" ]]; then
+                if [[ -f "/run/artix/bootmnt/${artixbasedir}/${arch}/${fs}.sha512" ]]; then
                     msg -n ":: Self-test requested, please wait..."
                     if _verify_checksum "${fs}"; then
                         msg "done. Checksum is OK, continue booting."
@@ -170,7 +170,7 @@ artix_mount_handler() {
                         launch_interactive_shell
                     fi
                 else
-                    echo "ERROR: checksum=y option specified but ${artixbasedir}/${arch}/${fs}.md5 not found"
+                    echo "ERROR: checksum=y option specified but ${artixbasedir}/${arch}/${fs}.sha512 not found"
                     launch_interactive_shell
                 fi
             fi
