@@ -180,10 +180,11 @@ show_version_table(){
         fi
         unset pkgver epoch pkgrel artixver archver package
     done
-    rm ${patches_dir}/*.patch
+    local patches=$(ls ${patches_dir}/$repo/*.patch)
+    [[ -n "${patches[@]}" ]] && rm "${patches[@]}"
     for upd in "${!UPDATES[@]}"; do
         msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
+        diff -u ${UPDATES[$upd]} > ${patches_dir}/$repo/"$upd"-archlinux.patch
     done
 }
 
