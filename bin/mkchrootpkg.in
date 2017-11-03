@@ -19,29 +19,6 @@ import ${LIBDIR}/util-chroot.sh
 
 shopt -s nullglob
 
-init_variables() {
-    default_makepkg_args=(--syncdeps --noconfirm --log --holdver --skipinteg)
-    makepkg_args=("${default_makepkg_args[@]}")
-    keepbuilddir=false
-    update_first=false
-    clean_first=false
-    run_namcap=false
-    temp_chroot=false
-    chrootdir=
-    passeddir=
-    makepkg_user=
-    declare -ga install_pkgs
-    declare -gi ret=0
-
-    bindmounts_ro=()
-    bindmounts_rw=()
-
-    copy=$USER
-    [[ -n ${SUDO_USER:-} ]] && copy=$SUDO_USER
-    [[ -z "$copy" || $copy = root ]] && copy=copy
-    src_owner=${SUDO_USER:-$USER}
-}
-
 usage() {
     echo "Usage: ${0##*/} [options] -r <chrootdir> [--] [makepkg args]"
     echo ' Run this script in a PKGBUILD dir to build a package inside a'
@@ -293,7 +270,26 @@ move_products() {
 orig_argv=("$0" "$@")
 
 main() {
-    init_variables
+    default_makepkg_args=(--syncdeps --noconfirm --log --holdver --skipinteg)
+    makepkg_args=("${default_makepkg_args[@]}")
+    keepbuilddir=false
+    update_first=false
+    clean_first=false
+    run_namcap=false
+    temp_chroot=false
+    chrootdir=
+    passeddir=
+    makepkg_user=
+    declare -ga install_pkgs
+    declare -gi ret=0
+
+    bindmounts_ro=()
+    bindmounts_rw=()
+
+    copy=$USER
+    [[ -n ${SUDO_USER:-} ]] && copy=$SUDO_USER
+    [[ -z "$copy" || $copy = root ]] && copy=copy
+    src_owner=${SUDO_USER:-$USER}
 
     local opts='hcur:I:l:nTD:d:U:'
 
