@@ -230,7 +230,6 @@ bc
 xdg-utils
 xf86-input-libinput
 assimp
-bluez-utils-compat
 cdparanoia
 cifs-utils
 ffmpeg
@@ -314,3 +313,12 @@ xvidcore
 zita-alsa-pcmi
 zita-resampler
 zziplib
+xmlto
+namcap
+pyalpm
+python-pyelftools
+python2-appdirs
+python2-packaging
+python2-pyparsing
+python2-six
+unzip

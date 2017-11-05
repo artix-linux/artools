@@ -10,3 +10,10 @@ libsodium
 zeromq
 jansson
 libnewt
+libsass
+sassc
+libx86emu
+hwinfo
+yaml-cpp
+libbson
+libmongoc
