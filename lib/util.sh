@@ -58,10 +58,6 @@ init_artools_base(){
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
-    log_dir='/var/log/artools'
-
-    tmp_dir='/tmp'
-
     [[ -z ${workspace_dir} ]] && workspace_dir=/home/${OWNER}/artools-workspace
 
     prepare_dir "${workspace_dir}"

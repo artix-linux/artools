@@ -9,15 +9,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-in_array() {
-    local needle=$1; shift
-    local item
-    for item in "$@"; do
-        [[ $item = $needle ]] && return 0 # Found
-    done
-    return 1 # Not Found
-}
-
 # $1: sofile
 # $2: soarch
 process_sofile() {
@@ -42,30 +33,6 @@ pkgver_equal() {
     else
         # otherwise, trim any pkgrel and compare the bare version.
         [[ ${1%%-*} = "${2%%-*}" ]]
-    fi
-}
-
-get_full_version() {
-    # set defaults if they weren't specified in buildfile
-    pkgbase=${pkgbase:-${pkgname[0]}}
-    epoch=${epoch:-0}
-    if [[ -z $1 ]]; then
-        if [[ $epoch ]] && (( ! $epoch )); then
-            echo $pkgver-$pkgrel
-        else
-            echo $epoch:$pkgver-$pkgrel
-        fi
-    else
-        for i in pkgver pkgrel epoch; do
-            local indirect="${i}_override"
-            eval $(declare -f package_$1 | sed -n "s/\(^[[:space:]]*$i=\)/${i}_override=/p")
-            [[ -z ${!indirect} ]] && eval ${indirect}=\"${!i}\"
-        done
-        if (( ! $epoch_override )); then
-            echo $pkgver_override-$pkgrel_override
-        else
-            echo $epoch_override:$pkgver_override-$pkgrel_override
-        fi
     fi
 }
 

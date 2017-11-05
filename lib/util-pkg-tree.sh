@@ -122,42 +122,23 @@ set_import_path(){
     local repo="$1" pkg="$2"
     case $repo in
         system|world)
-            if [[ "$repo" == 'system' ]];then
-                arch_repo=core
-                arch_dir=packages
-            fi
-            if [[ "$repo" == 'world' ]];then
-                arch_repo=extra
-                arch_dir=packages
-            fi
+            arch_dir=packages
+            [[ "$repo" == 'system' ]] && arch_repo=core
+            [[ "$repo" == 'world' ]] && arch_repo=extra
             import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-
             src=$import_path/$arch_repo-x86_64
-            if [[ -d $import_path/testing-x86_64 ]];then
-                src=$import_path/testing-x86_64
-            fi
-            if [[ -d $import_path/$arch_repo-any ]];then
-                src=$import_path/$arch_repo-any
-            fi
-            if [[ -d $import_path/testing-any ]];then
-                src=$import_path/testing-any
-            fi
+            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
+            [[ -d $import_path/$arch_repo-any ]] && src=$import_path/$arch_repo-any
+            [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
         ;;
         galaxy)
             arch_repo=community
             arch_dir=$arch_repo
             import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
-
             src=$import_path-x86_64
-            if [[ -d $import_path-testing-x86_64 ]];then
-                src=$import_path-testing-x86_64
-            fi
-            if [[ -d $import_path-any ]];then
-                src=$import_path-any
-            fi
-            if [[ -d $import_path-testing-any ]];then
-                src=$import_path-testing-any
-            fi
+            [[ -d $import_path-testing-x86_64 ]] && src=$import_path-testing-x86_64
+            [[ -d $import_path-any ]] && src=$import_path-any
+            [[ -d $import_path-testing-any ]] && src=$import_path-testing-any
         ;;
         lib32)
             if [[ "$pkg" == 'llvm' ]];then
@@ -165,20 +146,17 @@ set_import_path(){
                 arch_dir=packages
                 import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
                 src=$import_path/extra-x86_64
-                if [[ -d $import_path/testing-x86_64 ]];then
-                    src=$import_path/testing-x86_64
-                fi
+                [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
             else
                 arch_repo=multilib
                 arch_dir=community
                 import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
                 src=$import_path/$arch_repo-x86_64
-                if [[ -d $import_path/$arch_repo-testing-x86_64 ]];then
-                    src=$import_path/$arch_repo-testing-x86_64
-                fi
+                [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
             fi
         ;;
     esac
+#     info "src: %s" "$src"
 }
 
 show_version_table(){
@@ -202,10 +180,10 @@ show_version_table(){
         fi
         unset pkgver epoch pkgrel artixver archver package
     done
-    rm ${patches_dir}/*.patch
+    find "${patches_dir}/$repo/" -name *.patch -delete
     for upd in "${!UPDATES[@]}"; do
         msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
+        diff -u ${UPDATES[$upd]} > ${patches_dir}/$repo/"$upd"-archlinux.patch
     done
 }
 
@@ -222,7 +200,6 @@ import_from_arch(){
             source $src/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
-#             msg2 "src: %s" "$src"
             rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
             patch_pkg "$pkg"
             if ${push};then

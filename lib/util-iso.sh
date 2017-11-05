@@ -86,9 +86,9 @@ error_function() {
 
 # $1: function
 run_log(){
-    local func="$1"
+    local func="$1" log_dir='/var/log/artools'
     local logfile=${log_dir}/$(gen_iso_fn).$func.log
-    logpipe=$(mktemp -u "${tmp_dir}/$func.pipe.XXXXXXXX")
+    logpipe=$(mktemp -u "/tmp/$func.pipe.XXXXXXXX")
     mkfifo "$logpipe"
     tee "$logfile" < "$logpipe" &
     local teepid=$!
@@ -262,9 +262,9 @@ make_sig () {
 
 make_checksum(){
     local idir="$1" file="$2"
-    msg2 "Creating md5sum ..."
+    msg2 "Creating sha512sum ..."
     cd $idir
-    md5sum $file.sfs > $file.md5
+    sha512sum $file.sfs > $file.sha512
     cd ${OLDPWD}
 }
 
@@ -282,8 +282,8 @@ make_sfs() {
     msg "Generating SquashFS image for %s" "${src}"
     if [[ -f "${sfs}" ]]; then
         local has_changed_dir=$(find ${src} -newer ${sfs})
-        msg2 "Possible changes for %s ..." "${src}"  >> ${tmp_dir}/buildiso.debug
-        msg2 "%s" "${has_changed_dir}" >> ${tmp_dir}/buildiso.debug
+        msg2 "Possible changes for %s ..." "${src}"  >> /tmp/buildiso.debug
+        msg2 "%s" "${has_changed_dir}" >> /tmp/buildiso.debug
         if [[ -n "${has_changed_dir}" ]]; then
             msg2 "SquashFS image %s is not up to date, rebuilding..." "${sfs}"
             rm "${sfs}"

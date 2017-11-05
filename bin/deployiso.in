@@ -78,7 +78,7 @@ opts='p:l:uvtqh'
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) profile="$OPTARG" ;;
-        l) limit="$OPTARG" ;;
+        l) uplimit="$OPTARG" ;;
         u) update=true; rsync_args+=(-u) ;;
         t) torrent=true ;;
         v) verbose=true; rsync_args+=(-v --stats) ;;

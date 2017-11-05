@@ -25,8 +25,8 @@ display_settings(){
     show_config
 
     msg "REPOS:"
-    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
     msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
+    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
 
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
@@ -41,7 +41,7 @@ display_settings(){
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-    msg2 "patches_dir: %s" "${patches_dir}"
+    msg2 "patches_dir: %s" "${patches_dir}/${repository}"
 }
 
 load_user_info
@@ -54,9 +54,9 @@ artix=false
 compare=false
 import_arch=false
 gitpush=false
-repository=${PWD##*/}
+repository='system' #${PWD##*/}
 
-rsync_args=(-aWxv --progress --delete-before --no-R --no-implied-dirs)
+rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
@@ -95,7 +95,7 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
-prepare_dir "${patches_dir}"
+prepare_dir "${patches_dir}/${repository}"
 
 ${pretend} && display_settings && exit 1
 
