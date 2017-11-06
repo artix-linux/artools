@@ -328,3 +328,6 @@ texlive-formatsextra
 texlive-pictures
 texlive-science
 nasm
+meson
+sdl_sound
+ruby

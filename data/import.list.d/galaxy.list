@@ -18,3 +18,5 @@ yaml-cpp
 libbson
 libmongoc
 cmocka
+ninja
+portaudio
