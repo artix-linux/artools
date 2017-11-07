@@ -96,7 +96,7 @@ iw
 jfsutils
 kbd
 keyutils
-licenses
+#licenses
 links
 linux-atm
 linux-firmware
@@ -111,7 +111,7 @@ nfsidmap
 nilfs-utils
 npth
 nspr
-nss
+#nss
 p11-kit
 patch
 pciutils
@@ -126,7 +126,7 @@ pth
 reiserfsprogs
 run-parts
 sdparm
-s-nail
+# s-nail
 sqlite
 sysfsutils
 syslinux
@@ -147,5 +147,5 @@ b43-fwcutter
 ipw2100-fw
 ipw2200-fw
 isdn4k-utils
-curl
+# curl
 sudo
