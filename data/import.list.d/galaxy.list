@@ -20,3 +20,4 @@ libmongoc
 cmocka
 ninja
 portaudio
+libreplaygain

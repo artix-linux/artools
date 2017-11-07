@@ -1,7 +1,6 @@
 a52dec
 adwaita-icon-theme
 alsa-lib
-appstream
 apr
 apr-util
 aspell
@@ -118,7 +117,6 @@ libass
 libasyncns
 libatomic_ops
 libavc1394
-libblockdev
 libbluray
 libbsd
 libburn
@@ -189,11 +187,9 @@ libspiro
 libsrtp
 libssh
 libtar
-libteam
 libthai
 libtheora
 libtiff
-libtiger
 libtxc_dxtn
 libunwind
 libupnp
@@ -252,7 +248,6 @@ mtdev
 musepack
 namcap
 nasm
-net-snmp
 noto-fonts
 ntfs-3g
 nvidia
@@ -279,7 +274,6 @@ pixman
 poppler
 potrace
 protobuf
-purpose
 pyalpm
 pygobject
 pygtk
@@ -348,7 +342,6 @@ slang
 snappy
 snowball
 socat
-sound-theme-freedesktop
 source-highlight
 speex
 speexdsp
@@ -432,3 +425,6 @@ zita-alsa-pcmi
 zita-resampler
 zvbi
 zziplib
+libdvdcss
+cpio
+libcue
