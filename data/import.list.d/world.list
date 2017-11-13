@@ -36,7 +36,7 @@ double-conversion
 doxygen
 ebook-tools
 editorconfig-core-c
-eventlog
+#eventlog
 exiv2
 faad2
 ffmpeg
@@ -187,7 +187,7 @@ libspiro
 libsrtp
 libssh
 libtar
-libthai
+#libthai
 libtheora
 libtiff
 libtxc_dxtn
@@ -214,7 +214,7 @@ libxdamage
 #libxdmcp
 libxext
 libxfixes
-libxfont
+#libxfont
 libxfont2
 libxft
 libxi
