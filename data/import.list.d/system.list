@@ -54,6 +54,7 @@ libnl
 libpcap
 libpipeline
 libpsl
+libidn2
 librpcsecgss
 libseccomp
 libsecret
@@ -112,7 +113,7 @@ nfsidmap
 nilfs-utils
 npth
 nspr
-#nss
+nss
 p11-kit
 patch
 pciutils
@@ -148,5 +149,5 @@ b43-fwcutter
 ipw2100-fw
 ipw2200-fw
 isdn4k-utils
-# curl
+curl
 sudo
