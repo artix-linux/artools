@@ -36,8 +36,6 @@ move_to_repo(){
     msg "Writing repo lists [%s]" "$repo_src"
     ls *.pkg.tar.xz{,.sig} > $filelist
     ls *.pkg.tar.xz > $pkglist
-    # uncomment for local test run
-#     rsync -v --files-from="$filelist" $repo_path "$src"
     rm -v *
     repo-add $repo_src.db.tar.xz
     repo_path=${repos_root}/$repo_dest/os/$repo_arch
@@ -63,6 +61,7 @@ add_to_repo(){
     source $pkg/PKGBUILD
     local dest=$pkg
     for name in ${pkgname[@]};do
+        finddeps $name
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
@@ -73,6 +72,9 @@ add_to_repo(){
             ln -sf $dest{,.sig} $repo_path/
             cd $repo_path
             repo-add -R $repo.db.tar.xz $pkgfile
+            find-libdeps $dest
+            find-libprovides $dest
         fi
     done
+
 }
