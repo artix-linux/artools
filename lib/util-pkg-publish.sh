@@ -61,19 +61,22 @@ add_to_repo(){
     source $pkg/PKGBUILD
     local dest=$pkg
     for name in ${pkgname[@]};do
+        info "finddeps: %s" "$name"
         finddeps $name
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
             pkgfile=$name-$ver-$CARCH.pkg.tar.xz
             [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
+            info "find-libdeps: %s" "$pkgfile"
+            find-libdeps $dest
+            info "find-libprovides: %s" "$pkgfile"
+            find-libprovides $dest
             [[ -e $dest.sig ]] && rm $dest.sig
             signfile $dest
             ln -sf $dest{,.sig} $repo_path/
             cd $repo_path
             repo-add -R $repo.db.tar.xz $pkgfile
-            find-libdeps $dest
-            find-libprovides $dest
         fi
     done
 
