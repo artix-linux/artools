@@ -3,7 +3,7 @@ aalib
 adwaita-icon-theme
 alsa-firmware
 alsa-lib
-alsa-utils
+#alsa-utils
 apr
 apr-util
 aspell
