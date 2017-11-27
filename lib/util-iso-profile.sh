@@ -44,7 +44,7 @@ load_profile(){
     [[ -z ${password} ]] && password="artix"
 
     if [[ -z ${addgroups} ]];then
-        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users"
+        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,audio"
     fi
 
     if [[ -z ${openrc_boot[@]} ]];then
