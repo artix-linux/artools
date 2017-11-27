@@ -28,9 +28,9 @@ prepare_build(){
 
     local pacman_conf pac_file="pacman.conf"
 
-    if [[ ${stablility} != 'buildiso' ]];then
-        pac_file="pacman-${stablility}.conf"
-    fi
+    case "${stablility}" in
+        'testing') pac_file="pacman-${stablility}.conf" ;;
+    esac
 
     pacman_conf="${DATADIR}/$pac_file"
     [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"

@@ -23,7 +23,6 @@ import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-pkg.sh
 
 show_pkg(){
-    check_build "$1"
     cd $1
         source PKGBUILD
         for n in ${pkgname[@]}; do
@@ -69,11 +68,11 @@ repository=${PWD##*/}
 base_devel=('base-devel')
 
 prepare_build(){
-
     local pac_file='pacman.conf' mp_file='makepkg.conf'
-    if [[ ${stablility} != 'buildpkg' ]];then
-        pac_file="pacman-${stablility}.conf"
-    fi
+
+    case "${stablility}" in
+        'testing') pac_file="pacman-${stablility}.conf" ;;
+    esac
 
     local pacman_conf="${DATADIR}/$pac_file"
     [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
