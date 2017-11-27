@@ -37,7 +37,6 @@ display_settings(){
     show_config
 
     msg "OPTIONS:"
-    msg2 "arch: %s" "${target_arch}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
     msg2 "repository: %s" "${repository}"
     msg2 "stablility: %s" "${stablility}"
@@ -106,7 +105,6 @@ build(){
 usage() {
     echo "Usage: ${0##*/} [options] -- [makepkg_args]"
     echo "    -p <pkg>           Package to build [default: ${package}]"
-    echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
     echo '    -z <repo>          Repo name'
     echo '    -c                 Create root chroot'
@@ -120,12 +118,11 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:z:cqh'
+opts='p:r:z:cqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
-        a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
         z) repository="$OPTARG" ;;
         c) create_first=true ;;

@@ -54,7 +54,7 @@ get_osid(){
 
 init_artools_base(){
 
-    [[ -z ${target_arch} ]] && target_arch=$(uname -m)
+    target_arch=$(uname -m)
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 

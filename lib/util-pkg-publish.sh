@@ -50,20 +50,6 @@ move_to_repo(){
 
 add_to_repo(){
     local repo="$1" destarch="$2" pkg="$3" ver pkgfile result
-    if [[ $pkg == 'llvm' ]];then
-        if [[ ${repo#*-} == 'testing' ]];then
-            repo='world-testing'
-        else
-            repo='world'
-        fi
-    fi
-#     if [[ $pkg == lib32* ]];then
-#         if [[ ${repo#*-} == 'testing' ]];then
-#             repo='lib32-testing'
-#         else
-#             repo='lib32'
-#         fi
-#     fi
     local repo_path=${repos_root}/$repo/os/$destarch
     source $pkg/PKGBUILD
     local dest=$pkg

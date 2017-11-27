@@ -260,6 +260,7 @@ libxxf86vm
 libyaml
 libzip
 lirc
+llvm
 lmdb
 lua
 mesa

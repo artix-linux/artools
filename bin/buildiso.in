@@ -72,10 +72,10 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "profile: %s" "${profile}"
-    msg2 "arch: %s" "${target_arch}"
     msg2 "initsys: %s" "${initsys}"
     msg2 "kernel: %s" "${kernel}"
     [[ -n ${gpgkey} ]] && msg2 "gpgkey: %s" "${gpgkey}"
+    msg2 "stablility: %s" "${stablility}"
 
     msg "ARGS:"
     msg2 "clean_first: %s" "${clean_first}"
@@ -143,7 +143,6 @@ stablility=${cmd##*-}
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -p <profile>       Profile [default: ${profile}]"
-    echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_iso}]"
     echo '    -t <dir>           Target directory'
@@ -169,12 +168,11 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:t:k:i:g:czxmvqh'
+opts='p:r:t:k:i:g:czxmvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) profile="$OPTARG" ;;
-        a) target_arch="$OPTARG" ;;
         r) chroots_iso="$OPTARG" ;;
         t) cache_dir_iso="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
