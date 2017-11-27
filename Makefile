@@ -22,7 +22,7 @@ LIBS_BASE = \
 	lib/util-fstab.sh
 
 SHARED_BASE = \
-	$(wildcard data/pacman-*.conf)
+	$(wildcard data/pacman*.conf)
 
 LIST_IMPORT = \
 	$(wildcard data/import.list.d/*.list)
@@ -42,7 +42,7 @@ LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
 
 SHARED_PKG = \
-	$(wildcard data/makepkg-*.conf)
+	data/makepkg.conf
 
 PATCHES = \
 	$(wildcard data/patches/*.patch)

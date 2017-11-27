@@ -70,27 +70,19 @@ repository=${PWD##*/}
 base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default' pac_conf=
 
-    if [[ "${target_arch}" == 'lib32' ]];then
-        pac_arch='lib32'
-        base_devel+=('multilib-devel')
+    local pac_file='pacman.conf' mp_file='makepkg.conf'
+    if [[ ${stablility} != 'buildpkg' ]];then
+        pac_file="pacman-${stablility}.conf"
     fi
 
-    if [[ ${stablility} == 'buildpkg' ]];then
-        pac_conf=$pac_arch
-    else
-        pac_conf=$pac_arch-${stablility}
-    fi
+    local pacman_conf="${DATADIR}/$pac_file"
+    [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
 
-    [[ "$pac_arch" == 'lib32' ]] && target_arch='x86_64'
-
-    local pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
     work_dir="${chroots_pkg}/${repository}-${target_arch}"
 
-    local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
-    [[ -f $AT_USERCONFDIR/makepkg-${target_arch}.conf ]] && makepkg_conf="$AT_USERCONFDIR/makepkg-${target_arch}.conf"
+    local makepkg_conf="${DATADIR}/$mp_file"
+    [[ -f $AT_USERCONFDIR/$mp_file ]] && makepkg_conf="$AT_USERCONFDIR/$mp_file"
 
     mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 

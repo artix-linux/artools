@@ -57,6 +57,13 @@ add_to_repo(){
             repo='world'
         fi
     fi
+#     if [[ $pkg == lib32* ]];then
+#         if [[ ${repo#*-} == 'testing' ]];then
+#             repo='lib32-testing'
+#         else
+#             repo='lib32'
+#         fi
+#     fi
     local repo_path=${repos_root}/$repo/os/$destarch
     source $pkg/PKGBUILD
     local dest=$pkg

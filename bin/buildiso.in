@@ -26,17 +26,14 @@ prepare_build(){
 
     netgroups=${netgroups_url}/netgroups-${initsys}.yaml
 
-    local pac_arch='default' pacman_conf pac_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='lib32'
+    local pacman_conf pac_file="pacman.conf"
 
-    if [[ ${stablility} == 'buildiso' ]];then
-        pac_conf=$pac_arch
-    else
-        pac_conf=$pac_arch-${stablility}
+    if [[ ${stablility} != 'buildiso' ]];then
+        pac_file="pacman-${stablility}.conf"
     fi
 
-    pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
+    pacman_conf="${DATADIR}/$pac_file"
+    [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
 
     iso_file=$(gen_iso_fn).iso
 
