@@ -9,24 +9,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-get_preset(){
-    local p=/tmp/${kernel}.preset
-    cp ${DATADIR}/linux.preset $p
-    sed -e "s|@kernel@|$kernel|g" \
-        -e "s|@arch@|${target_arch}|g"\
-        -i $p
-    echo $p
-}
-
 write_bootloader_conf(){
-    local conf="$1/bootloader.conf" efi_boot_loader='grub'
+    local conf="$1/bootloader.conf"
     msg2 "Writing %s ..." "${conf##*/}"
-    source "$(get_preset)"
     echo '---' > "$conf"
-    echo "efiBootLoader: \"${efi_boot_loader}\"" >> "$conf"
-    echo "kernel: \"${ALL_kver#*/boot}\"" >> "$conf"
-    echo "img: \"${default_image#*/boot}\"" >> "$conf"
-    echo "fallback: \"${fallback_image#*/boot}\"" >> "$conf"
+    echo "efiBootLoader: \"grub\"" >> "$conf"
+    echo "kernel: \"/vmlinuz-$kernel-${target_arch}\"" >> "$conf"
+    echo "img: \"/initramfs-$kernel-${target_arch}.img\"" >> "$conf"
+    echo "fallback: \"/initramfs-$kernel-${target_arch}-fallback.img\"" >> "$conf"
     echo 'timeout: "10"' >> "$conf"
     echo "kernelLine: \", with ${kernel}\"" >> "$conf"
     echo "fallbackKernelLine: \", with ${kernel} (fallback initramfs)\"" >> "$conf"

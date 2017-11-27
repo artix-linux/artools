@@ -55,8 +55,7 @@ LIBS_ISO = \
 	$(wildcard lib/util-iso*.sh)
 
 SHARED_ISO = \
-	data/mkinitcpio.conf \
-	data/linux.preset
+	data/mkinitcpio.conf
 
 CPIOHOOKS = \
 	$(wildcard initcpio/hooks/*)
