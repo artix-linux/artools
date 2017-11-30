@@ -55,6 +55,7 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 
 create_first=false
 pretend=false
+lib32=false
 
 mkchroot_args=()
 mkchrootpkg_args=(-c -n)
@@ -73,6 +74,8 @@ prepare_build(){
     case "${stablility}" in
         'testing') pac_file="pacman-${stablility}.conf" ;;
     esac
+
+    ${lib32} && base_devel+=('multilib-devel')
 
     local pacman_conf="${DATADIR}/$pac_file"
     [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
@@ -107,6 +110,7 @@ usage() {
     echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
     echo '    -z <repo>          Repo name'
     echo '    -c                 Create root chroot'
+    echo '    -m                 Multilib chroot'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
@@ -117,7 +121,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:r:z:cqh'
+opts='p:r:z:cmqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -125,6 +129,7 @@ while getopts "${opts}" arg; do
         r) chroots_pkg="$OPTARG" ;;
         z) repository="$OPTARG" ;;
         c) create_first=true ;;
+        m) lib32=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;
