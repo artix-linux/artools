@@ -117,48 +117,6 @@ patch_pkg(){
     esac
 }
 
-set_import_path(){
-    local arch_dir arch_repo import_path
-    local repo="$1" pkg="$2"
-    case $repo in
-        system|world)
-            arch_dir=packages
-            [[ "$repo" == 'system' ]] && arch_repo=core
-            [[ "$repo" == 'world' ]] && arch_repo=extra
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-            src=$import_path/$arch_repo-x86_64
-            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
-            [[ -d $import_path/$arch_repo-any ]] && src=$import_path/$arch_repo-any
-            [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
-        ;;
-        galaxy)
-            arch_repo=community
-            arch_dir=$arch_repo
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
-            src=$import_path-x86_64
-            [[ -d $import_path-testing-x86_64 ]] && src=$import_path-testing-x86_64
-            [[ -d $import_path-any ]] && src=$import_path-any
-            [[ -d $import_path-testing-any ]] && src=$import_path-testing-any
-        ;;
-        lib32)
-            if [[ "$pkg" == 'llvm' ]];then
-                arch_repo=extra
-                arch_dir=packages
-                import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-                src=$import_path/extra-x86_64
-                [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
-            else
-                arch_repo=multilib
-                arch_dir=community
-                import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-                src=$import_path/$arch_repo-x86_64
-                [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
-            fi
-        ;;
-    esac
-#     info "src: %s" "$src"
-}
-
 show_version_table(){
     local repo="$1"
     declare -A UPDATES
@@ -187,6 +145,40 @@ show_version_table(){
     done
 }
 
+get_import_path(){
+    local arch_dir arch_repo import_path
+    local repo="$1" pkg="$2" src=
+    case $repo in
+        system|world)
+            arch_dir=packages
+            [[ "$repo" == 'system' ]] && arch_repo=core
+            [[ "$repo" == 'world' ]] && arch_repo=extra
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+            src=$import_path/$arch_repo-x86_64
+            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
+            [[ -d $import_path/$arch_repo-any ]] && src=$import_path/$arch_repo-any
+            [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
+        ;;
+        galaxy)
+            arch_repo=community
+            arch_dir=$arch_repo
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
+            src=$import_path-x86_64
+            [[ -d $import_path-testing-x86_64 ]] && src=$import_path-testing-x86_64
+            [[ -d $import_path-any ]] && src=$import_path-any
+            [[ -d $import_path-testing-any ]] && src=$import_path-testing-any
+        ;;
+        lib32)
+            arch_repo=multilib
+            arch_dir=community
+            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
+            src=$import_path/$arch_repo-x86_64
+            [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
+        ;;
+    esac
+    echo $src
+}
+
 import_from_arch(){
     local timer=$(get_timer) branch='testing' repo="$1" push="$2"
     read_import_list "$repo"
@@ -196,11 +188,13 @@ import_from_arch(){
         $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
         git pull origin "$branch"
         for pkg in ${import_list[@]};do
-            set_import_path "$repo" "$pkg"
+            local src=$(get_import_path "$repo" "$pkg") dest=${tree_dir_artix}/$repo/$pkg
             source $src/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
-            rsync "${rsync_args[@]}"  $src/ ${tree_dir_artix}/$repo/$pkg/
+            msg2 "src: %s" "$src"
+            msg2 "dest: %s" "$dest"
+            rsync "${rsync_args[@]}"  $src/ $dest/
             patch_pkg "$pkg"
             if ${push};then
                 git add "$pkg"
