@@ -138,7 +138,7 @@ libcap-ng
 libcddb
 libcdio
 libcdio-paranoia
-libconfig
+# libconfig
 libcroco
 libcue
 libdaemon
@@ -184,7 +184,7 @@ libmspack
 libmtp
 libndp
 libnotify
-libogg
+# libogg
 libomxil-bellagio
 libpaper
 libpciaccess
@@ -195,21 +195,21 @@ libpwquality
 libqalculate
 libqmi
 libraqm
-libraw1394
+# libraw1394
 librsvg
 libsamplerate
 libshout
 libsigc++
 libsigsegv
 libsm
-libsndfile
+# libsndfile
 libsoup
 libsoxr
 libspiro
 libsrtp
 libssh
 libtar
-libthai
+# libthai
 libtheora
 libtiff
 libtommath
@@ -228,13 +228,13 @@ libvpx
 libwebp
 libwmf
 libx11
-libxau
+# libxau
 libxaw
-libxcb
+# libxcb
 libxcomposite
 libxcursor
 libxdamage
-libxdmcp
+# libxdmcp
 libxext
 libxfixes
 libxfont2
@@ -264,7 +264,7 @@ llvm
 lmdb
 lua
 mesa
-meson
+# meson
 mailcap
 mobile-broadband-provider-info
 mtdev
@@ -276,9 +276,9 @@ network-manager-applet
 noto-fonts
 nss-mdns
 ntfs-3g
-nvidia
-nvidia-settings
-nvidia-utils
+# nvidia
+# nvidia-settings
+# nvidia-utils
 ocl-icd
 openal
 opencore-amr
@@ -307,72 +307,72 @@ protobuf
 pyalpm
 pygobject
 pygtk
-pylint
+# pylint
 pyqt5
 python
 python2
-python2-backports
-python2-backports.functools_lru_cache
-python2-configparser
-python2-ipaddress
+# python2-backports
+# python2-backports.functools_lru_cache
+# python2-configparser
+# python2-ipaddress
 python-appdirs
 python-asn1crypto
-python-astroid
+# python-astroid
 python-attrs
-python-automat
+# python-automat
 python-beaker
 python-cairo
-python-cffi
+# python-cffi
 python-chardet
-python-constantly
-python-cryptography
+# python-constantly
+# python-cryptography
 python-cssselect
 python-defusedxml
-python-editdistance
-python-egenix-mx-base
+# python-editdistance
+# python-egenix-mx-base
 python-evdev
-python-feedparser
-python-fpconst
-python-gdata
-python-geoip
+# python-feedparser
+# python-fpconst
+# python-gdata
+# python-geoip
 python-hyperlink
 python-idna
-python-incremental
-python-isort
-python-iwscan
-python-lazy-object-proxy
-python-lxml
+# python-incremental
+# python-isort
+# python-iwscan
+# python-lazy-object-proxy
+# python-lxml
 python-mako
 python-markupsafe
-python-mccabe
-python-mpd
-python-nose
+# python-mccabe
+# python-mpd
+# python-nose
 python-notify
 python-numpy
 python-packaging
 python-pip
 python-ply
 python-pyasn1
-python-pyasn1-modules
-python-pycparser
-python-pycurl
+# python-pyasn1-modules
+# python-pycparser
+# python-pycurl
 python-pyelftools
-python-pygame
+# python-pygame
 python-pyparsing
-python-rdflib
-python-requests
-python-retrying
-python-service-identity
+# python-rdflib
+# python-requests
+# python-retrying
+# python-service-identity
 python-setuptools
 python-six
-python-soappy
-python-telepathy
-python-urllib3
+# python-soappy
+# python-telepathy
+# python-urllib3
 python-urwid
 python-virtualenv
-python-wpactrl
+# python-wpactrl
 python-wrapt
-python-wstools
+# python-wstools
 pyxdg
 qt5-3d
 qt5-canvas3d
@@ -469,13 +469,13 @@ wxgtk
 x265
 xapian-core
 xbitmaps
-xcb-proto
-xcb-util
+# xcb-proto
+# xcb-util
 xcb-util-cursor
-xcb-util-image
-xcb-util-keysyms
-xcb-util-renderutil
-xcb-util-wm
+# xcb-util-image
+# xcb-util-keysyms
+# xcb-util-renderutil
+# xcb-util-wm
 xdg-utils
 xextproto
 xf86-input-libinput
@@ -511,7 +511,7 @@ xorg-xrandr
 xorg-xrdb
 xorg-xset
 xorg-xsetroot
-xproto
+# xproto
 xterm
 xvidcore
 yajl
