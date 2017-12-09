@@ -117,34 +117,6 @@ patch_pkg(){
     esac
 }
 
-show_version_table(){
-    local repo="$1"
-    declare -A UPDATES
-    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for pkg in ${tree_dir_artix}/$repo/*; do
-        if [[ -f $pkg/PKGBUILD ]];then
-            source $pkg/PKGBUILD 2>/dev/null
-            package=${pkg##*/}
-            artixver=$(get_full_version $package)
-            set_import_path "$repo" "$package"
-            if [[ -f $src/PKGBUILD ]];then
-                source $src/PKGBUILD 2>/dev/null
-                archver=$(get_full_version $package)
-            fi
-            if [ $(vercmp $artixver $archver) -lt 0 ];then
-                UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
-                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
-            fi
-        fi
-        unset pkgver epoch pkgrel artixver archver package
-    done
-    find "${patches_dir}/$repo/" -name *.patch -delete
-    for upd in "${!UPDATES[@]}"; do
-        msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/$repo/"$upd"-archlinux.patch
-    done
-}
-
 get_import_path(){
     local arch_dir arch_repo import_path
     local repo="$1" pkg="$2" src=
@@ -177,6 +149,34 @@ get_import_path(){
         ;;
     esac
     echo $src
+}
+
+show_version_table(){
+    local repo="$1"
+    declare -A UPDATES
+    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+    for pkg in ${tree_dir_artix}/$repo/*; do
+        if [[ -f $pkg/PKGBUILD ]];then
+            source $pkg/PKGBUILD 2>/dev/null
+            package=${pkg##*/}
+            artixver=$(get_full_version $package)
+            local src=$(get_import_path "$repo" "$package")
+            if [[ -f $src/PKGBUILD ]];then
+                source $src/PKGBUILD 2>/dev/null
+                archver=$(get_full_version $package)
+            fi
+            if [ $(vercmp $artixver $archver) -lt 0 ];then
+                UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
+                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
+            fi
+        fi
+        unset pkgver epoch pkgrel artixver archver package
+    done
+    find "${patches_dir}/$repo/" -name *.patch -delete
+    for upd in "${!UPDATES[@]}"; do
+        msg "Writing %s update patch ..." "$upd"
+        diff -u ${UPDATES[$upd]} > ${patches_dir}/$repo/"$upd"-archlinux.patch
+    done
 }
 
 import_from_arch(){
