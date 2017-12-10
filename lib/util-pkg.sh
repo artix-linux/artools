@@ -37,7 +37,7 @@ pkgver_equal() {
 }
 
 find_cached_package() {
-    local searchdirs=("$PWD" "$PKGDEST") results=()
+    local searchdirs=("$PKGDEST" "$PWD") results=()
     local targetname=$1 targetver=$2 targetarch=$3
     local dir pkg pkgbasename name ver rel arch r results
 
