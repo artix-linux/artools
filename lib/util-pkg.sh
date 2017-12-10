@@ -44,7 +44,7 @@ find_cached_package() {
     for dir in "${searchdirs[@]}"; do
         [[ -d $dir ]] || continue
 
-        for pkg in "$dir"/*.pkg.tar.xz; do
+        for pkg in "$dir"/*.pkg.tar.?z; do
             [[ -f $pkg ]] || continue
 
             # avoid adding duplicates of the same inode
@@ -54,7 +54,7 @@ find_cached_package() {
 
             # split apart package filename into parts
             pkgbasename=${pkg##*/}
-            pkgbasename=${pkgbasename%.pkg.tar?(.?z)}
+            pkgbasename=${pkgbasename%.pkg.tar.?z}
 
             arch=${pkgbasename##*-}
             pkgbasename=${pkgbasename%-"$arch"}
@@ -77,7 +77,7 @@ find_cached_package() {
             return 1
         ;;
         1)
-            printf '%s\n' "$results"
+            printf '%s\n' "${results[0]}"
             return 0
         ;;
         *)
