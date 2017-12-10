@@ -196,12 +196,13 @@ import_from_arch(){
             msg2 "dest: %s" "$dest"
             rsync "${rsync_args[@]}"  $src/ $dest/
             patch_pkg "$pkg"
-            if ${push};then
-                git add "$pkg"
-                git commit -m "$pkg-$ver"
-                sleep 10
-                git push origin "$branch"
-            fi
+#             if ${push};then
+#                 local timeout=10
+#                 git add "$pkg"
+#                 git commit -m "$pkg-$ver"
+#                 sleep $timeout
+#                 git push origin "$branch"
+#             fi
             unset pkgver epoch pkgrel ver
         done
     fi
