@@ -77,7 +77,7 @@ texinfo
 usbutils
 util-linux
 which
->x86_64 efibootmgr
+efibootmgr
 xfsprogs
 zd1211-firmware
 zsh
