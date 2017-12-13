@@ -84,11 +84,11 @@ write_unpack_conf(){
     echo "    - source: \"/run/miso/bootmnt/${iso_name}/${target_arch}/rootfs.sfs\"" >> "$conf"
     echo "      sourcefs: \"squashfs\"" >> "$conf"
     echo "      destination: \"\"" >> "$conf"
-#     if [[ -f "${desktop_list}" ]] ; then
-    echo "    - source: \"/run/miso/bootmnt/${iso_name}/${target_arch}/desktopfs.sfs\"" >> "$conf"
-    echo "      sourcefs: \"squashfs\"" >> "$conf"
-    echo "      destination: \"\"" >> "$conf"
-#     fi
+    if [[ -f "${desktop_list}" ]] ; then
+        echo "    - source: \"/run/miso/bootmnt/${iso_name}/${target_arch}/desktopfs.sfs\"" >> "$conf"
+        echo "      sourcefs: \"squashfs\"" >> "$conf"
+        echo "      destination: \"\"" >> "$conf"
+    fi
 }
 
 write_welcome_conf(){
@@ -119,20 +119,20 @@ write_welcome_conf(){
 }
 
 write_settings_conf(){
-    local conf="$1/etc/calamares/settings.conf"
+    local conf="$1/etc/calamares/settings.conf" mods="$1/etc/calamares/modules"
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "modules-search: [ local ]" >> "$conf"
     echo '' >> "$conf"
     echo "sequence:" >> "$conf"
     echo "    - show:" >> "$conf"
-    echo "        - welcome" >> "$conf"
+    echo "        - welcome" >> "$conf" && write_welcome_conf "$mods"
     echo "        - locale" >> "$conf"
     echo "        - keyboard" >> "$conf"
     echo "        - partition" >> "$conf"
-    echo "        - users" >> "$conf"
+    echo "        - users" >> "$conf" && write_users_conf "$mods"
     if ${netinstall};then
-        echo "        - netinstall" >> "$conf"
+        echo "        - netinstall" >> "$conf" && write_netinstall_conf "$mods"
     fi
     echo "        - summary" >> "$conf"
     echo "    - exec:" >> "$conf"
@@ -141,7 +141,7 @@ write_settings_conf(){
     if ${netinstall};then
         echo "        - chrootcfg" >> "$conf"
     else
-        echo "        - unpackfs" >> "$conf"
+        echo "        - unpackfs" >> "$conf" && write_unpack_conf "$mods"
     fi
     echo "        - networkcfg" >> "$conf"
     echo "        - machineid" >> "$conf"
@@ -152,15 +152,15 @@ write_settings_conf(){
     echo "        - luksopenswaphookcfg" >> "$conf"
     echo "        - luksbootkeyfile" >> "$conf"
     echo "        - initcpiocfg" >> "$conf"
-    echo "        - initcpio" >> "$conf"
+    echo "        - initcpio" >> "$conf" && write_initcpio_conf "$mods"
     echo "        - users" >> "$conf"
     echo "        - displaymanager" >> "$conf"
     echo "        - hwclock" >> "$conf"
     case ${initsys} in
-        'openrc') echo "        - servicescfg" >> "$conf" ;;
+        'openrc') echo "        - servicescfg" >> "$conf" && write_servicescfg_conf "$mods";;
     esac
     echo "        - grubcfg" >> "$conf"
-    echo "        - bootloader" >> "$conf"
+    echo "        - bootloader" >> "$conf" && write_bootloader_conf "$mods"
     echo "        - postcfg" >> "$conf"
     echo "        - umount" >> "$conf"
     echo "    - show:" >> "$conf"
@@ -178,15 +178,6 @@ configure_calamares(){
     if [[ -d $dest/etc/calamares/modules ]];then
         info "Configuring [Calamares]"
         write_settings_conf "$dest"
-        write_users_conf "$dest/etc/calamares/modules"
-        write_netinstall_conf "$dest/etc/calamares/modules"
-        write_initcpio_conf "$dest/etc/calamares/modules"
-        write_unpack_conf "$dest/etc/calamares/modules"
-        write_welcome_conf "$dest/etc/calamares/modules"
-        case ${initsys} in
-            'openrc') write_servicescfg_conf "$dest/etc/calamares/modules" ;;
-        esac
-        write_bootloader_conf "$dest/etc/calamares/modules"
         info "Done configuring [Calamares]"
     fi
 }
