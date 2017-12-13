@@ -76,17 +76,117 @@ write_netinstall_conf(){
     echo "groupsUrl: ${netgroups}" >> "$conf"
 }
 
+write_unpack_conf(){
+    local conf="$1/unpackfs.conf"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo "---" > "$conf"
+    echo "unpack:" >> "$conf"
+    echo "    - source: \"/run/miso/bootmnt/${iso_name}/${target_arch}/rootfs.sfs\"" >> "$conf"
+    echo "      sourcefs: \"squashfs\"" >> "$conf"
+    echo "      destination: \"\"" >> "$conf"
+#     if [[ -f "${desktop_list}" ]] ; then
+    echo "    - source: \"/run/miso/bootmnt/${iso_name}/${target_arch}/desktopfs.sfs\"" >> "$conf"
+    echo "      sourcefs: \"squashfs\"" >> "$conf"
+    echo "      destination: \"\"" >> "$conf"
+#     fi
+}
+
+write_welcome_conf(){
+    local conf="$1/welcome.conf"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo "---" > "$conf" >> "$conf"
+    echo "showSupportUrl:         true" >> "$conf"
+    echo "showKnownIssuesUrl:     true" >> "$conf"
+    echo "showReleaseNotesUrl:    true" >> "$conf"
+    echo '' >> "$conf"
+    echo "requirements:" >> "$conf"
+    echo "    requiredStorage:    7.9" >> "$conf"
+    echo "    requiredRam:        1.0" >> "$conf"
+    echo "    internetCheckUrl:   https://artixlinux.org" >> "$conf"
+    echo "    check:" >> "$conf"
+    echo "      - storage" >> "$conf"
+    echo "      - ram" >> "$conf"
+    echo "      - power" >> "$conf"
+    echo "      - internet" >> "$conf"
+    echo "      - root" >> "$conf"
+    echo "    required:" >> "$conf"
+    echo "      - storage" >> "$conf"
+    echo "      - ram" >> "$conf"
+    echo "      - root" >> "$conf"
+    if ${netinstall};then
+        echo "      - internet" >> "$conf"
+    fi
+}
+
+write_settings_conf(){
+    local conf="$1/etc/calamares/settings.conf"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo "---" > "$conf"
+    echo "modules-search: [ local ]" >> "$conf"
+    echo '' >> "$conf"
+    echo "sequence:" >> "$conf"
+    echo "    - show:" >> "$conf"
+    echo "        - welcome" >> "$conf"
+    echo "        - locale" >> "$conf"
+    echo "        - keyboard" >> "$conf"
+    echo "        - partition" >> "$conf"
+    echo "        - users" >> "$conf"
+    if ${netinstall};then
+        echo "        - netinstall" >> "$conf"
+    fi
+    echo "        - summary" >> "$conf"
+    echo "    - exec:" >> "$conf"
+    echo "        - partition" >> "$conf"
+    echo "        - mount" >> "$conf"
+    if ${netinstall};then
+        echo "        - chrootcfg" >> "$conf"
+    else
+        echo "        - unpackfs" >> "$conf"
+    fi
+    echo "        - networkcfg" >> "$conf"
+    echo "        - machineid" >> "$conf"
+    echo "        - fstab" >> "$conf"
+    echo "        - locale" >> "$conf"
+    echo "        - keyboard" >> "$conf"
+    echo "        - localecfg" >> "$conf"
+    echo "        - luksopenswaphookcfg" >> "$conf"
+    echo "        - luksbootkeyfile" >> "$conf"
+    echo "        - initcpiocfg" >> "$conf"
+    echo "        - initcpio" >> "$conf"
+    echo "        - users" >> "$conf"
+    echo "        - displaymanager" >> "$conf"
+    echo "        - hwclock" >> "$conf"
+    case ${initsys} in
+        'openrc') echo "        - servicescfg" >> "$conf" ;;
+    esac
+    echo "        - grubcfg" >> "$conf"
+    echo "        - bootloader" >> "$conf"
+    echo "        - postcfg" >> "$conf"
+    echo "        - umount" >> "$conf"
+    echo "    - show:" >> "$conf"
+    echo "        - finished" >> "$conf"
+    echo '' >> "$conf"
+    echo "branding: ${iso_name}" >> "$conf"
+    echo '' >> "$conf"
+    echo "prompt-install: false" >> "$conf"
+    echo '' >> "$conf"
+    echo "dont-chroot: false" >> "$conf"
+}
+
 configure_calamares(){
-    local modules_dir="$1"
-    if [[ -d $modules_dir ]];then
+    local dest="$1"
+    if [[ -d $dest/etc/calamares/modules ]];then
         info "Configuring [Calamares]"
-        write_users_conf "$modules_dir"
-        write_netinstall_conf "$modules_dir"
-        write_initcpio_conf "$modules_dir"
+        write_settings_conf "$dest"
+        write_users_conf "$dest/etc/calamares/modules"
+        write_netinstall_conf "$dest/etc/calamares/modules"
+        write_initcpio_conf "$dest/etc/calamares/modules"
+        write_unpack_conf "$dest/etc/calamares/modules"
+        write_welcome_conf "$dest/etc/calamares/modules"
         case ${initsys} in
-            'openrc') write_servicescfg_conf "$modules_dir" ;;
+            'openrc') write_servicescfg_conf "$dest/etc/calamares/modules" ;;
         esac
-        write_bootloader_conf "$modules_dir"
+        write_bootloader_conf "$dest/etc/calamares/modules"
         info "Done configuring [Calamares]"
     fi
 }

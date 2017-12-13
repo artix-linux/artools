@@ -61,6 +61,8 @@ load_profile(){
 
     [[ -z ${netgroups_url} ]] && netgroups_url="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
+    [[ -z ${netinstall} ]] && netinstall="true"
+
     return 0
 }
 

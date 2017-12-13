@@ -53,7 +53,8 @@ show_profile(){
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
 
-        msg2 "netgroups: %s" "${netgroups}"
+        msg2 "netinstall: %s" "${netinstall}"
+        ${netinstall} && msg2 "netgroups: %s" "${netgroups}"
 
         msg2 "hostname: %s" "${hostname}"
         msg2 "username: %s" "${username}"
