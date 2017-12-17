@@ -107,6 +107,8 @@ init_artools_iso(){
 
     [[ -z ${kernel} ]] && kernel="linux-lts"
 
+    [[ -z ${kernel_args} ]] && kernel_args=""
+
     [[ -z ${gpgkey} ]] && gpgkey=''
 
     [[ -z ${uplimit} ]] && uplimit=100
