@@ -52,6 +52,7 @@ configure_grub(){
     sed -e "s|@arch@|${target_arch}|g" \
         -e "s|@iso_label@|${iso_label}|" \
         -e "s|@iso_name@|${iso_name}|g" \
+        -e "s|@kernel_args@|${kernel_args}|g" \
         -i $conf
 }
 
