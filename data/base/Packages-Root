@@ -59,6 +59,7 @@ ntfs-3g
 >openrc nfs-utils-openrc
 >openrc rsync-openrc
 >openrc wpa_supplicant-openrc
+>openrc opentmpfiles
 os-prober
 pacman
 pciutils
