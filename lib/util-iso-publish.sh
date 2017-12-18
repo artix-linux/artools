@@ -38,7 +38,7 @@ make_torrent(){
 
 prepare_transfer(){
     target_dir="/iso/${profile}/"
-    src_dir="${cache_dir_iso}/${profile}/"
+    src_dir="${iso_pool}/${profile}/"
     ${torrent} && make_torrent
 }
 

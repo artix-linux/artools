@@ -91,9 +91,9 @@ init_artools_pkg(){
 init_artools_iso(){
     chroots_iso="${chroots_dir}/buildiso"
 
-    cache_dir_iso="${workspace_dir}/iso"
+    [[ -z ${iso_pool} ]] && iso_pool="${workspace_dir}/iso"
 
-    prepare_dir "${cache_dir_iso}"
+    prepare_dir "${iso_pool}"
 
     profile='base'
 

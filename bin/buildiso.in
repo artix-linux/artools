@@ -40,7 +40,7 @@ prepare_build(){
     mkchroot_args+=(-C ${pacman_conf})
     work_dir=${chroots_iso}/${profile}/${target_arch}
 
-    iso_dir="${cache_dir_iso}/${profile}"
+    iso_dir="${iso_pool}/${profile}"
 
     iso_root=${chroots_iso}/${profile}/iso
     mnt_dir=${chroots_iso}/${profile}/mnt
@@ -146,7 +146,7 @@ usage() {
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_iso}]"
     echo '    -t <dir>           Target directory'
-    echo "                       [default: ${cache_dir_iso}]"
+    echo "                       [default: ${iso_pool}]"
     echo '    -k <name>          Kernel to use'
     echo "                       [default: ${kernel}]"
     echo '    -i <name>          Init system to use'
@@ -174,7 +174,7 @@ while getopts "${opts}" arg; do
     case "${arg}" in
         p) profile="$OPTARG" ;;
         r) chroots_iso="$OPTARG" ;;
-        t) cache_dir_iso="$OPTARG" ;;
+        t) iso_pool="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
         i) initsys="$OPTARG" ;;
         g) gpgkey="$OPTARG" ;;
