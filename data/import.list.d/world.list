@@ -112,7 +112,7 @@ java-common
 jbig2dec
 jemalloc
 js
-json-c
+# json-c
 jsoncpp
 json-glib
 kbproto
