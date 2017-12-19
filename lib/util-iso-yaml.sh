@@ -76,11 +76,27 @@ write_netinstall_conf(){
     echo "groupsUrl: ${netgroups}" >> "$conf"
 }
 
+write_unpack_conf(){
+    local conf="$1/unpackfs.conf"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo "---" > "$conf"
+    echo "unpack:" >> "$conf"
+    echo "    - source: \"/run/${iso_name}/bootmnt/${iso_name}/${target_arch}/rootfs.sfs\"" >> "$conf"
+    echo "      sourcefs: \"squashfs\"" >> "$conf"
+    echo "      destination: \"\"" >> "$conf"
+    if [[ -f "${desktop_list}" ]] ; then
+        echo "    - source: \"/run/${iso_name}/bootmnt/${iso_name}/${target_arch}/desktopfs.sfs\"" >> "$conf"
+        echo "      sourcefs: \"squashfs\"" >> "$conf"
+        echo "      destination: \"\"" >> "$conf"
+    fi
+}
+
 configure_calamares(){
     local dest="$1" mods="$1/etc/calamares/modules"
     if [[ -d $dest/etc/calamares/modules ]];then
         info "Configuring [Calamares]"
         write_netinstall_conf "$mods"
+        write_unpack_conf "$mods"
         write_users_conf "$mods"
         write_initcpio_conf "$mods"
         case ${initsys} in
