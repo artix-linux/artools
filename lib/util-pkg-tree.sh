@@ -114,6 +114,9 @@ patch_pkg(){
                 updpkgsums
             cd ..
         ;;
+        'tp_smapi'|'acpi_call'|'r8168')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/PKGBUILD
+        ;;
     esac
 }
 
