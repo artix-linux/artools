@@ -36,7 +36,7 @@ display_settings(){
     msg2 "arch: %s" "${arch}"
     msg2 "compare: %s" "${compare}"
     msg2 "import_arch: %s" "${import_arch}"
-    msg2 "gitpush: %s" "${gitpush}"
+#     msg2 "gitpush: %s" "${gitpush}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -53,7 +53,7 @@ arch=false
 artix=false
 compare=false
 import_arch=false
-gitpush=false
+# gitpush=false
 repository='system' #${PWD##*/}
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
@@ -65,7 +65,7 @@ usage() {
     echo "    -s            Sync artix tree"
     echo "    -c            Compare artix and arch versions"
     echo '    -i            Import arch packages'
-    echo '    -p            Push import packages'
+#     echo '    -p            Push import packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -75,7 +75,8 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:aipscqh'
+# opts='r:aipscqh'
+opts='r:aiscqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -84,7 +85,7 @@ while getopts "${opts}" arg; do
         s) artix=true ;;
         c) compare=true ;;
         i) import_arch=true ;;
-        p) gitpush=true ;;
+#         p) gitpush=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -105,4 +106,4 @@ ${arch} && sync_tree_arch
 
 ${compare} && show_version_table "${repository}"
 
-${import_arch} && import_from_arch "${repository}" "${gitpush}"
+${import_arch} && import_from_arch "${repository}" #"${gitpush}"

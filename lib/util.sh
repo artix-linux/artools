@@ -54,7 +54,7 @@ get_osid(){
 
 init_artools_base(){
 
-    [[ -z ${target_arch} ]] && target_arch=$(uname -m)
+    target_arch=$(uname -m)
 
     [[ -z ${chroots_dir} ]] && chroots_dir='/var/lib/artools'
 
@@ -91,9 +91,9 @@ init_artools_pkg(){
 init_artools_iso(){
     chroots_iso="${chroots_dir}/buildiso"
 
-    cache_dir_iso="${workspace_dir}/iso"
+    [[ -z ${iso_pool} ]] && iso_pool="${workspace_dir}/iso"
 
-    prepare_dir "${cache_dir_iso}"
+    prepare_dir "${iso_pool}"
 
     profile='base'
 
@@ -106,6 +106,8 @@ init_artools_iso(){
     [[ -z ${initsys} ]] && initsys="openrc"
 
     [[ -z ${kernel} ]] && kernel="linux-lts"
+
+    [[ -z ${kernel_args} ]] && kernel_args=""
 
     [[ -z ${gpgkey} ]] && gpgkey=''
 

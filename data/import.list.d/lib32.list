@@ -1,3 +1,2 @@
-lib32-glibc
-gcc-multilib
-llvm
+lib32-fakeroot
+lib32-libltdl

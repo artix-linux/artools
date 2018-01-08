@@ -9,24 +9,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-get_preset(){
-    local p=/tmp/${kernel}.preset
-    cp ${DATADIR}/linux.preset $p
-    sed -e "s|@kernel@|$kernel|g" \
-        -e "s|@arch@|${target_arch}|g"\
-        -i $p
-    echo $p
-}
-
 write_bootloader_conf(){
-    local conf="$1/bootloader.conf" efi_boot_loader='grub'
+    local conf="$1/bootloader.conf"
     msg2 "Writing %s ..." "${conf##*/}"
-    source "$(get_preset)"
     echo '---' > "$conf"
-    echo "efiBootLoader: \"${efi_boot_loader}\"" >> "$conf"
-    echo "kernel: \"${ALL_kver#*/boot}\"" >> "$conf"
-    echo "img: \"${default_image#*/boot}\"" >> "$conf"
-    echo "fallback: \"${fallback_image#*/boot}\"" >> "$conf"
+    echo "efiBootLoader: \"grub\"" >> "$conf"
+    echo "kernel: \"/vmlinuz-$kernel-${target_arch}\"" >> "$conf"
+    echo "img: \"/initramfs-$kernel-${target_arch}.img\"" >> "$conf"
+    echo "fallback: \"/initramfs-$kernel-${target_arch}-fallback.img\"" >> "$conf"
     echo 'timeout: "10"' >> "$conf"
     echo "kernelLine: \", with ${kernel}\"" >> "$conf"
     echo "fallbackKernelLine: \", with ${kernel} (fallback initramfs)\"" >> "$conf"
@@ -86,17 +76,33 @@ write_netinstall_conf(){
     echo "groupsUrl: ${netgroups}" >> "$conf"
 }
 
+write_unpack_conf(){
+    local conf="$1/unpackfs.conf"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo "---" > "$conf"
+    echo "unpack:" >> "$conf"
+    echo "    - source: \"/run/${iso_name}/bootmnt/${iso_name}/${target_arch}/rootfs.sfs\"" >> "$conf"
+    echo "      sourcefs: \"squashfs\"" >> "$conf"
+    echo "      destination: \"\"" >> "$conf"
+    if [[ -f "${desktop_list}" ]] ; then
+        echo "    - source: \"/run/${iso_name}/bootmnt/${iso_name}/${target_arch}/desktopfs.sfs\"" >> "$conf"
+        echo "      sourcefs: \"squashfs\"" >> "$conf"
+        echo "      destination: \"\"" >> "$conf"
+    fi
+}
+
 configure_calamares(){
-    local modules_dir="$1"
-    if [[ -d $modules_dir ]];then
+    local dest="$1" mods="$1/etc/calamares/modules"
+    if [[ -d $dest/etc/calamares/modules ]];then
         info "Configuring [Calamares]"
-        write_users_conf "$modules_dir"
-        write_netinstall_conf "$modules_dir"
-        write_initcpio_conf "$modules_dir"
+        write_netinstall_conf "$mods"
+        write_unpack_conf "$mods"
+        write_users_conf "$mods"
+        write_initcpio_conf "$mods"
         case ${initsys} in
-            'openrc') write_servicescfg_conf "$modules_dir" ;;
+            'openrc') write_servicescfg_conf "$mods" ;;
         esac
-        write_bootloader_conf "$modules_dir"
+        write_bootloader_conf "$mods"
         info "Done configuring [Calamares]"
     fi
 }

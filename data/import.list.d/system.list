@@ -23,6 +23,7 @@ gdbm
 xz
 zlib
 file
+zstd
 icu
 perl
 openssl
@@ -44,6 +45,7 @@ libgcrypt
 libgpg-error
 libgssglue
 libidn
+libidn2
 libksba
 libmnl
 libmpc
@@ -53,6 +55,7 @@ libnl
 libpcap
 libpipeline
 libpsl
+libidn2
 librpcsecgss
 libseccomp
 libsecret
@@ -96,7 +99,7 @@ iw
 jfsutils
 kbd
 keyutils
-licenses
+#licenses
 links
 linux-atm
 linux-firmware
@@ -126,7 +129,7 @@ pth
 reiserfsprogs
 run-parts
 sdparm
-s-nail
+# s-nail
 sqlite
 sysfsutils
 syslinux
@@ -149,3 +152,4 @@ ipw2200-fw
 isdn4k-utils
 curl
 sudo
+argon2

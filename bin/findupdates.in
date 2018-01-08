@@ -31,7 +31,7 @@ for repo in ${repo_tree_artix[@]}; do
             source $pkg/PKGBUILD 2>/dev/null
             package=${pkg##*/}
             artixver=$(get_full_version $package)
-            set_import_path "$repo" "$package"
+            src=$(get_import_path "$repo" "$package")
             if [[ -f $src/PKGBUILD ]];then
                 source $src/PKGBUILD 2>/dev/null
                 archver=$(get_full_version $package)

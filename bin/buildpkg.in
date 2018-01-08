@@ -23,7 +23,6 @@ import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-pkg.sh
 
 show_pkg(){
-    check_build "$1"
     cd $1
         source PKGBUILD
         for n in ${pkgname[@]}; do
@@ -37,7 +36,6 @@ display_settings(){
     show_config
 
     msg "OPTIONS:"
-    msg2 "arch: %s" "${target_arch}"
     msg2 "chroots_pkg: %s" "${chroots_pkg}"
     msg2 "repository: %s" "${repository}"
     msg2 "stablility: %s" "${stablility}"
@@ -57,6 +55,7 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 
 create_first=false
 pretend=false
+lib32=false
 
 mkchroot_args=()
 mkchrootpkg_args=(-c -n)
@@ -70,27 +69,21 @@ repository=${PWD##*/}
 base_devel=('base-devel')
 
 prepare_build(){
-    local pac_arch='default' pac_conf=
+    local pac_file='pacman.conf' mp_file='makepkg.conf'
 
-    if [[ "${target_arch}" == 'lib32' ]];then
-        pac_arch='lib32'
-        base_devel+=('multilib-devel')
-    fi
+    case "${stablility}" in
+        'testing') pac_file="pacman-${stablility}.conf" ;;
+    esac
 
-    if [[ ${stablility} == 'buildpkg' ]];then
-        pac_conf=$pac_arch
-    else
-        pac_conf=$pac_arch-${stablility}
-    fi
+    ${lib32} && base_devel+=('multilib-devel')
 
-    [[ "$pac_arch" == 'lib32' ]] && target_arch='x86_64'
+    local pacman_conf="${DATADIR}/$pac_file"
+    [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
 
-    local pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
     work_dir="${chroots_pkg}/${repository}-${target_arch}"
 
-    local makepkg_conf="${DATADIR}/makepkg-${target_arch}.conf"
-    [[ -f $AT_USERCONFDIR/makepkg-${target_arch}.conf ]] && makepkg_conf="$AT_USERCONFDIR/makepkg-${target_arch}.conf"
+    local makepkg_conf="${DATADIR}/$mp_file"
+    [[ -f $AT_USERCONFDIR/$mp_file ]] && makepkg_conf="$AT_USERCONFDIR/$mp_file"
 
     mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
@@ -114,10 +107,10 @@ build(){
 usage() {
     echo "Usage: ${0##*/} [options] -- [makepkg_args]"
     echo "    -p <pkg>           Package to build [default: ${package}]"
-    echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
     echo '    -z <repo>          Repo name'
     echo '    -c                 Create root chroot'
+    echo '    -m                 Multilib chroot'
     echo '    -q                 Query settings and pretend build'
     echo '    -h                 This help'
     echo ''
@@ -128,15 +121,15 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:z:cqh'
+opts='p:r:z:cmqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
-        a) target_arch="$OPTARG" ;;
         r) chroots_pkg="$OPTARG" ;;
         z) repository="$OPTARG" ;;
         c) create_first=true ;;
+        m) lib32=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '%s'" "${arg}"; usage 1 ;;

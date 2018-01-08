@@ -13,6 +13,7 @@ declare -A pseudofs_types=([anon_inodefs]=1
                         [bdev]=1
                         [binfmt_misc]=1
                         [cgroup]=1
+                        [cgroup2]=1
                         [configfs]=1
                         [cpuset]=1
                         [debugfs]=1
@@ -72,7 +73,7 @@ valid_number_of_base() {
 mangle() {
     local i= chr= out=
 
-    unset {a..f} {A..F}
+    local {a..f}= {A..F}=
 
     for (( i = 0; i < ${#1}; i++ )); do
         chr=${1:i:1}
@@ -91,7 +92,7 @@ mangle() {
 unmangle() {
     local i= chr= out= len=$(( ${#1} - 4 ))
 
-    unset {a..f} {A..F}
+    local {a..f}= {A..F}=
 
     for (( i = 0; i < len; i++ )); do
         chr=${1:i:1}

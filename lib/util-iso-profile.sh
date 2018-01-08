@@ -44,7 +44,7 @@ load_profile(){
     [[ -z ${password} ]] && password="artix"
 
     if [[ -z ${addgroups} ]];then
-        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users"
+        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,audio"
     fi
 
     if [[ -z ${openrc_boot[@]} ]];then
@@ -84,9 +84,8 @@ write_live_session_conf(){
     echo "addgroups='${addgroups}'" >> ${conf}
 }
 
-# $1: file name
 load_pkgs(){
-    local pkglist="$1" arch="$2" init="$3" _kv="$4"
+    local pkglist="$1" init="$2" _kv="$3"
     info "Loading Packages: [%s] ..." "${pkglist##*/}"
 
     local _init="s|>$init||g"
@@ -95,13 +94,6 @@ load_pkgs(){
         's6') _init_rm1="s|>runit.*||g"; _init_rm2="s|>openrc.*||g" ;;
         'runit') _init_rm1="s|>s6.*||g"; _init_rm2="s|>openrc.*||g" ;;
     esac
-
-    local _arch="s|>x86_64||g" _arch_rm="s|>i686.*||g"
-
-    if [[ "$arch" == 'i686' ]];then
-        _arch="s|>i686||g"
-        _arch_rm="s|>x86_64.*||g"
-    fi
 
     local _blacklist="s|>blacklist.*||g" \
         _kernel="s|KERNEL|$_kv|g" \
@@ -116,8 +108,6 @@ load_pkgs(){
             | sed "$_init" \
             | sed "$_init_rm1" \
             | sed "$_init_rm2" \
-            | sed "$_arch" \
-            | sed "$_arch_rm" \
             | sed "$_kernel" \
             | sed "$_clean"))
 }

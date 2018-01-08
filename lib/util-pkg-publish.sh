@@ -36,8 +36,6 @@ move_to_repo(){
     msg "Writing repo lists [%s]" "$repo_src"
     ls *.pkg.tar.xz{,.sig} > $filelist
     ls *.pkg.tar.xz > $pkglist
-    # uncomment for local test run
-#     rsync -v --files-from="$filelist" $repo_path "$src"
     rm -v *
     repo-add $repo_src.db.tar.xz
     repo_path=${repos_root}/$repo_dest/os/$repo_arch
@@ -51,28 +49,25 @@ move_to_repo(){
 }
 
 add_to_repo(){
-    local repo="$1" destarch="$2" pkg="$3" ver pkgfile result
-    if [[ $pkg == 'llvm' ]];then
-        if [[ ${repo#*-} == 'testing' ]];then
-            repo='world-testing'
-        else
-            repo='world'
-        fi
-    fi
+    local repo="$1" destarch="$2" pkg="$3" ver pkgfile=
     local repo_path=${repos_root}/$repo/os/$destarch
     source $pkg/PKGBUILD
-    local dest=$pkg
     for name in ${pkgname[@]};do
+        info "finddeps: %s" "$name"
+        finddeps $name
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
-        if ! result=$(find_cached_package "$name" "$ver" "$CARCH"); then
-            pkgfile=$name-$ver-$CARCH.pkg.tar.xz
-            [[ -n ${PKGDEST} ]] && dest=${PKGDEST}/$pkgfile
-            [[ -e $dest.sig ]] && rm $dest.sig
-            signfile $dest
-            ln -sf $dest{,.sig} $repo_path/
+        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            info "find-libdeps: %s" "$pkgfile"
+            find-libdeps "$pkgfile"
+            info "find-libprovides: %s" "$pkgfile"
+            find-libprovides "$pkgfile"
+            [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
+            signfile ${pkgfile}
+            ln -sf ${pkgfile}{,.sig} $repo_path/
             cd $repo_path
-            repo-add -R $repo.db.tar.xz $pkgfile
+            repo-add -R $repo.db.tar.xz ${pkgfile##*/}
         fi
     done
 }
+

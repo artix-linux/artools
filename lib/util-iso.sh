@@ -245,7 +245,7 @@ configure_live_image(){
     configure_hosts "$fs"
     configure_system "$fs"
     configure_services "$fs"
-    configure_calamares "$fs/etc/calamares/modules"
+    configure_calamares "$fs"
     write_live_session_conf "$fs"
     msg "Done configuring [livefs]"
 }
@@ -524,14 +524,14 @@ compress_images(){
 
 prepare_images(){
     local timer=$(get_timer)
-    load_pkgs "${root_list}" "${target_arch}" "${initsys}" "${kernel}"
+    load_pkgs "${root_list}" "${initsys}" "${kernel}"
     run_safe "make_rootfs"
     if [[ -f "${desktop_list}" ]] ; then
-        load_pkgs "${desktop_list}" "${target_arch}" "${initsys}" "${kernel}"
+        load_pkgs "${desktop_list}" "${initsys}" "${kernel}"
         run_safe "make_desktopfs"
     fi
     if [[ -f ${live_list} ]]; then
-        load_pkgs "${live_list}" "${target_arch}" "${initsys}" "${kernel}"
+        load_pkgs "${live_list}" "${initsys}" "${kernel}"
         run_safe "make_livefs"
     fi
     run_safe "make_bootfs"

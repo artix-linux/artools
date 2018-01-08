@@ -26,24 +26,21 @@ prepare_build(){
 
     netgroups=${netgroups_url}/netgroups-${initsys}.yaml
 
-    local pac_arch='default' pacman_conf pac_conf
-    [[ "${target_arch}" == 'x86_64' ]] && pac_arch='lib32'
+    local pacman_conf pac_file="pacman.conf"
 
-    if [[ ${stablility} == 'buildiso' ]];then
-        pac_conf=$pac_arch
-    else
-        pac_conf=$pac_arch-${stablility}
-    fi
+    case "${stablility}" in
+        'testing') pac_file="pacman-${stablility}.conf" ;;
+    esac
 
-    pacman_conf="${DATADIR}/pacman-$pac_conf.conf"
-    [[ -f $AT_USERCONFDIR/pacman-$pac_conf.conf ]] && pacman_conf="$AT_USERCONFDIR/pacman-$pac_conf.conf"
+    pacman_conf="${DATADIR}/$pac_file"
+    [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
 
     iso_file=$(gen_iso_fn).iso
 
     mkchroot_args+=(-C ${pacman_conf})
     work_dir=${chroots_iso}/${profile}/${target_arch}
 
-    iso_dir="${cache_dir_iso}/${profile}"
+    iso_dir="${iso_pool}/${profile}"
 
     iso_root=${chroots_iso}/${profile}/iso
     mnt_dir=${chroots_iso}/${profile}/mnt
@@ -75,10 +72,10 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "profile: %s" "${profile}"
-    msg2 "arch: %s" "${target_arch}"
     msg2 "initsys: %s" "${initsys}"
     msg2 "kernel: %s" "${kernel}"
     [[ -n ${gpgkey} ]] && msg2 "gpgkey: %s" "${gpgkey}"
+    msg2 "stablility: %s" "${stablility}"
 
     msg "ARGS:"
     msg2 "clean_first: %s" "${clean_first}"
@@ -146,11 +143,10 @@ stablility=${cmd##*-}
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -p <profile>       Profile [default: ${profile}]"
-    echo "    -a <arch>          Arch [default: ${target_arch}]"
     echo '    -r <dir>           Chroots directory'
     echo "                       [default: ${chroots_iso}]"
     echo '    -t <dir>           Target directory'
-    echo "                       [default: ${cache_dir_iso}]"
+    echo "                       [default: ${iso_pool}]"
     echo '    -k <name>          Kernel to use'
     echo "                       [default: ${kernel}]"
     echo '    -i <name>          Init system to use'
@@ -172,14 +168,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:t:k:i:g:czxmvqh'
+opts='p:r:t:k:i:g:czxmvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) profile="$OPTARG" ;;
-        a) target_arch="$OPTARG" ;;
         r) chroots_iso="$OPTARG" ;;
-        t) cache_dir_iso="$OPTARG" ;;
+        t) iso_pool="$OPTARG" ;;
         k) kernel="$OPTARG" ;;
         i) initsys="$OPTARG" ;;
         g) gpgkey="$OPTARG" ;;
