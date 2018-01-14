@@ -169,7 +169,7 @@ configure_services(){
                 [[ $svc == "xdm" ]] && set_xdm "$mnt"
                 add_svc_rc "$mnt" "$svc" "default"
             done
-            for svc in ${enable_live[@]}; do
+            for svc in ${services_live[@]}; do
                 add_svc_rc "$mnt" "$svc" "default"
             done
         ;;
