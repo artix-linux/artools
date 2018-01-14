@@ -47,18 +47,16 @@ load_profile(){
         addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,audio"
     fi
 
-    if [[ -z ${openrc_boot[@]} ]];then
-        openrc_boot=('elogind')
+    if [[ -z ${services[@]} ]];then
+        services=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
     fi
 
-    if [[ -z ${openrc_default[@]} ]];then
-        openrc_default=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
+    [[ ${displaymanager} != "none" ]] && services+=('xdm')
+    
+    if [[ -z ${services_live[@]} ]];then
+        services_live=('artix-live' 'pacman-init')
     fi
-
-    [[ ${displaymanager} != "none" ]] && openrc_default+=('xdm')
-
-    enable_live=('artix-live' 'pacman-init')
-
+    
     [[ -z ${netgroups_url} ]] && netgroups_url="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
     return 0
