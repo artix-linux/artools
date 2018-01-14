@@ -51,11 +51,11 @@ load_profile(){
         openrc_boot=('elogind')
     fi
 
-    if [[ -z ${openrc_default[@]} ]];then
-        openrc_default=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
+    if [[ -z ${services[@]} ]];then
+        services=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
     fi
 
-    [[ ${displaymanager} != "none" ]] && openrc_default+=('xdm')
+    [[ ${displaymanager} != "none" ]] && services+=('xdm')
 
     enable_live=('artix-live' 'pacman-init')
 

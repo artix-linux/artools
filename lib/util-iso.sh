@@ -165,10 +165,7 @@ configure_services(){
     info "Configuring [%s]" "${initsys}"
     case ${initsys} in
         'openrc')
-            for svc in ${openrc_boot[@]}; do
-                add_svc_rc "$mnt" "$svc" "boot"
-            done
-            for svc in ${openrc_default[@]}; do
+            for svc in ${services[@]}; do
                 [[ $svc == "xdm" ]] && set_xdm "$mnt"
                 add_svc_rc "$mnt" "$svc" "default"
             done

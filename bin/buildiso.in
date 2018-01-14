@@ -61,8 +61,7 @@ show_profile(){
         msg2 "addgroups: %s" "${addgroups}"
 
         msg2 "enable_live: %s" "${enable_live[*]}"
-        msg2 "openrc_boot: %s" "${openrc_boot[*]}"
-        msg2 "openrc_default: %s" "${openrc_default[*]}"
+        msg2 "services: %s" "${services[*]}"
     fi
 }
 

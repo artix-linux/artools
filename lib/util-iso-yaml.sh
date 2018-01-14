@@ -33,11 +33,7 @@ write_servicescfg_conf(){
     echo '' >> "$conf"
     echo 'services:' >> "$conf"
     echo '    enabled:' >> "$conf"
-    for s in ${openrc_boot[@]};do
-        echo "      - name: $s" >> "$conf"
-        echo '        runlevel: boot' >> "$conf"
-    done
-    for s in ${openrc_default[@]};do
+    for s in ${services[@]};do
         echo "      - name: $s" >> "$conf"
         echo '        runlevel: default' >> "$conf"
     done
