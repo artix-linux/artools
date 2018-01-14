@@ -34,9 +34,9 @@ BIN_PKG = \
 	bin/findupdates \
 	bin/find-libdeps \
 	bin/mkchrootpkg \
-	bin/buildpkg \
-	bin/buildtree \
-	bin/deploypkg
+	bin/buildpkg2 \
+	bin/buildtree2 \
+	bin/deploypkg2
 
 LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
@@ -120,7 +120,7 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
 
-	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
+	ln -sf buildpkg2 $(DESTDIR)$(PREFIX)/bin/buildpkg-gremlins
 
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 

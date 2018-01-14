@@ -1,0 +1,109 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+SYSCONFDIR='@sysconfdir@'
+DATADIR='@datadir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
+import ${LIBDIR}/util-pkg-tree.sh
+
+display_settings(){
+    show_version
+    show_config
+
+    msg "REPOS:"
+    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
+    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
+
+    msg "OPTIONS:"
+    msg2 "repository: %s" "${repository}"
+
+    msg "ARGS:"
+    msg2 "artix: %s" "${artix}"
+    msg2 "arch: %s" "${arch}"
+    msg2 "compare: %s" "${compare}"
+    msg2 "import_arch: %s" "${import_arch}"
+#     msg2 "gitpush: %s" "${gitpush}"
+
+    msg "PATHS:"
+    msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
+    msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
+    msg2 "patches_dir: %s" "${patches_dir}/${repository}"
+}
+
+load_user_info
+
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+
+pretend=false
+arch=false
+artix=false
+compare=false
+import_arch=false
+# gitpush=false
+repository='system' #${PWD##*/}
+
+rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -r <repo>     Repository [default:${repository}]"
+    echo "    -a            Sync arch tree"
+    echo "    -s            Sync artix tree"
+    echo "    -c            Compare artix and arch versions"
+    echo '    -i            Import arch packages'
+#     echo '    -p            Push import packages'
+    echo '    -q            Query settings'
+    echo '    -h            This help'
+    echo ''
+    echo ''
+    exit $1
+}
+
+orig_argv=("$0" "$@")
+
+# opts='r:aipscqh'
+opts='r:aiscqh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+        r) repository="$OPTARG" ;;
+        a) arch=true ;;
+        s) artix=true ;;
+        c) compare=true ;;
+        i) import_arch=true ;;
+#         p) gitpush=true ;;
+        q) pretend=true ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '${arg}'"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+prepare_dir "${tree_dir_artix}"
+prepare_dir "${tree_dir_arch}"
+prepare_dir "${patches_dir}/${repository}"
+
+${pretend} && display_settings && exit 1
+
+${artix} && sync_tree_artix
+
+${arch} && sync_tree_arch
+
+${compare} && show_version_table "${repository}"
+
+${import_arch} && import_from_arch "${repository}" #"${gitpush}"
