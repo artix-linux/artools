@@ -18,7 +18,7 @@ DATADIR='@datadir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
-import ${LIBDIR}/util-pkg-tree.sh
+import ${LIBDIR}/util-pkg-tree2.sh
 
 display_settings(){
     show_version
@@ -54,7 +54,7 @@ artix=false
 compare=false
 import_arch=false
 # gitpush=false
-repository='system' #${PWD##*/}
+repository='packages' #${PWD##*/}
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
@@ -104,6 +104,6 @@ ${artix} && sync_tree_artix
 
 ${arch} && sync_tree_arch
 
-${compare} && show_version_table "${repository}"
+# ${compare} && show_version_table "${repository}"
 
 ${import_arch} && import_from_arch "${repository}" #"${gitpush}"

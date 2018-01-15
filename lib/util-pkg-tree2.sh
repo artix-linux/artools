@@ -121,34 +121,19 @@ patch_pkg(){
 }
 
 get_import_path(){
-    local arch_dir arch_repo import_path
+    local arch_repo import_path
     local repo="$1" pkg="$2" src=
     case $repo in
-        system|world)
-            arch_dir=packages
-            [[ "$repo" == 'system' ]] && arch_repo=core
-            [[ "$repo" == 'world' ]] && arch_repo=extra
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-            src=$import_path/$arch_repo-x86_64
-            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
-            [[ -d $import_path/$arch_repo-any ]] && src=$import_path/$arch_repo-any
+        packages)
+            import_path=${tree_dir_arch}/packages/$pkg/repos
+            src=$import_path/testing-x86_64
             [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
         ;;
         galaxy)
-            arch_repo=community
-            arch_dir=$arch_repo
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
-            src=$import_path-x86_64
-            [[ -d $import_path-testing-x86_64 ]] && src=$import_path-testing-x86_64
-            [[ -d $import_path-any ]] && src=$import_path-any
-            [[ -d $import_path-testing-any ]] && src=$import_path-testing-any
-        ;;
-        lib32)
-            arch_repo=multilib
-            arch_dir=community
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-            src=$import_path/$arch_repo-x86_64
-            [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
+            import_path=${tree_dir_arch}/community/$pkg/repos
+            src=$import_path/community-testing-x86_64
+            [[ -d $import_path/community-testing-any ]] && src=$import_path/community-testing-any
+            [[ -d $import_path/multilib-testing-x86_64 ]] && src=$import_path/multilib-testing-x86_64
         ;;
     esac
     echo $src
@@ -158,12 +143,14 @@ show_version_table(){
     local repo="$1"
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for pkg in ${tree_dir_artix}/$repo/*; do
+    for pkg in ${tree_dir_artix}/$repo/**/repos/*; do
         if [[ -f $pkg/PKGBUILD ]];then
             source $pkg/PKGBUILD 2>/dev/null
             package=${pkg##*/}
             artixver=$(get_full_version $package)
+            
             local src=$(get_import_path "$repo" "$package")
+            
             if [[ -f $src/PKGBUILD ]];then
                 source $src/PKGBUILD 2>/dev/null
                 archver=$(get_full_version $package)
@@ -191,22 +178,18 @@ import_from_arch(){
         $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
         git pull origin "$branch"
         for pkg in ${import_list[@]};do
-            local src=$(get_import_path "$repo" "$pkg") dest=${tree_dir_artix}/$repo/$pkg
-            source $src/PKGBUILD 2>/dev/null
-            local ver=$(get_full_version $pkg)
-            msg "Package: %s-%s" "$pkg" "$ver"
-            msg2 "src: %s" "$src"
-            msg2 "dest: %s" "$dest"
-            rsync "${rsync_args[@]}"  $src/ $dest/
-            patch_pkg "$pkg"
-#             if ${push};then
-#                 local timeout=10
-#                 git add "$pkg"
-#                 git commit -m "$pkg-$ver"
-#                 sleep $timeout
-#                 git push origin "$branch"
-#             fi
-            unset pkgver epoch pkgrel ver
+            local src=$(get_import_path "$repo" "$pkg") 
+            local dest=${tree_dir_artix}/$repo/$pkg/repos/gremlins
+            if [[ -f $src/PKGBUILD ]];then
+                source $src/PKGBUILD 2>/dev/null
+                local ver=$(get_full_version $pkg)
+                msg "Package: %s-%s" "$pkg" "$ver"
+                msg2 "src: %s" "$src"
+                msg2 "dest: %s" "$dest"
+                rsync "${rsync_args[@]}"  $src/ $dest/
+                patch_pkg "$pkg"
+                unset pkgver epoch pkgrel ver
+            fi
         done
     fi
     show_elapsed_time "${FUNCNAME}" "${timer}"

@@ -16,7 +16,7 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-pkg-publish.sh
+import ${LIBDIR}/util-pkg-publish2.sh
 
 display_settings(){
     show_version
