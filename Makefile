@@ -34,6 +34,9 @@ BIN_PKG = \
 	bin/findupdates \
 	bin/find-libdeps \
 	bin/mkchrootpkg \
+	bin/buildpkg \
+	bin/buildtree \
+	bin/deploypkg \
 	bin/buildpkg2 \
 	bin/buildtree2 \
 	bin/deploypkg2
