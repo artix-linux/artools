@@ -24,7 +24,6 @@ is_dirty() {
 
 sync_tree(){
     local branch="master" repo="$1"
-    git checkout $branch
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer)
@@ -126,60 +125,40 @@ get_import_path(){
     case $repo in
         packages)
             import_path=${tree_dir_arch}/packages/$pkg/repos
-            src=$import_path/testing-x86_64
+            [[ -d $import_path/core-x86_64 ]] && src=$import_path/core-x86_64
+            [[ -d $import_path/core-any ]] && src=$import_path/core-any
+            [[ -d $import_path/extra-x86_64 ]] && src=$import_path/extra-x86_64
+            [[ -d $import_path/extra-any ]] && src=$import_path/extra-any
+            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
             [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
         ;;
         galaxy)
             import_path=${tree_dir_arch}/community/$pkg/repos
-            src=$import_path/community-testing-x86_64
+            [[ -d $import_path/community-x86_64 ]] && src=$import_path/community-x86_64
+            [[ -d $import_path/community-any ]] && src=$import_path/community-any
+            [[ -d $import_path/community-testing-x86_64 ]] && src=$import_path/community-testing-x86_64
             [[ -d $import_path/community-testing-any ]] && src=$import_path/community-testing-any
+            [[ -d $import_path/multilib-x86_64 ]] && src=$import_path/multilib-x86_64
             [[ -d $import_path/multilib-testing-x86_64 ]] && src=$import_path/multilib-testing-x86_64
         ;;
     esac
     echo $src
 }
 
-show_version_table(){
-    local repo="$1"
-    declare -A UPDATES
-    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for pkg in ${tree_dir_artix}/$repo/**/repos/*; do
-        if [[ -f $pkg/PKGBUILD ]];then
-            source $pkg/PKGBUILD 2>/dev/null
-            package=${pkg##*/}
-            artixver=$(get_full_version $package)
-            
-            local src=$(get_import_path "$repo" "$package")
-            
-            if [[ -f $src/PKGBUILD ]];then
-                source $src/PKGBUILD 2>/dev/null
-                archver=$(get_full_version $package)
-            fi
-            if [ $(vercmp $artixver $archver) -lt 0 ];then
-                UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
-                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
-            fi
-        fi
-        unset pkgver epoch pkgrel artixver archver package
-    done
-    find "${patches_dir}/$repo/" -name *.patch -delete
-    for upd in "${!UPDATES[@]}"; do
-        msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/$repo/"$upd"-archlinux.patch
-    done
-}
-
 import_from_arch(){
-    local timer=$(get_timer) branch='testing' repo="$1" push="$2"
-    read_import_list "$repo"
+    local timer=$(get_timer) tree="$1"
+    read_import_list "$tree"
     if [[ -n ${import_list[@]} ]];then
-        cd ${tree_dir_artix}/$repo
-        git checkout $branch &> /dev/null
+        cd ${tree_dir_artix}/$tree
         $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-        git pull origin "$branch"
+        git pull origin master
         for pkg in ${import_list[@]};do
-            local src=$(get_import_path "$repo" "$pkg") 
-            local dest=${tree_dir_artix}/$repo/$pkg/repos/gremlins
+            local src=$(get_import_path "$tree" "$pkg")
+            local repo=gremlins
+            [[ $tree == "galaxy" ]] && repo=galaxy-gremlins
+#             [[ $tree == "lib32" ]] && repo=lib32-gremlins
+            local dest=${tree_dir_artix}/$tree/$pkg/$repo
+            [[ -d $src ]] && mkdir $dest
             if [[ -f $src/PKGBUILD ]];then
                 source $src/PKGBUILD 2>/dev/null
                 local ver=$(get_full_version $pkg)

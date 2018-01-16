@@ -34,9 +34,7 @@ display_settings(){
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
-    msg2 "compare: %s" "${compare}"
     msg2 "import_arch: %s" "${import_arch}"
-#     msg2 "gitpush: %s" "${gitpush}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -51,10 +49,8 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 pretend=false
 arch=false
 artix=false
-compare=false
 import_arch=false
-# gitpush=false
-repository='packages' #${PWD##*/}
+repository='packages'
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
@@ -63,9 +59,7 @@ usage() {
     echo "    -r <repo>     Repository [default:${repository}]"
     echo "    -a            Sync arch tree"
     echo "    -s            Sync artix tree"
-    echo "    -c            Compare artix and arch versions"
     echo '    -i            Import arch packages'
-#     echo '    -p            Push import packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -75,17 +69,14 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-# opts='r:aipscqh'
-opts='r:aiscqh'
+opts='r:aisqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         r) repository="$OPTARG" ;;
         a) arch=true ;;
         s) artix=true ;;
-        c) compare=true ;;
         i) import_arch=true ;;
-#         p) gitpush=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -104,6 +95,4 @@ ${artix} && sync_tree_artix
 
 ${arch} && sync_tree_arch
 
-# ${compare} && show_version_table "${repository}"
-
-${import_arch} && import_from_arch "${repository}" #"${gitpush}"
+${import_arch} && import_from_arch "${repository}"
