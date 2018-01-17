@@ -123,7 +123,9 @@ install_pkg:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
 
-	ln -sf buildpkg2 $(DESTDIR)$(PREFIX)/bin/buildpkg-gremlins
+	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
+	
+	ln -sf buildpkg2 $(DESTDIR)$(PREFIX)/bin/buildpkg2-gremlins
 
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
