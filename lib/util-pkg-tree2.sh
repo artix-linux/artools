@@ -90,59 +90,42 @@ is_untracked(){
     return 0
 }
 
-patch_pkg(){
-    local pkg="$1"
-    case $pkg in
-        'glibc')
-            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
-                -e '/nscd.service/d' \
-                -i $pkg/PKGBUILD
-        ;;
-        'bash')
-            sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
-                -e 's|etc/bash.|etc/bash/|g' \
-                -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
-                -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
-                -i $pkg/PKGBUILD
-
-            patch -p1 -i $DATADIR/patches/dot-bashrc.patch
-            patch -p1 -i $DATADIR/patches/system-bashrc.patch
-            patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
-            patch -p1 -i $DATADIR/patches/artix-bashrc.patch
-            cd $pkg
-                updpkgsums
-            cd ..
-        ;;
-        'tp_smapi'|'acpi_call'|'r8168')
-            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/PKGBUILD
-        ;;
-    esac
-}
+# patch_pkg(){
+#     local pkg="$1"
+#     case $pkg in
+#         'glibc')
+#             sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+#                 -e '/nscd.service/d' \
+#                 -i $pkg/PKGBUILD
+#         ;;
+#         'bash')
+#             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
+#                 -e 's|etc/bash.|etc/bash/|g' \
+#                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
+#                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
+#                 -i $pkg/PKGBUILD
+# 
+#             patch -p1 -i $DATADIR/patches/dot-bashrc.patch
+#             patch -p1 -i $DATADIR/patches/system-bashrc.patch
+#             patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
+#             patch -p1 -i $DATADIR/patches/artix-bashrc.patch
+#             cd $pkg
+#                 updpkgsums
+#             cd ..
+#         ;;
+#         'tp_smapi'|'acpi_call'|'r8168')
+#             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/PKGBUILD
+#         ;;
+#     esac
+# }
 
 get_import_path(){
-    local arch_repo import_path
-    local repo="$1" pkg="$2" src=
+    local repo="$1" import_path=
     case $repo in
-        packages)
-            import_path=${tree_dir_arch}/packages/$pkg/repos
-            [[ -d $import_path/core-x86_64 ]] && src=$import_path/core-x86_64
-            [[ -d $import_path/core-any ]] && src=$import_path/core-any
-            [[ -d $import_path/extra-x86_64 ]] && src=$import_path/extra-x86_64
-            [[ -d $import_path/extra-any ]] && src=$import_path/extra-any
-            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
-            [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
-        ;;
-        galaxy)
-            import_path=${tree_dir_arch}/community/$pkg/repos
-            [[ -d $import_path/community-x86_64 ]] && src=$import_path/community-x86_64
-            [[ -d $import_path/community-any ]] && src=$import_path/community-any
-            [[ -d $import_path/community-testing-x86_64 ]] && src=$import_path/community-testing-x86_64
-            [[ -d $import_path/community-testing-any ]] && src=$import_path/community-testing-any
-            [[ -d $import_path/multilib-x86_64 ]] && src=$import_path/multilib-x86_64
-            [[ -d $import_path/multilib-testing-x86_64 ]] && src=$import_path/multilib-testing-x86_64
-        ;;
+        packages) import_path=${tree_dir_arch}/packages ;;
+        galaxy) import_path=${tree_dir_arch}/community ;;
     esac
-    echo $src
+    echo $import_path
 }
 
 import_from_arch(){
@@ -150,25 +133,16 @@ import_from_arch(){
     read_import_list "$tree"
     if [[ -n ${import_list[@]} ]];then
         cd ${tree_dir_artix}/$tree
-        $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
+#         $(is_dirty) && die "[%s] has uncommited changes!" "${tree}"
         git pull origin master
         for pkg in ${import_list[@]};do
-            local src=$(get_import_path "$tree" "$pkg")
-            local repo=gremlins
-            [[ $tree == "galaxy" ]] && repo=galaxy-gremlins
-#             [[ $tree == "lib32" ]] && repo=lib32-gremlins
-            local dest=${tree_dir_artix}/$tree/$pkg/$repo
-            [[ -d $src ]] && mkdir $dest
-            if [[ -f $src/PKGBUILD ]];then
-                source $src/PKGBUILD 2>/dev/null
-                local ver=$(get_full_version $pkg)
-                msg "Package: %s-%s" "$pkg" "$ver"
-                msg2 "src: %s" "$src"
-                msg2 "dest: %s" "$dest"
-                rsync "${rsync_args[@]}"  $src/ $dest/
-                patch_pkg "$pkg"
-                unset pkgver epoch pkgrel ver
-            fi
+            local src=$(get_import_path "$tree")
+            local dest=${tree_dir_artix}/$tree
+            source $src/$pkg/trunk/PKGBUILD 2>/dev/null
+            local ver=$(get_full_version $pkg)
+            msg "Package: %s-%s" "$pkg" "$ver"
+            rsync "${rsync_args[@]}"  $src/$pkg/repos/ $dest/$pkg/
+            unset pkgver epoch pkgrel ver
         done
     fi
     show_elapsed_time "${FUNCNAME}" "${timer}"

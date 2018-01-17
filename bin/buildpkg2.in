@@ -23,12 +23,10 @@ import ${LIBDIR}/util-chroot.sh
 import ${LIBDIR}/util-pkg.sh
 
 show_pkg(){
-    cd $1
-        source PKGBUILD
-        for n in ${pkgname[@]}; do
-            msg2 "%s" "$n"
-        done
-    cd ..
+    source PKGBUILD
+    for n in ${pkgname[@]}; do
+        msg2 "%s" "$n"
+    done
 }
 
 display_settings(){
@@ -43,9 +41,9 @@ display_settings(){
     msg2 "create_first: %s" "${create_first}"
     msg2 "makepkg_args: %s" "${makepkg_args[*]}"
     msg2 "mkchrootpkg_args: %s" "${mkchrootpkg_args[*]}"
-
+    
     msg "BUILD:"
-    show_pkg "${package}"
+    show_pkg
 }
 
 load_user_info
@@ -60,17 +58,16 @@ mkchroot_args=()
 mkchrootpkg_args=(-c -n)
 
 install_pkgs=()
-package=''
-
+cmd=${0##*/}
+repository=${cmd##*-}
+    
 prepare_build(){
     local pac_file= mp_file='makepkg.conf'    
-    
-    local cmd=${0##*/}
-    repository=${cmd##*-}
-    pac_file="pacman-${repository}.conf"
-    
+            
     base_devel=('base-devel')
     ${lib32} && base_devel+=('multilib-devel')
+    
+    local pac_file="pacman-${repository}.conf"
 
     local pacman_conf="${DATADIR}/$pac_file"
     [[ -f $AT_USERCONFDIR/$pac_file ]] && pacman_conf="$AT_USERCONFDIR/$pac_file"
@@ -83,26 +80,21 @@ prepare_build(){
     mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
     mkchrootpkg_args+=(-r "${work_dir}" "${makepkg_args[@]}")
-
+   
     timer_start=$(get_timer)
 }
 
 build(){
-    local timer_start=$(get_timer)
-    if [[ -f ${package}/${repository}/PKGBUILD ]];then
-        cd ${package}/${repository}
-    else
-        die "Directory must contain a PKGBUILD!"
-    fi
-    msg "Start building [%s] (%s)" "${package}" "${repository}"
+    local timer_start=$(get_timer) 
+
     exec mkchrootpkg "${mkchrootpkg_args[@]}"
     show_elapsed_time "${FUNCNAME}" "${timer_start}"
 }
 
 usage() {
     echo "Usage: ${0##*/} [options] -- [makepkg_args]"
-    echo "    -p <pkg>           Package to build [default: ${package}]"
-    echo "    -r <dir>           Chroots directory [default: ${chroots_pkg}]"
+    echo "    -r <dir>           Repository [default: ${repository}]"
+    echo "    -b <dir>           Chroots directory [default: ${chroots_pkg}]"
     echo '    -c                 Create root chroot'
     echo '    -m                 Multilib chroot'
     echo '    -q                 Query settings and pretend build'
@@ -115,12 +107,12 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:r:cmqh'
+opts='r:b:cmqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        p) package="$OPTARG" ;;
-        r) chroots_pkg="$OPTARG" ;;
+        r) repository="$OPTARG" ;;
+        b) chroots_pkg="$OPTARG" ;;
         c) create_first=true ;;
         m) lib32=true ;;
         q) pretend=true ;;
@@ -162,4 +154,4 @@ else
         pacman -Syu --noconfirm || abort
 fi
 
-build "${package}"
+build
