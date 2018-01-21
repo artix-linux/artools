@@ -22,6 +22,26 @@ is_dirty() {
     return 0
 }
 
+create_pkg_repo(){
+    local repo="$1" pkg="$2"
+    cd ${tree_dir_artix}/$repo
+    mkdir $pkg
+    cd $pkg
+        git init
+        git add .
+        git commit -m "initial commit $pkg"
+        hub create artix-$repo/$pkg
+        git push origin master
+    cd ..
+}
+
+add_pkg_subtree(){
+    local repo="$1" pkg="$2"
+    cd ${tree_dir_artix}/$repo
+    git remote add -f $pkg ${host_tree_artix}-$repo/$pkg.git
+    git subtree add --prefix $pkg $pkg master --squash
+}
+
 sync_tree(){
     local branch="master" repo="$1"
     local local_head=$(get_local_head "$branch")
@@ -73,7 +93,7 @@ sync_tree_artix(){
                     sync_tree "${repo}"
                 cd ..
             else
-                clone_tree "${repo}" "${host_tree_artix}/${repo}"
+                clone_tree "${repo}" "${host_tree_artix}-linux/${repo}"
             fi
         done
     cd ..

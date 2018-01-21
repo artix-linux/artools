@@ -30,10 +30,13 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
+    msg2 "package: %s" "${package}"
 
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
+    msg2 "create: %s" "${create}"
+    msg2 "add_subtree: %s" "${add_subtree}"
     msg2 "import_arch: %s" "${import_arch}"
 
     msg "PATHS:"
@@ -50,15 +53,21 @@ pretend=false
 arch=false
 artix=false
 import_arch=false
+create=false
+add_subtree=false
 repository='packages'
+package=''
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -r <repo>     Repository [default:${repository}]"
+    echo "    -p <pkg>      Package [default:${package}]"
     echo "    -a            Sync arch tree"
-    echo "    -s            Sync artix tree"
+    echo "    -b            Sync artix tree"
+    echo "    -c            Create package repo"
+    echo "    -s            Add subtree"
     echo '    -i            Import arch packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
@@ -69,13 +78,16 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:aisqh'
+opts='r:p:abcsiqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         r) repository="$OPTARG" ;;
+        p) package="$OPTARG" ;;
         a) arch=true ;;
-        s) artix=true ;;
+        b) artix=true ;;
+        c) create=true ;;
+        s) add_subtree=true ;;
         i) import_arch=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
@@ -94,5 +106,9 @@ ${pretend} && display_settings && exit 1
 ${artix} && sync_tree_artix
 
 ${arch} && sync_tree_arch
+
+${create} && create_pkg_repo "${repository}" "${package}"
+
+${add_subtree} && add_pkg_subtree "${repository}" "${package}"
 
 ${import_arch} && import_from_arch "${repository}"
