@@ -32,3 +32,5 @@ r8168-lts
 tp_smapi-lts
 virtualbox
 virtualbox-guest-iso
+lib32-fakeroot
+lib32-libltdl

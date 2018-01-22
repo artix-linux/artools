@@ -9,6 +9,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+version=@version@
+
+LIBDIR='@libdir@'
+SYSCONFDIR='@sysconfdir@'
+DATADIR='@datadir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
+
 get_local_head(){
     echo $(git log --pretty=%H ...refs/heads/$1^ | head -n 1)
 }
@@ -17,14 +27,21 @@ get_remote_head(){
     echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
 }
 
-is_dirty() {
-    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
-    return 0
+create_pkg_repo(){
+    local repo="$1" pkg="$2"
+    cd ${tree_dir_artix}/$repo
+    mkdir $pkg
+    cd $pkg
+#         git subrepo init
+        git add .
+        git commit -m "initial commit $pkg"
+        hub create artix-packages/$pkg
+        git subrepo push origin master
+    cd ..
 }
 
 sync_tree(){
     local branch="master" repo="$1"
-    git checkout $branch
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer)
@@ -86,11 +103,6 @@ read_import_list(){
     import_list=$(sed "$_com_rm" "${list_dir_import}/$repo.list" | sed "$_space" | sed "$_clean")
 }
 
-is_untracked(){
-    [[ $(git ls-files --others --exclude-standard)  != "" ]] || return 1
-    return 0
-}
-
 patch_pkg(){
     local pkg="$1"
     case $pkg in
@@ -118,93 +130,118 @@ patch_pkg(){
 }
 
 get_import_path(){
-    local arch_dir arch_repo import_path
-    local repo="$1" pkg="$2" src=
+    local repo="$1" import_path=
     case $repo in
-        system|world)
-            arch_dir=packages
-            [[ "$repo" == 'system' ]] && arch_repo=core
-            [[ "$repo" == 'world' ]] && arch_repo=extra
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-            src=$import_path/$arch_repo-x86_64
-            [[ -d $import_path/testing-x86_64 ]] && src=$import_path/testing-x86_64
-            [[ -d $import_path/$arch_repo-any ]] && src=$import_path/$arch_repo-any
-            [[ -d $import_path/testing-any ]] && src=$import_path/testing-any
-        ;;
-        galaxy)
-            arch_repo=community
-            arch_dir=$arch_repo
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos/$arch_repo
-            src=$import_path-x86_64
-            [[ -d $import_path-testing-x86_64 ]] && src=$import_path-testing-x86_64
-            [[ -d $import_path-any ]] && src=$import_path-any
-            [[ -d $import_path-testing-any ]] && src=$import_path-testing-any
-        ;;
-        lib32)
-            arch_repo=multilib
-            arch_dir=community
-            import_path=${tree_dir_arch}/$arch_dir/$pkg/repos
-            src=$import_path/$arch_repo-x86_64
-            [[ -d $import_path/$arch_repo-testing-x86_64 ]] && src=$import_path/$arch_repo-testing-x86_64
-        ;;
+        packages) import_path=${tree_dir_arch}/packages ;;
+        galaxy) import_path=${tree_dir_arch}/community ;;
     esac
-    echo $src
-}
-
-show_version_table(){
-    local repo="$1"
-    declare -A UPDATES
-    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for pkg in ${tree_dir_artix}/$repo/*; do
-        if [[ -f $pkg/PKGBUILD ]];then
-            source $pkg/PKGBUILD 2>/dev/null
-            package=${pkg##*/}
-            artixver=$(get_full_version $package)
-            local src=$(get_import_path "$repo" "$package")
-            if [[ -f $src/PKGBUILD ]];then
-                source $src/PKGBUILD 2>/dev/null
-                archver=$(get_full_version $package)
-            fi
-            if [ $(vercmp $artixver $archver) -lt 0 ];then
-                UPDATES[$package]="$pkg/PKGBUILD $src/PKGBUILD"
-                msg_row_update "%-30s %-30s %-30s %-30s" "$repo" "$package" "$artixver" "$archver"
-            fi
-        fi
-        unset pkgver epoch pkgrel artixver archver package
-    done
-    find "${patches_dir}/$repo/" -name *.patch -delete
-    for upd in "${!UPDATES[@]}"; do
-        msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/$repo/"$upd"-archlinux.patch
-    done
+    echo $import_path
 }
 
 import_from_arch(){
-    local timer=$(get_timer) branch='testing' repo="$1" push="$2"
-    read_import_list "$repo"
+    local timer=$(get_timer) tree="$1"
+    read_import_list "$tree"
     if [[ -n ${import_list[@]} ]];then
-        cd ${tree_dir_artix}/$repo
-        git checkout $branch &> /dev/null
-        $(is_dirty) && die "[%s] has uncommited changes!" "${repo}"
-        git pull origin "$branch"
+        cd ${tree_dir_artix}/$tree
+        git pull origin master
         for pkg in ${import_list[@]};do
-            local src=$(get_import_path "$repo" "$pkg") dest=${tree_dir_artix}/$repo/$pkg
-            source $src/PKGBUILD 2>/dev/null
+            local src=$(get_import_path "$tree")
+            local dest=${tree_dir_artix}/$tree
+            source $src/$pkg/trunk/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
-            msg2 "src: %s" "$src"
-            msg2 "dest: %s" "$dest"
-            rsync "${rsync_args[@]}"  $src/ $dest/
-            patch_pkg "$pkg"
-#             if ${push};then
-#                 local timeout=10
-#                 git add "$pkg"
-#                 git commit -m "$pkg-$ver"
-#                 sleep $timeout
-#                 git push origin "$branch"
-#             fi
+            rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
             unset pkgver epoch pkgrel ver
         done
     fi
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
+
+display_settings(){
+    show_version
+    show_config
+
+    msg "REPOS:"
+    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
+    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
+
+    msg "OPTIONS:"
+    msg2 "repository: %s" "${repository}"
+    msg2 "package: %s" "${package}"
+
+    msg "ARGS:"
+    msg2 "artix: %s" "${artix}"
+    msg2 "arch: %s" "${arch}"
+    msg2 "create: %s" "${create}"
+    msg2 "add_subtree: %s" "${add_subtree}"
+    msg2 "import_arch: %s" "${import_arch}"
+
+    msg "PATHS:"
+    msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
+    msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
+#     msg2 "patches_dir: %s" "${patches_dir}/${repository}"
+}
+
+load_user_info
+
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+
+pretend=false
+arch=false
+artix=false
+import_arch=false
+create=false
+add_subtree=false
+repository='packages'
+package=''
+
+rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -r <repo>     Repository [default:${repository}]"
+    echo "    -p <pkg>      Package [default:${package}]"
+    echo "    -a            Sync arch tree"
+    echo "    -b            Sync artix tree"
+    echo "    -c            Create package repo"
+    echo '    -i            Import arch packages'
+    echo '    -q            Query settings'
+    echo '    -h            This help'
+    echo ''
+    echo ''
+    exit $1
+}
+
+orig_argv=("$0" "$@")
+
+opts='r:p:abciqh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+        r) repository="$OPTARG" ;;
+        p) package="$OPTARG" ;;
+        a) arch=true ;;
+        b) artix=true ;;
+        c) create=true ;;
+        i) import_arch=true ;;
+        q) pretend=true ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '${arg}'"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+prepare_dir "${tree_dir_artix}"
+prepare_dir "${tree_dir_arch}"
+# prepare_dir "${patches_dir}/${repository}"
+
+${pretend} && display_settings && exit 1
+
+${artix} && sync_tree_artix
+
+${arch} && sync_tree_arch
+
+${create} && create_pkg_repo "${repository}" "${package}"
+
+${import_arch} && import_from_arch "${repository}"
