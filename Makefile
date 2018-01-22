@@ -125,8 +125,6 @@ install_pkg:
 
 	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 	
-	ln -sf buildpkg2 $(DESTDIR)$(PREFIX)/bin/buildpkg2-gremlins
-
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools

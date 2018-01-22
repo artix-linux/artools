@@ -16,16 +16,62 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-pkg-publish2.sh
+import ${LIBDIR}/util-pkg.sh
+
+del_from_repo(){
+    local ver pkgfile
+    local repo="$1" pkg="$2"
+    local repo_path=${repos_root}/$repo/os/${target_arch}
+    source $pkg/PKGBUILD
+    for name in ${pkgname[@]};do
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if ! pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
+            cd $repo_path
+            repo-remove -R $repo.db.tar.xz $name
+            rm -v $name{,.sig}
+        fi
+    done
+}
+
+move_to_repo(){
+    local src_repo="$1" dest_repo="$2" pkg="$3"
+    del_from_repo "$src_repo" "$pkg"
+    add_to_repo "$dest_repo"
+}
+
+add_to_repo(){
+    local ver pkgfile=
+    local repo="$1"
+    local repo_path=${repos_root}/$repo/os/${target_arch}
+    source PKGBUILD
+    for name in ${pkgname[@]};do
+        info "finddeps: %s" "$name"
+        finddeps $name
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            info "find-libdeps: %s" "$pkgfile"
+            find-libdeps "$pkgfile"
+            info "find-libprovides: %s" "$pkgfile"
+            find-libprovides "$pkgfile"
+            [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
+            signfile ${pkgfile}
+            ln -sf ${pkgfile}{,.sig} $repo_path/
+            cd $repo_path
+            repo-add -R $repo.db.tar.xz ${pkgfile##*/}
+        fi
+    done
+}
 
 display_settings(){
     show_version
     show_config
 
     msg "OPTIONS:"
-    msg2 "repository: %s" "${repository}"
-    msg2 "package: %s" "${package[@]}"
-    msg2 "target_arch: %s" "${target_arch}"
+    msg2 "src_repository: %s" "${src_repository}"
+    msg2 "dest_repository: %s" "${dest_repository}"
+    msg2 "package: %s" "${package}"
 
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
@@ -44,16 +90,16 @@ add_pkg=false
 del_pkg=false
 move_pkg=false
 package=''
-repository=gremlins
-
-rsync_args=(-rtxisP --progress --delete -e ssh)
+src_repository=
+dest_repository=
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -r                 Repository [default:${repository}]"
-    echo "    -p                 Package name to add/delete"
-    echo '    -x                 Add package to repository'
-    echo '    -y                 Delete package from repository'
+    echo "    -s                 Source repository [default:${src_repository}]"
+    echo "    -d                 Destination repository [default:${dest_repository}]"
+    echo "    -p                 Package path"
+    echo '    -a                 Add package to repository'
+    echo '    -r                 Remove package from repository'
     echo '    -m                 Move packages from source to destination repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -h                 This help'
@@ -64,15 +110,16 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:t:xymqh'
+opts='p:s:d:armqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        r) repository="$OPTARG" ;;
+        s) src_repository="$OPTARG" ;;
+        d) dest_repository="$OPTARG" ;;
         p) package="$OPTARG" ;;
         m) move_pkg=true ;;
-        x) add_pkg=true ;;
-        y) del_pkg=true ;;
+        a) add_pkg=true ;;
+        r) del_pkg=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -87,10 +134,10 @@ prepare_dir "${repos_root}"
 
 ${pretend} && display_settings && exit 1
 
-${move_pkg} && move_to_repo "${repository}"
+${move_pkg} && move_to_repo "${src_repository}" "${dest_repository}" "${package}"
 
-${del_pkg} && del_from_repo "${repository}" "${package}"
+${del_pkg} && del_from_repo "${dest_repository}" "${package}"
 
-${add_pkg} && add_to_repo "${repository}" "${package}"
+${add_pkg} && add_to_repo "${dest_repository}"
 
 exit 0

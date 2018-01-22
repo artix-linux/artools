@@ -18,7 +18,144 @@ DATADIR='@datadir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
-import ${LIBDIR}/util-pkg-tree2.sh
+
+get_local_head(){
+    echo $(git log --pretty=%H ...refs/heads/$1^ | head -n 1)
+}
+
+get_remote_head(){
+    echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
+}
+
+create_pkg_repo(){
+    local repo="$1" pkg="$2"
+    cd ${tree_dir_artix}/$repo
+    mkdir $pkg
+    cd $pkg
+#         git subrepo init
+        git add .
+        git commit -m "initial commit $pkg"
+        hub create artix-packages/$pkg
+        git subrepo push origin master
+    cd ..
+}
+
+sync_tree(){
+    local branch="master" repo="$1"
+    local local_head=$(get_local_head "$branch")
+    local remote_head=$(get_remote_head "$branch")
+    local timer=$(get_timer)
+    msg "Checking [%s] ..." "$repo"
+    msg2 "local: %s" "${local_head}"
+    msg2 "remote: %s" "${remote_head}"
+    if [[ "${local_head}" == "${remote_head}" ]]; then
+        info "nothing to do"
+    else
+        info "needs sync"
+        git pull origin $branch
+    fi
+    msg "Done [%s]" "$repo"
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+clone_tree(){
+    local timer=$(get_timer) repo="$1" host_tree="$2"
+    msg "Preparing [%s] ..." "$repo"
+    info "clone"
+    git clone $host_tree.git
+    msg "Done [%s]" "$repo"
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+sync_tree_arch(){
+    local repo="$1"
+    cd ${tree_dir_arch}
+        for repo in ${repo_tree_arch[@]};do
+            if [[ -d ${repo} ]];then
+                cd ${repo}
+                    sync_tree "${repo}"
+                cd ..
+            else
+                clone_tree "${repo}" "${host_tree_arch}/${repo}"
+            fi
+        done
+    cd ..
+}
+
+sync_tree_artix(){
+    local repo="$1"
+    cd ${tree_dir_artix}
+        for repo in ${repo_tree_artix[@]};do
+            if [[ -d ${repo} ]];then
+                cd ${repo}
+                    sync_tree "${repo}"
+                cd ..
+            else
+                clone_tree "${repo}" "${host_tree_artix}/${repo}"
+            fi
+        done
+    cd ..
+}
+
+read_import_list(){
+    local repo="$1"
+    local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
+    import_list=$(sed "$_com_rm" "${list_dir_import}/$repo.list" | sed "$_space" | sed "$_clean")
+}
+
+patch_pkg(){
+    local pkg="$1"
+    case $pkg in
+        'glibc')
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
+                -i $pkg/PKGBUILD
+        ;;
+        'bash')
+            sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
+                -e 's|etc/bash.|etc/bash/|g' \
+                -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
+                -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
+                -i $pkg/PKGBUILD
+
+            patch -p1 -i $DATADIR/patches/artix-bash.patch
+            cd $pkg
+                updpkgsums
+            cd ..
+        ;;
+        'tp_smapi'|'acpi_call'|'r8168')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/PKGBUILD
+        ;;
+    esac
+}
+
+get_import_path(){
+    local repo="$1" import_path=
+    case $repo in
+        packages) import_path=${tree_dir_arch}/packages ;;
+        galaxy) import_path=${tree_dir_arch}/community ;;
+    esac
+    echo $import_path
+}
+
+import_from_arch(){
+    local timer=$(get_timer) tree="$1"
+    read_import_list "$tree"
+    if [[ -n ${import_list[@]} ]];then
+        cd ${tree_dir_artix}/$tree
+        git pull origin master
+        for pkg in ${import_list[@]};do
+            local src=$(get_import_path "$tree")
+            local dest=${tree_dir_artix}/$tree
+            source $src/$pkg/trunk/PKGBUILD 2>/dev/null
+            local ver=$(get_full_version $pkg)
+            msg "Package: %s-%s" "$pkg" "$ver"
+            rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
+            unset pkgver epoch pkgrel ver
+        done
+    fi
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
 
 display_settings(){
     show_version
@@ -42,7 +179,7 @@ display_settings(){
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-    msg2 "patches_dir: %s" "${patches_dir}/${repository}"
+#     msg2 "patches_dir: %s" "${patches_dir}/${repository}"
 }
 
 load_user_info
@@ -67,7 +204,6 @@ usage() {
     echo "    -a            Sync arch tree"
     echo "    -b            Sync artix tree"
     echo "    -c            Create package repo"
-    echo "    -s            Add subtree"
     echo '    -i            Import arch packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
@@ -78,7 +214,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:p:abcsiqh'
+opts='r:p:abciqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -87,7 +223,6 @@ while getopts "${opts}" arg; do
         a) arch=true ;;
         b) artix=true ;;
         c) create=true ;;
-        s) add_subtree=true ;;
         i) import_arch=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
@@ -99,7 +234,7 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
-prepare_dir "${patches_dir}/${repository}"
+# prepare_dir "${patches_dir}/${repository}"
 
 ${pretend} && display_settings && exit 1
 
@@ -108,7 +243,5 @@ ${artix} && sync_tree_artix
 ${arch} && sync_tree_arch
 
 ${create} && create_pkg_repo "${repository}" "${package}"
-
-${add_subtree} && add_pkg_subtree "${repository}" "${package}"
 
 ${import_arch} && import_from_arch "${repository}"
