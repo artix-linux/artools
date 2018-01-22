@@ -27,7 +27,7 @@ create_pkg_repo(){
     cd ${tree_dir_artix}/$repo
     mkdir $pkg
     cd $pkg
-        git init
+#         git init
         git add .
         git commit -m "initial commit $pkg"
         hub create artix-$repo/$pkg
@@ -38,7 +38,7 @@ create_pkg_repo(){
 add_pkg_subtree(){
     local repo="$1" pkg="$2"
     cd ${tree_dir_artix}/$repo
-    git remote add -f $pkg ${host_tree_artix}-$repo/$pkg.git
+    git remote add -f $pkg ${host_tree_artix}-packages/$pkg.git
     git subtree add --prefix $pkg $pkg master --squash
 }
 
@@ -124,7 +124,7 @@ is_untracked(){
 #                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
 #                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
 #                 -i $pkg/PKGBUILD
-# 
+#
 #             patch -p1 -i $DATADIR/patches/dot-bashrc.patch
 #             patch -p1 -i $DATADIR/patches/system-bashrc.patch
 #             patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
