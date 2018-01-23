@@ -19,25 +19,37 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
 
 del_from_repo(){
-    local ver pkgfile
-    local repo="$1" pkg="$2"
+    local ver
+    local repo="$1"
     local repo_path=${repos_root}/$repo/os/${target_arch}
-    source $pkg/PKGBUILD
+    source PKGBUILD
     for name in ${pkgname[@]};do
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
-        if ! pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
-            cd $repo_path
-            repo-remove -R $repo.db.tar.xz $name
-            rm -v $name{,.sig}
+        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
+            info "pkgfile: %s" "$pkgfile"
+            repo-remove -R $repo_path/$repo.db.tar.xz $repo_path/$name
+            rm -v $repo_path/$name.pkg.tar.xz{,.sig}
         fi
     done
 }
 
 move_to_repo(){
     local src_repo="$1" dest_repo="$2" pkg="$3"
-    del_from_repo "$src_repo" "$pkg"
-    add_to_repo "$dest_repo"
+    local ver 
+    local repo="$1"
+    local repo_path=${repos_root}/$dest_repo/os/${target_arch}
+    source PKGBUILD
+    for name in ${pkgname[@]};do
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            ln -sf ${pkgfile}{,.sig} $repo_path/
+            repo-add -R $repo_path/$dest_repo.db.tar.xz $repo_path/$name
+            repo_path=${repos_root}/$src_repo/os/${target_arch}
+            repo-remove -R $repo_path/$src_repo.db.tar.xz $name
+        fi
+    done
 }
 
 add_to_repo(){
@@ -46,20 +58,13 @@ add_to_repo(){
     local repo_path=${repos_root}/$repo/os/${target_arch}
     source PKGBUILD
     for name in ${pkgname[@]};do
-        info "finddeps: %s" "$name"
-        finddeps $name
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
-            info "find-libdeps: %s" "$pkgfile"
-            find-libdeps "$pkgfile"
-            info "find-libprovides: %s" "$pkgfile"
-            find-libprovides "$pkgfile"
             [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
             signfile ${pkgfile}
             ln -sf ${pkgfile}{,.sig} $repo_path/
-            cd $repo_path
-            repo-add -R $repo.db.tar.xz ${pkgfile##*/}
+            repo-add -R $repo_path/$repo.db.tar.xz $pkgfile
         fi
     done
 }
@@ -71,7 +76,6 @@ display_settings(){
     msg "OPTIONS:"
     msg2 "src_repository: %s" "${src_repository}"
     msg2 "dest_repository: %s" "${dest_repository}"
-    msg2 "package: %s" "${package}"
 
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
@@ -89,7 +93,6 @@ pretend=false
 add_pkg=false
 del_pkg=false
 move_pkg=false
-package=''
 src_repository=
 dest_repository=
 
@@ -97,9 +100,8 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -s                 Source repository [default:${src_repository}]"
     echo "    -d                 Destination repository [default:${dest_repository}]"
-    echo "    -p                 Package path"
-    echo '    -a                 Add package to repository'
-    echo '    -r                 Remove package from repository'
+    echo '    -a                 Add package to destination repository'
+    echo '    -r                 Remove package from destination repository'
     echo '    -m                 Move packages from source to destination repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -h                 This help'
@@ -110,13 +112,12 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:s:d:armqh'
+opts='s:d:armqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         s) src_repository="$OPTARG" ;;
         d) dest_repository="$OPTARG" ;;
-        p) package="$OPTARG" ;;
         m) move_pkg=true ;;
         a) add_pkg=true ;;
         r) del_pkg=true ;;
@@ -134,9 +135,9 @@ prepare_dir "${repos_root}"
 
 ${pretend} && display_settings && exit 1
 
-${move_pkg} && move_to_repo "${src_repository}" "${dest_repository}" "${package}"
+${move_pkg} && move_to_repo "${src_repository}" "${dest_repository}"
 
-${del_pkg} && del_from_repo "${dest_repository}" "${package}"
+${del_pkg} && del_from_repo "${dest_repository}"
 
 ${add_pkg} && add_to_repo "${dest_repository}"
 
