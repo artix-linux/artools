@@ -44,7 +44,7 @@ pipeline {
                                 def repository = ''
                                 if ( gitRepo.contains('staging') ){
                                     REPO = 'goblins'
-                                    if ( status == 'D' ){
+                                    if ( status.contains('R') ){
                                         IS_MOVE = 'true'
                                         MOVE_TO_REPO = 'gremlins'
                                         repository = "${PACKAGE}/${gitRepoNode}/testing-x86_64"
@@ -58,7 +58,7 @@ pipeline {
                                     }
                                 } else if ( gitRepo.contains('testing') ){
                                     REPO = 'gremlins'
-                                    if ( status == 'D' ){
+                                    if ( status.contains('R') ){
                                         IS_MOVE = 'true'
                                         repository = "${PACKAGE}/${gitRepoNode}/core-x86_64"
                                         if ( fileExists(repository) ) {
@@ -83,12 +83,12 @@ pipeline {
                                     }
                                 } else if ( gitRepo.contains('core') ){
                                     REPO = 'system'
-                                    if ( status == 'D' ){
+                                    if ( status.contains('D') ){
                                         IS_DELETE = 'true'
                                     }
                                 } else if ( gitRepo.contains('extra') ){
                                     REPO = 'world'
-                                    if ( status == 'D' ){
+                                    if ( status.contains('D') ){
                                         IS_DELETE = 'true'
                                     }
                                 }
@@ -98,8 +98,8 @@ pipeline {
                         }
                     }
                     echo "PACKAGE: ${PACKAGE}"
-                    echo "REPO: ${REPO}"
-                    echo "IS_MOVE: ${IS_MOVE} MOVE_TO_REPO: ${MOVE_TO_REPO}"
+                    echo "REPO: ${REPO} BUILD_PATH: ${BUILD_PATH}"
+                    echo "IS_MOVE: ${IS_MOVE} MOVE_TO_REPO: ${MOVE_TO_REPO} MOVE_PATH: ${MOVE_PATH}"
                     echo "IS_DELETE: ${IS_DELETE} DELETE_PATH: ${DELETE_PATH}"
                 }
             }
@@ -115,7 +115,9 @@ pipeline {
             steps {
                 script {
                     dir("${BUILD_PATH}") {
-                        echo "buildpkg2 -r ${REPO}"
+                        if ( PACKAGE != '' ){
+                            sh "buildpkg2 -r ${REPO}"
+                        }
                     }
                 }
             }
@@ -123,7 +125,9 @@ pipeline {
                 success {
                     script {
                         dir("${BUILD_PATH}") {
-                            echo "deploypkg2 -a -d ${REPO}"
+                            if ( PACKAGE != '' ){
+                                sh "deploypkg2 -a -d ${REPO}"
+                            }
                         }
                     }
                 }
@@ -137,7 +141,7 @@ pipeline {
             steps {
                 script {
                     dir("${MOVE_PATH}") {
-                        echo "deploypkg2 -m -s ${REPO} -d ${MOVE_TO_REPO}"
+                        sh "deploypkg2 -m -s ${REPO} -d ${MOVE_TO_REPO}"
                     }
                 }
             }
@@ -150,7 +154,7 @@ pipeline {
             steps {
                 script {
                     dir("${DELETE_PATH}") {
-                        echo "deploypkg2 -r -d ${REPO}"
+                        sh "deploypkg2 -r -d ${REPO}"
                     }
                 }
             }
