@@ -27,12 +27,12 @@ get_remote_head(){
     echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
 }
 
-create_pkg_repo(){
-    local repo="$1" pkg="$2"
-    cd ${tree_dir_artix}/$repo
+create_pkg_subrepo(){
+    local pkg="$1"
+    cd ${tree_dir_artix}/${git_tree}
     mkdir $pkg
     cd $pkg
-#         git subrepo init
+        git subrepo init
         git add .
         git commit -m "initial commit $pkg"
         hub create artix-packages/$pkg
@@ -68,7 +68,6 @@ clone_tree(){
 }
 
 sync_tree_arch(){
-    local repo="$1"
     cd ${tree_dir_arch}
         for repo in ${repo_tree_arch[@]};do
             if [[ -d ${repo} ]];then
@@ -83,7 +82,6 @@ sync_tree_arch(){
 }
 
 sync_tree_artix(){
-    local repo="$1"
     cd ${tree_dir_artix}
         for repo in ${repo_tree_artix[@]};do
             if [[ -d ${repo} ]];then
@@ -98,9 +96,9 @@ sync_tree_artix(){
 }
 
 read_import_list(){
-    local repo="$1"
+    local tree="$1"
     local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
-    import_list=$(sed "$_com_rm" "${list_dir_import}/$repo.list" | sed "$_space" | sed "$_clean")
+    import_list=$(sed "$_com_rm" "${list_dir_import}/$tree.list" | sed "$_space" | sed "$_clean")
 }
 
 patch_pkg(){
@@ -109,14 +107,14 @@ patch_pkg(){
         'glibc')
             sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
                 -e '/nscd.service/d' \
-                -i $pkg/PKGBUILD
+                -i $pkg/trunk/PKGBUILD
         ;;
         'bash')
             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
                 -e 's|etc/bash.|etc/bash/|g' \
                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
-                -i $pkg/PKGBUILD
+                -i $pkg/trunk/PKGBUILD
 
             patch -p1 -i $DATADIR/patches/artix-bash.patch
             cd $pkg
@@ -124,37 +122,44 @@ patch_pkg(){
             cd ..
         ;;
         'tp_smapi'|'acpi_call'|'r8168')
-            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/PKGBUILD
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
         ;;
     esac
 }
 
 get_import_path(){
-    local repo="$1" import_path=
-    case $repo in
+    local tree="$1" import_path=
+    case $tree in
         packages) import_path=${tree_dir_arch}/packages ;;
-        galaxy) import_path=${tree_dir_arch}/community ;;
+        packages-galaxy) import_path=${tree_dir_arch}/community ;;
     esac
     echo $import_path
 }
 
 import_from_arch(){
-    local timer=$(get_timer) tree="$1"
-    read_import_list "$tree"
+    local timer=$(get_timer)
+    read_import_list "${git_tree}"
     if [[ -n ${import_list[@]} ]];then
-        cd ${tree_dir_artix}/$tree
+        cd ${tree_dir_artix}/${git_tree}
         git pull origin master
         for pkg in ${import_list[@]};do
-            local src=$(get_import_path "$tree")
-            local dest=${tree_dir_artix}/$tree
+            local src=$(get_import_path "${git_tree}")
+            local dest=${tree_dir_artix}/${git_tree}
             source $src/$pkg/trunk/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
             rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
+            patch_pkg "$pkg"
             unset pkgver epoch pkgrel ver
         done
     fi
     show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+move_pkg(){
+    local pkg="$1" src_repo="$2" dest_repo="$3"
+    git mv ${tree_dir_artix}/${git_tree}/$pkg/repos/$src_repo ${tree_dir_artix}/${git_tree}/$pkg/repos/$dest_repo
+    git commit -m "Move %s from [%s] to [%s]" "$pkg" "$src_repo" "$dest_repo"
 }
 
 display_settings(){
@@ -166,20 +171,21 @@ display_settings(){
     msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
 
     msg "OPTIONS:"
-    msg2 "repository: %s" "${repository}"
+    msg2 "git_tree: %s" "${git_tree}"
     msg2 "package: %s" "${package}"
+    msg2 "src_repository: %s" "${src_repository}"
+    msg2 "dest_repository: %s" "${dest_repository}"
 
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
     msg2 "create: %s" "${create}"
-    msg2 "add_subtree: %s" "${add_subtree}"
     msg2 "import_arch: %s" "${import_arch}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-#     msg2 "patches_dir: %s" "${patches_dir}/${repository}"
+    msg2 "patches_dir: %s" "${patches_dir}/${git_tree}"
 }
 
 load_user_info
@@ -191,20 +197,25 @@ arch=false
 artix=false
 import_arch=false
 create=false
-add_subtree=false
-repository='packages'
+move=false
+git_tree='packages'
 package=''
+src_repository=''
+dest_repository=''
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -r <repo>     Repository [default:${repository}]"
+    echo "    -r <git>      Repository [default:${git_tree}]"
     echo "    -p <pkg>      Package [default:${package}]"
+    echo "    -s <src>      Src repo name [default:${src_repository}]"
+    echo "    -d <dest>     Dest repo name [default:${dest_repository}]"
     echo "    -a            Sync arch tree"
     echo "    -b            Sync artix tree"
     echo "    -c            Create package repo"
     echo '    -i            Import arch packages'
+    echo '    -m            Move package from src to dest repo'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -214,16 +225,19 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:p:abciqh'
+opts='r:p:s:d:abcimqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        r) repository="$OPTARG" ;;
+        r) git_tree="$OPTARG" ;;
         p) package="$OPTARG" ;;
+        s) src_repository="$OPTARG" ;;
+        d) dest_repository="$OPTARG" ;;
         a) arch=true ;;
         b) artix=true ;;
         c) create=true ;;
         i) import_arch=true ;;
+        i) move=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -234,7 +248,7 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
-# prepare_dir "${patches_dir}/${repository}"
+prepare_dir "${patches_dir}/${git_tree}"
 
 ${pretend} && display_settings && exit 1
 
@@ -242,6 +256,8 @@ ${artix} && sync_tree_artix
 
 ${arch} && sync_tree_arch
 
-${create} && create_pkg_repo "${repository}" "${package}"
+${move} && move_pkg "${package}" "${src_repository}" "${dest_repository}"
 
-${import_arch} && import_from_arch "${repository}"
+${create} && create_pkg_subrepo "${package}"
+
+${import_arch} && import_from_arch
