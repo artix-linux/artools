@@ -29,25 +29,28 @@ del_from_repo(){
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
             info "pkgfile: %s" "$pkgfile"
             repo-remove -R $repo_path/$repo.db.tar.xz $repo_path/$name
-            rm -v $repo_path/$name.pkg.tar.xz{,.sig}
+            rm -v $repo_path/${pkgfile##*/}{,.sig}
         fi
     done
 }
 
 move_to_repo(){
-    local src_repo="$1" dest_repo="$2" pkg="$3"
+    local src_repo="$1" dest_repo="$2" pkg="$3" pkgfile=
     local ver 
-    local repo="$1"
-    local repo_path=${repos_root}/$dest_repo/os/${target_arch}
+    local repo_path=
     source PKGBUILD
     for name in ${pkgname[@]};do
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            info "Adding %s to [%s]" "${pkgfile##*/}" "$src_repo"
+            repo_path=${repos_root}/$dest_repo/os/${target_arch}
             ln -sf ${pkgfile}{,.sig} $repo_path/
-            repo-add -R $repo_path/$dest_repo.db.tar.xz $repo_path/$name
+            repo-add -R $repo_path/$dest_repo.db.tar.xz $repo_path/${pkgfile##*/}
+            info "Removing %s from [%s]" "${pkgfile##*/}" "$dest_repo"
             repo_path=${repos_root}/$src_repo/os/${target_arch}
             repo-remove -R $repo_path/$src_repo.db.tar.xz $name
+            rm -v $repo_path/${pkgfile##*/}{,.sig}
         fi
     done
 }
