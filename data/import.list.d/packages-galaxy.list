@@ -24,9 +24,13 @@ portaudio
 sassc
 yaml-cpp
 zeromq
-# acpi_call
-# r8168
-# tp_smapi
-# acpi_call-lts
-# r8168-lts
-# tp_smapi-lts
+acpi_call
+r8168
+tp_smapi
+acpi_call-lts
+r8168-lts
+tp_smapi-lts
+virtualbox
+virtualbox-guest-iso
+lib32-fakeroot
+lib32-libltdl
