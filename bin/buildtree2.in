@@ -158,8 +158,10 @@ import_from_arch(){
 
 move_pkg(){
     local pkg="$1" src_repo="$2" dest_repo="$3"
-    git mv ${tree_dir_artix}/${git_tree}/$pkg/repos/$src_repo ${tree_dir_artix}/${git_tree}/$pkg/repos/$dest_repo
-    git commit -m "Move %s from [%s] to [%s]" "$pkg" "$src_repo" "$dest_repo"
+    cd ${tree_dir_artix}/${git_tree}/$pkg/repos
+    git mv $src_repo $dest_repo
+    git add -u $dest_repo
+#     git commit -m "Move %s from [%s] to [%s]" "$pkg" "$src_repo" "$dest_repo"
 }
 
 display_settings(){
@@ -237,7 +239,7 @@ while getopts "${opts}" arg; do
         b) artix=true ;;
         c) create=true ;;
         i) import_arch=true ;;
-        i) move=true ;;
+        m) move=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
