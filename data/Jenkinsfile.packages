@@ -29,76 +29,49 @@ pipeline {
                     def changedFilesStatus = sh(returnStdout: true, script: "git show --pretty=format: --name-status ${currentCommit}").tokenize('\n')
                     echo "changedFilesStatus: " + changedFilesStatus
                     
-                    for (int i = 0; i < changedFilesStatus.size(); i++) {
+                    for ( int i = 0; i < changedFilesStatus.size(); i++ ) {
                         def entry = changedFilesStatus[i].split()
                         def status = entry[0]
-                        def filePath = entry[1]
-                        echo "status: ${status} filePath: ${filePath}"
-                        if ( filePath.contains('PKGBUILD') ){
-                            BUILD_PATH = filePath.minus('/PKGBUILD')
-                            def buildInfo = BUILD_PATH.tokenize('/')
-                            PACKAGE = buildInfo[0]
-                            def gitRepoNode = buildInfo[1]
-                            if ( gitRepoNode == 'repos' ){
-                                def gitRepo = buildInfo[2]
-                                def repository = ''
-                                if ( gitRepo.contains('staging') ){
-                                    REPO = 'goblins'
-                                    if ( status.contains('R') ){
-                                        IS_MOVE = 'true'
-                                        MOVE_TO_REPO = 'gremlins'
-                                        repository = "${PACKAGE}/${gitRepoNode}/testing-x86_64"
-                                        if ( fileExists(repository) ){
-                                            MOVE_PATH = repository
-                                        }
-                                        repository = "${PACKAGE}/${gitRepoNode}/testing-any"
-                                        if ( fileExists(repository) ){
-                                            MOVE_PATH = repository
-                                        }
-                                    }
-                                } else if ( gitRepo.contains('testing') ){
+                        def filePath = []                        
+                        for ( int j = 1; j < entry.size(); j++ ) {
+                            if ( entry[j].contains('PKGBUILD') ){
+                                filePath << entry[j].minus('/PKGBUILD')
+                            }
+                        }
+                        def pathSize = filePath.size()
+                        if ( pathSize > 0 ){
+                            IS_MOVE = 'true'
+                            if ( filePath[0].contains('staging') ) {
+                                MOVE_PATH = filePath[1]
+                                REPO = 'goblins'
+                                MOVE_TO_REPO = 'gremlins'
+                            } else if ( filePath[0].contains('testing') ) {
+                                MOVE_PATH = filePath[1]
+                                if ( MOVE_PATH.contains('staging') ) {
                                     REPO = 'gremlins'
-                                    if ( status.contains('R') ){
-                                        IS_MOVE = 'true'
-                                        repository = "${PACKAGE}/${gitRepoNode}/core-x86_64"
-                                        if ( fileExists(repository) ) {
-                                            MOVE_TO_REPO = 'system'
-                                            MOVE_PATH = repository
-                                        } 
-                                        repository = "${PACKAGE}/${gitRepoNode}/core-any"
-                                        if ( fileExists(repository) ){
-                                            MOVE_TO_REPO = 'system'
-                                            MOVE_PATH = repository
-                                        }
-                                        repository = "${PACKAGE}/${gitRepoNode}/extra-x86_64"
-                                        if ( fileExists(repository) ){
-                                            MOVE_TO_REPO = 'world'
-                                            MOVE_PATH = repository
-                                        } 
-                                        repository = "${PACKAGE}/${gitRepoNode}/extra-any"
-                                        if ( fileExists(repository) ){
-                                            MOVE_TO_REPO = 'world'
-                                            MOVE_PATH = repository
-                                        }
-                                    }
-                                } else if ( gitRepo.contains('core') ){
-                                    REPO = 'system'
-                                    if ( status.contains('D') ){
-                                        IS_DELETE = 'true'
-                                    }
-                                } else if ( gitRepo.contains('extra') ){
-                                    REPO = 'world'
-                                    if ( status.contains('D') ){
-                                        IS_DELETE = 'true'
-                                    }
+                                    MOVE_TO_REPO = 'goblins'
+                                } else if ( MOVE_PATH.contains('core') ) {
+                                    REPO = 'gremlins'
+                                    MOVE_TO_REPO = 'system'
+                                } else if ( MOVE_PATH.contains('extra') ) {
+                                    REPO = 'gremlins'
+                                    MOVE_TO_REPO = 'world'
                                 }
-                            } else {
-                                DELETE_PATH = "${PACKAGE}/${gitRepoNode}"
+                            }
+                        } else {
+                            BUILD_PATH = filePath[0]
+                            def buildInfo = BUILD_PATH.tokenize('/')
+                            def repoNode = buildInfo[1]
+                            REPO = buildInfo[2]
+                            PACKAGE = buildInfo[0]
+                            
+                            if ( status.contains('D') ) {
+                                IS_DELETE = 'true'
+                                DELETE_PATH = "${PACKAGE}/trunk"
                             }
                         }
                     }
-                    echo "PACKAGE: ${PACKAGE}"
-                    echo "REPO: ${REPO} BUILD_PATH: ${BUILD_PATH}"
+                    echo "REPO: ${REPO} PACKAGE: ${PACKAGE} BUILD_PATH: ${BUILD_PATH}"
                     echo "IS_MOVE: ${IS_MOVE} MOVE_TO_REPO: ${MOVE_TO_REPO} MOVE_PATH: ${MOVE_PATH}"
                     echo "IS_DELETE: ${IS_DELETE} DELETE_PATH: ${DELETE_PATH}"
                 }
@@ -115,8 +88,8 @@ pipeline {
             steps {
                 script {
                     dir("${BUILD_PATH}") {
-                        if ( PACKAGE != '' ){
-                            sh "buildpkg2 -r ${REPO}"
+                        if ( PACKAGE != '' ) {
+                            echo "buildpkg2 -r ${REPO}"
                         }
                     }
                 }
@@ -125,8 +98,8 @@ pipeline {
                 success {
                     script {
                         dir("${BUILD_PATH}") {
-                            if ( PACKAGE != '' ){
-                                sh "deploypkg2 -a -d ${REPO}"
+                            if ( PACKAGE != '' ) {
+                                echo "deploypkg2 -a -d ${REPO}"
                             }
                         }
                     }
@@ -141,7 +114,7 @@ pipeline {
             steps {
                 script {
                     dir("${MOVE_PATH}") {
-                        sh "deploypkg2 -m -s ${REPO} -d ${MOVE_TO_REPO}"
+                        echo "deploypkg2 -m -s ${REPO} -d ${MOVE_TO_REPO}"
                     }
                 }
             }
@@ -154,7 +127,7 @@ pipeline {
             steps {
                 script {
                     dir("${DELETE_PATH}") {
-                        sh "deploypkg2 -r -d ${REPO}"
+                        echo "deploypkg2 -r -d ${REPO}"
                     }
                 }
             }
