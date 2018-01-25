@@ -25,14 +25,14 @@ pipeline {
 //                     echo "lastMergeCommit: ${lastMergeCommit}"
 //                     if ( currentCommit == lastMergeCommit ) {
 //                     }
-                    
+
                     def changedFilesStatus = sh(returnStdout: true, script: "git show --pretty=format: --name-status ${currentCommit}").tokenize('\n')
                     echo "changedFilesStatus: " + changedFilesStatus
-                    
+
                     for ( int i = 0; i < changedFilesStatus.size(); i++ ) {
                         def entry = changedFilesStatus[i].split()
                         def status = entry[0]
-                        def filePath = []                        
+                        def filePath = []
                         for ( int j = 1; j < entry.size(); j++ ) {
                             if ( entry[j].contains('PKGBUILD') ){
                                 filePath << entry[j].minus('/PKGBUILD')
@@ -69,12 +69,13 @@ pipeline {
                                 }
                             }
                         } else {
-                            BUILD_PATH = filePath[0]
-                            def buildInfo = BUILD_PATH.tokenize('/')
-                            def repoNode = buildInfo[1]
-                            REPO = buildInfo[2]
-                            PACKAGE = buildInfo[0]
-                            
+                            if ( filePath[0] != null ) {
+                                BUILD_PATH = filePath[0]
+                                def buildInfo = BUILD_PATH.tokenize('/')
+                                def repoNode = buildInfo[1]
+                                REPO = buildInfo[2]
+                                PACKAGE = buildInfo[0]
+                            }
                             if ( status.contains('D') ) {
                                 IS_DELETE = 'true'
                                 DELETE_PATH = "${PACKAGE}/trunk"
