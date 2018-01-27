@@ -128,15 +128,15 @@ get_import_path(){
 }
 
 import_from_arch(){
-    local timer=$(get_timer)
-    read_import_list "${git_tree}"
+    local timer=$(get_timer) tree="$1"
+    read_import_list "$tree"
     if [[ -n ${import_list[@]} ]];then
-        cd ${tree_dir_artix}/${git_tree}
-        $(is_dirty) && die "[%s] has uncommited changes!" "${git_tree}"
+        cd ${tree_dir_artix}/$tree
+        $(is_dirty) && die "[%s] has uncommited changes!" "$tree"
         git pull --rebase origin master
         for pkg in ${import_list[@]};do
-            local src=$(get_import_path "${git_tree}")
-            local dest=${tree_dir_artix}/${git_tree}
+            local src=$(get_import_path "$tree")
+            local dest=${tree_dir_artix}/$tree
             source $src/$pkg/trunk/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
@@ -149,8 +149,8 @@ import_from_arch(){
 }
 
 move_pkg(){
-    local pkg="$1" src_repo="$2" dest_repo="$3"
-    cd ${tree_dir_artix}/${git_tree}/$pkg/repos
+    local pkg="$1" src_repo="$2" dest_repo="$3" tree="$4"
+    cd ${tree_dir_artix}/$tree/$pkg/repos
     git mv $src_repo $dest_repo
     git add -u $dest_repo
     git commit -m "Move '$pkg' from [$src_repo] to [$dest_repo]"
@@ -167,8 +167,8 @@ display_settings(){
     msg2 "dest_repository: %s" "${dest_repository}"
 
     msg "ARGS:"
-    msg2 "artix: %s" "${artix}"
-    msg2 "arch: %s" "${arch}"
+    msg2 "pull_artix: %s" "${pull_artix}"
+    msg2 "pull_arch: %s" "${pull_arch}"
     msg2 "import_arch: %s" "${import_arch}"
 
     msg "PATHS:"
@@ -182,10 +182,9 @@ load_user_info
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 pretend=false
-arch=false
-artix=false
+pull_arch=false
+pull_artix=false
 import_arch=false
-create=false
 move=false
 git_tree='packages'
 package=''
@@ -196,10 +195,10 @@ rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -r <git>      Repository [default:${git_tree}]"
+    echo "    -r <git>      Git repo [default:${git_tree}]"
     echo "    -p <pkg>      Package [default:${package}]"
-    echo "    -s <src>      Src repo name [default:${src_repository}]"
-    echo "    -d <dest>     Dest repo name [default:${dest_repository}]"
+    echo "    -s <src>      Src package repo name [default:${src_repository}]"
+    echo "    -d <dest>     Dest package repo name [default:${dest_repository}]"
     echo "    -a            Pull arch tree"
     echo "    -b            Pull artix tree"
     echo '    -i            Import arch packages'
@@ -221,8 +220,8 @@ while getopts "${opts}" arg; do
         p) package="$OPTARG" ;;
         s) src_repository="$OPTARG" ;;
         d) dest_repository="$OPTARG" ;;
-        a) arch=true ;;
-        b) artix=true ;;
+        a) pull_arch=true ;;
+        b) pull_artix=true ;;
         i) import_arch=true ;;
         m) move=true ;;
         q) pretend=true ;;
@@ -239,10 +238,10 @@ prepare_dir "${patches_dir}/${git_tree}"
 
 ${pretend} && display_settings && exit 1
 
-${artix} && pull_tree_artix "${git_tree}"
+${pull_artix} && pull_tree_artix "${git_tree}"
 
-${arch} && pull_tree_arch
+${pull_arch} && pull_tree_arch
 
 ${move} && move_pkg "${package}" "${src_repository}" "${dest_repository}"
 
-${import_arch} && import_from_arch
+${import_arch} && import_from_arch "${git_tree}"
