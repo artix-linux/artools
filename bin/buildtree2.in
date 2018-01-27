@@ -27,71 +27,62 @@ get_remote_head(){
     echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
 }
 
-create_pkg_subrepo(){
-    local pkg="$1"
-    cd ${tree_dir_artix}/${git_tree}
-    mkdir $pkg
-    cd $pkg
-        git subrepo init
-        git add .
-        git commit -m "initial commit $pkg"
-        hub create artix-packages/$pkg
-        git subrepo push origin master
-    cd ..
+is_dirty() {
+    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
+    return 0
 }
 
-sync_tree(){
-    local branch="master" repo="$1"
+pull_tree(){
+    local branch="master" tree="$1" git_opt="$2"
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer)
-    msg "Checking [%s] ..." "$repo"
+    msg "Checking [%s] ..." "$tree"
     msg2 "local: %s" "${local_head}"
     msg2 "remote: %s" "${remote_head}"
     if [[ "${local_head}" == "${remote_head}" ]]; then
         info "nothing to do"
     else
-        info "needs sync"
-        git pull origin $branch
+        info "needs pull"
+        git pull $git_opt origin $branch
     fi
-    msg "Done [%s]" "$repo"
+    msg "Done [%s]" "$tree"
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
 clone_tree(){
-    local timer=$(get_timer) repo="$1" host_tree="$2"
-    msg "Preparing [%s] ..." "$repo"
+    local timer=$(get_timer) tree="$1" host_tree="$2"
+    msg "Preparing [%s] ..." "$tree"
     info "clone"
-    git clone $host_tree.git
-    msg "Done [%s]" "$repo"
+    git clone $host_tree/$tree.git
+    msg "Done [%s]" "$tree"
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
-sync_tree_arch(){
+pull_tree_arch(){
     cd ${tree_dir_arch}
-        for repo in ${repo_tree_arch[@]};do
-            if [[ -d ${repo} ]];then
-                cd ${repo}
-                    sync_tree "${repo}"
+        for tree in packages community;do
+            if [[ -d ${tree} ]];then
+                cd ${tree}
+                    pull_tree "${tree}"
                 cd ..
             else
-                clone_tree "${repo}" "${host_tree_arch}/${repo}"
+                clone_tree "${tree}" "${host_tree_arch}/${tree}"
             fi
         done
     cd ..
 }
 
-sync_tree_artix(){
+pull_tree_artix(){
+    local tree="$1"
     cd ${tree_dir_artix}
-        for repo in ${repo_tree_artix[@]};do
-            if [[ -d ${repo} ]];then
-                cd ${repo}
-                    sync_tree "${repo}"
-                cd ..
-            else
-                clone_tree "${repo}" "${host_tree_artix}/${repo}"
-            fi
-        done
+        if [[ -d ${tree} ]];then
+            cd ${tree}
+                pull_tree "${tree}" "--rebase"
+            cd ..
+        else
+            clone_tree "${tree}" "${host_tree_artix}/${tree}"
+        fi
     cd ..
 }
 
@@ -141,7 +132,8 @@ import_from_arch(){
     read_import_list "${git_tree}"
     if [[ -n ${import_list[@]} ]];then
         cd ${tree_dir_artix}/${git_tree}
-        git pull origin master
+        $(is_dirty) && die "[%s] has uncommited changes!" "${git_tree}"
+        git pull --rebase origin master
         for pkg in ${import_list[@]};do
             local src=$(get_import_path "${git_tree}")
             local dest=${tree_dir_artix}/${git_tree}
@@ -161,16 +153,12 @@ move_pkg(){
     cd ${tree_dir_artix}/${git_tree}/$pkg/repos
     git mv $src_repo $dest_repo
     git add -u $dest_repo
-    git commit -m "Move $pkg from [$src_repo] to [$dest_repo]"
+    git commit -m "Move '$pkg' from [$src_repo] to [$dest_repo]"
 }
 
 display_settings(){
     show_version
     show_config
-
-    msg "REPOS:"
-    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
-    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
 
     msg "OPTIONS:"
     msg2 "git_tree: %s" "${git_tree}"
@@ -181,7 +169,6 @@ display_settings(){
     msg "ARGS:"
     msg2 "artix: %s" "${artix}"
     msg2 "arch: %s" "${arch}"
-    msg2 "create: %s" "${create}"
     msg2 "import_arch: %s" "${import_arch}"
 
     msg "PATHS:"
@@ -213,9 +200,8 @@ usage() {
     echo "    -p <pkg>      Package [default:${package}]"
     echo "    -s <src>      Src repo name [default:${src_repository}]"
     echo "    -d <dest>     Dest repo name [default:${dest_repository}]"
-    echo "    -a            Sync arch tree"
-    echo "    -b            Sync artix tree"
-    echo "    -c            Create package repo"
+    echo "    -a            Pull arch tree"
+    echo "    -b            Pull artix tree"
     echo '    -i            Import arch packages'
     echo '    -m            Move package from src to dest repo'
     echo '    -q            Query settings'
@@ -227,7 +213,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:p:s:d:abcimqh'
+opts='r:p:s:d:abimqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -237,7 +223,6 @@ while getopts "${opts}" arg; do
         d) dest_repository="$OPTARG" ;;
         a) arch=true ;;
         b) artix=true ;;
-        c) create=true ;;
         i) import_arch=true ;;
         m) move=true ;;
         q) pretend=true ;;
@@ -254,12 +239,10 @@ prepare_dir "${patches_dir}/${git_tree}"
 
 ${pretend} && display_settings && exit 1
 
-${artix} && sync_tree_artix
+${artix} && pull_tree_artix "${git_tree}"
 
-${arch} && sync_tree_arch
+${arch} && pull_tree_arch
 
 ${move} && move_pkg "${package}" "${src_repository}" "${dest_repository}"
-
-${create} && create_pkg_subrepo "${package}"
 
 ${import_arch} && import_from_arch
