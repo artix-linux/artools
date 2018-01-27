@@ -161,7 +161,7 @@ move_pkg(){
     cd ${tree_dir_artix}/${git_tree}/$pkg/repos
     git mv $src_repo $dest_repo
     git add -u $dest_repo
-#     git commit -m "Move %s from [%s] to [%s]" "$pkg" "$src_repo" "$dest_repo"
+    git commit -m "Move $pkg from [$src_repo] to [$dest_repo]"
 }
 
 display_settings(){

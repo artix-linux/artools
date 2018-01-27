@@ -27,8 +27,8 @@ del_from_repo(){
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
-            info "pkgfile: %s" "$pkgfile"
-            repo-remove -R $repo_path/$repo.db.tar.xz $repo_path/$name
+            info "pkgfile: %s" "${pkgfile##*/}"
+            repo-remove -R $repo_path/$repo.db.tar.xz $name
             rm -v $repo_path/${pkgfile##*/}{,.sig}
         fi
     done
@@ -64,6 +64,7 @@ add_to_repo(){
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            info "pkgfile: %s" "${pkgfile##*/}"
             [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
             signfile ${pkgfile}
             ln -sf ${pkgfile}{,.sig} $repo_path/
