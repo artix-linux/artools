@@ -33,7 +33,7 @@ is_dirty() {
 }
 
 pull_tree(){
-    local branch="master" tree="$1" git_opt="$2"
+    local branch="master" tree="$1"
     local local_head=$(get_local_head "$branch")
     local remote_head=$(get_remote_head "$branch")
     local timer=$(get_timer)
@@ -44,7 +44,7 @@ pull_tree(){
         info "nothing to do"
     else
         info "needs pull"
-        git pull $git_opt origin $branch
+        git pull origin $branch
     fi
     msg "Done [%s]" "$tree"
     show_elapsed_time "${FUNCNAME}" "${timer}"
@@ -78,7 +78,8 @@ pull_tree_artix(){
     cd ${tree_dir_artix}
         if [[ -d ${tree} ]];then
             cd ${tree}
-                pull_tree "${tree}" "--rebase"
+                git config --bool pull.rebase true
+                pull_tree "${tree}"
             cd ..
         else
             clone_tree "${tree}" "${host_tree_artix}/${tree}"
@@ -128,32 +129,27 @@ get_import_path(){
 }
 
 import_from_arch(){
-    local timer=$(get_timer) tree="$1"
+    local timer=$(get_timer) tree="$1" trunk="$2"
     read_import_list "$tree"
     if [[ -n ${import_list[@]} ]];then
         cd ${tree_dir_artix}/$tree
-        $(is_dirty) && die "[%s] has uncommited changes!" "$tree"
-        git pull --rebase origin master
         for pkg in ${import_list[@]};do
             local src=$(get_import_path "$tree")
             local dest=${tree_dir_artix}/$tree
             source $src/$pkg/trunk/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
-            rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
-            patch_pkg "$pkg"
+            if $trunk;then
+                rsync "${rsync_args[@]}"  $src/$pkg/trunk/ $dest/$pkg/trunk/
+                patch_pkg "$pkg"
+            else
+                rsync "${rsync_args[@]}"  $src/$pkg/repos/ $dest/$pkg/repos/
+            fi
+
             unset pkgver epoch pkgrel ver
         done
     fi
     show_elapsed_time "${FUNCNAME}" "${timer}"
-}
-
-move_pkg(){
-    local pkg="$1" src_repo="$2" dest_repo="$3" tree="$4"
-    cd ${tree_dir_artix}/$tree/$pkg/repos
-    git mv $src_repo $dest_repo
-    git add -u $dest_repo
-    git commit -m "Move '$pkg' from [$src_repo] to [$dest_repo]"
 }
 
 display_settings(){
@@ -162,14 +158,12 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "git_tree: %s" "${git_tree}"
-    msg2 "package: %s" "${package}"
-    msg2 "src_repository: %s" "${src_repository}"
-    msg2 "dest_repository: %s" "${dest_repository}"
 
     msg "ARGS:"
     msg2 "pull_artix: %s" "${pull_artix}"
     msg2 "pull_arch: %s" "${pull_arch}"
     msg2 "import_arch: %s" "${import_arch}"
+    msg2 "trunk_only: %s" "${trunk_only}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -185,24 +179,19 @@ pretend=false
 pull_arch=false
 pull_artix=false
 import_arch=false
+trunk_only=false
 move=false
 git_tree='packages'
-package=''
-src_repository=''
-dest_repository=''
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -r <git>      Git repo [default:${git_tree}]"
-    echo "    -p <pkg>      Package [default:${package}]"
-    echo "    -s <src>      Src package repo name [default:${src_repository}]"
-    echo "    -d <dest>     Dest package repo name [default:${dest_repository}]"
     echo "    -a            Pull arch tree"
     echo "    -b            Pull artix tree"
     echo '    -i            Import arch packages'
-    echo '    -m            Move package from src to dest repo'
+    echo '    -t            Import trunk only'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -212,18 +201,15 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:p:s:d:abimqh'
+opts='r:abitqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         r) git_tree="$OPTARG" ;;
-        p) package="$OPTARG" ;;
-        s) src_repository="$OPTARG" ;;
-        d) dest_repository="$OPTARG" ;;
         a) pull_arch=true ;;
         b) pull_artix=true ;;
         i) import_arch=true ;;
-        m) move=true ;;
+        t) trunk_only=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -242,6 +228,4 @@ ${pull_artix} && pull_tree_artix "${git_tree}"
 
 ${pull_arch} && pull_tree_arch
 
-${move} && move_pkg "${package}" "${src_repository}" "${dest_repository}"
-
-${import_arch} && import_from_arch "${git_tree}"
+${import_arch} && import_from_arch "${git_tree}" "$trunk_only"

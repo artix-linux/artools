@@ -5,6 +5,7 @@ def IS_MOVE = 'false'
 def IS_DELETE = 'false'
 def IS_BUILD = 'false'
 def MOVE_TO_REPO = ''
+def BUILD_ARGS = ''
 
 pipeline {
     agent any
@@ -82,10 +83,13 @@ pipeline {
                                         } else if ( REPO.contains('community-x86_64') || REPO.contains('community-any') ) {
                                             REPO = 'galaxy'
                                         } else if ( REPO.contains('multilib-staging') ) {
+                                            BUILD_ARGS = '-m'
                                             REPO = 'lib32-goblins'
                                         } else if ( REPO.contains('multilib-testing') ) {
+                                            BUILD_ARGS = '-m'
                                             REPO = 'lib32-gremlins'
                                         } else if ( REPO.contains('multilib-x86_64') ) {
+                                            BUILD_ARGS = '-m'
                                             REPO = 'lib32'
                                         }
                                     }
@@ -133,7 +137,7 @@ pipeline {
                 script {
                     dir("${SOURCE_PATH}") {
                         if ( PACKAGE != '' ) {
-                            sh "buildpkg2 -r ${REPO}"
+                            sh "buildpkg2 -r ${REPO} ${BUILD_ARGS}"
                         }
                     }
                 }
