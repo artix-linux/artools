@@ -71,7 +71,7 @@ else
     cache_dirs=(${cache_dir})
 fi
 
-basestrap_args=(-Gcd ${pacman_conf:+-C "$pacman_conf"})
+basestrap_args=(-Gc ${pacman_conf:+-C "$pacman_conf"})
 [[ -n ${mirror} ]] && basestrap_args+=(-M)
 
 umask 0022

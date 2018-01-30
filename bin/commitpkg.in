@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+SYSCONFDIR='@sysconfdir@'
+DATADIR='@datadir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
+
+move_pkg(){
+    local pkg="$1" src_repo="$2" dest_repo="$3" tree="$4"
+    cd ${tree_dir_artix}/$tree/$pkg/repos
+    git mv --force $src_repo $dest_repo
+    git add -u $dest_repo
+    git commit -m "Move '$pkg' from [$src_repo] to [$dest_repo]"
+}

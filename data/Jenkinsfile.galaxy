@@ -4,7 +4,9 @@ def SOURCE_PATH = ''
 def IS_MOVE = 'false'
 def IS_DELETE = 'false'
 def IS_BUILD = 'false'
+def IS_ADD = 'false'
 def MOVE_TO_REPO = ''
+def BUILD_ARGS = ''
 
 pipeline {
     agent any
@@ -73,7 +75,8 @@ pipeline {
                                 def repoNode = buildInfo[1]
                                 REPO = buildInfo[2]
                                 if ( repoNode == 'repos' ) {
-                                    if ( status == 'M' || status == 'A' ) {
+                                
+                                    if ( status == 'A' ) {
                                         IS_BUILD = 'true'
                                         if ( REPO.contains('community-staging') ) {
                                             REPO = 'galaxy-goblins'
@@ -82,14 +85,42 @@ pipeline {
                                         } else if ( REPO.contains('community-x86_64') || REPO.contains('community-any') ) {
                                             REPO = 'galaxy'
                                         } else if ( REPO.contains('multilib-staging') ) {
+                                            BUILD_ARGS = '-m'
                                             REPO = 'lib32-goblins'
                                         } else if ( REPO.contains('multilib-testing') ) {
+                                            BUILD_ARGS = '-m'
                                             REPO = 'lib32-gremlins'
                                         } else if ( REPO.contains('multilib-x86_64') ) {
+                                            BUILD_ARGS = '-m'
                                             REPO = 'lib32'
                                         }
                                     }
-                            
+                                    
+                                    if ( status == 'M' ) {
+                                        if ( REPO.contains('community-staging') ) {
+                                            IS_BUILD = 'true'
+                                            REPO = 'galaxy-goblins'
+                                        } else if ( REPO.contains('community-testing') ) {
+                                            IS_BUILD = 'true'
+                                            REPO = 'galaxy-gremlins'
+                                        } else if ( REPO.contains('community-x86_64') || REPO.contains('community-any') ) {
+                                            IS_ADD = 'true'
+                                            REPO = 'galaxy'
+                                        } else if ( REPO.contains('multilib-staging') ) {
+                                            IS_BUILD = 'true'
+                                            BUILD_ARGS = '-m'
+                                            REPO = 'lib32-goblins'
+                                        } else if ( REPO.contains('multilib-testing') ) {
+                                            IS_BUILD = 'true'
+                                            BUILD_ARGS = '-m'
+                                            REPO = 'lib32-gremlins'
+                                        } else if ( REPO.contains('multilib-x86_64') ) {
+                                            IS_ADD = 'true'
+                                            BUILD_ARGS = '-m'
+                                            REPO = 'lib32'
+                                        }
+                                    }
+                                    
                                     if ( status == 'D' ) {
                                         IS_DELETE = 'true'
                                         if ( REPO.contains('community-staging') ) {
@@ -114,6 +145,7 @@ pipeline {
                         echo "SOURCE_PATH: ${SOURCE_PATH}"
                         echo "REPO: ${REPO}"
                         echo "IS_BUILD: ${IS_BUILD}"
+                        echo "IS_ADD: ${IS_ADD}"
                         echo "IS_MOVE: ${IS_MOVE} MOVE_TO_REPO: ${MOVE_TO_REPO}"
                         echo "IS_DELETE: ${IS_DELETE}"
                     }
@@ -126,6 +158,7 @@ pipeline {
             }
             when {
                 expression { return  IS_BUILD == 'true' }
+                expression { return  IS_ADD == 'false' }
                 expression { return  IS_MOVE == 'false' }
                 expression { return  IS_DELETE == 'false' }
             }
@@ -133,7 +166,7 @@ pipeline {
                 script {
                     dir("${SOURCE_PATH}") {
                         if ( PACKAGE != '' ) {
-                            sh "buildpkg2 -r ${REPO}"
+                            sh "buildpkg2 -r ${REPO} ${BUILD_ARGS}"
                         }
                     }
                 }
@@ -153,6 +186,7 @@ pipeline {
         stage('Move') {
             when {
                 expression { return  IS_BUILD == 'false' }
+                expression { return  IS_ADD == 'false' }
                 expression { return  IS_MOVE == 'true' }
                 expression { return  IS_DELETE == 'false' }
             }
@@ -164,9 +198,25 @@ pipeline {
                 }
             }
         }
+        stage('Add') {
+            when {
+                expression { return  IS_BUILD == 'false' }
+                expression { return  IS_ADD == 'true' }
+                expression { return  IS_MOVE == 'false' }
+                expression { return  IS_DELETE == 'false' }
+            }
+            steps {
+                script {
+                    dir("${SOURCE_PATH}") {
+                        sh "deploypkg2 -a -d ${REPO}"
+                    }
+                }
+            }
+        }
         stage('Delete') {
             when {
                 expression { return  IS_BUILD == 'false' }
+                expression { return  IS_ADD == 'false' }
                 expression { return  IS_MOVE == 'false' }
                 expression { return  IS_DELETE == 'true' }
             }

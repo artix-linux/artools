@@ -4,6 +4,7 @@ def SOURCE_PATH = ''
 def IS_MOVE = 'false'
 def IS_DELETE = 'false'
 def IS_BUILD = 'false'
+def IS_ADD = 'false'
 def MOVE_TO_REPO = ''
 
 pipeline {
@@ -63,7 +64,8 @@ pipeline {
                                 def repoNode = buildInfo[1]
                                 REPO = buildInfo[2]
                                 if ( repoNode == 'repos' ) {
-                                    if ( status == 'M' || status == 'A' ) {
+                                    
+                                    if ( status == 'A' ) {
                                         IS_BUILD = 'true'
                                         if ( REPO.contains('staging') ) {
                                             REPO = 'goblins'
@@ -75,7 +77,23 @@ pipeline {
                                             REPO = 'world'
                                         }
                                     }
-                            
+                                    
+                                    if ( status == 'M' ) {
+                                        if ( REPO.contains('staging') ) {
+                                            IS_BUILD = 'true'
+                                            REPO = 'goblins'
+                                        } else if ( REPO.contains('testing') ) {
+                                            IS_BUILD = 'true'
+                                            REPO = 'gremlins'
+                                        } else if ( REPO.contains('core') ) {
+                                            IS_ADD = 'true'
+                                            REPO = 'system'
+                                        } else if ( REPO.contains('extra') ) {
+                                            IS_BUILD = 'true'
+                                            REPO = 'world'
+                                        }
+                                    }
+                                    
                                     if ( status == 'D' ) {
                                         IS_DELETE = 'true'
                                         if ( REPO.contains('staging') ) {
@@ -89,6 +107,7 @@ pipeline {
                                         }
                                         SOURCE_PATH = "${PACKAGE}/trunk"
                                     }
+                                    
                                 }
                             }
                         }
@@ -96,6 +115,7 @@ pipeline {
                         echo "SOURCE_PATH: ${SOURCE_PATH}"
                         echo "REPO: ${REPO}"
                         echo "IS_BUILD: ${IS_BUILD}"
+                        echo "IS_ADD: ${IS_ADD}"
                         echo "IS_MOVE: ${IS_MOVE} MOVE_TO_REPO: ${MOVE_TO_REPO}"
                         echo "IS_DELETE: ${IS_DELETE}"
                     }
@@ -108,6 +128,7 @@ pipeline {
             }
             when {
                 expression { return  IS_BUILD == 'true' }
+                expression { return  IS_ADD == 'false' }
                 expression { return  IS_MOVE == 'false' }
                 expression { return  IS_DELETE == 'false' }
             }
@@ -135,6 +156,7 @@ pipeline {
         stage('Move') {
             when {
                 expression { return  IS_BUILD == 'false' }
+                expression { return  IS_ADD == 'false' }
                 expression { return  IS_MOVE == 'true' }
                 expression { return  IS_DELETE == 'false' }
             }
@@ -146,9 +168,25 @@ pipeline {
                 }
             }
         }
+        stage('Add') {
+            when {
+                expression { return  IS_BUILD == 'false' }
+                expression { return  IS_ADD == 'true' }
+                expression { return  IS_MOVE == 'false' }
+                expression { return  IS_DELETE == 'false' }
+            }
+            steps {
+                script {
+                    dir("${SOURCE_PATH}") {
+                        sh "deploypkg2 -a -d ${REPO}"
+                    }
+                }
+            }
+        }
         stage('Delete') {
             when {
                 expression { return  IS_BUILD == 'false' }
+                expression { return  IS_ADD == 'false' }
                 expression { return  IS_MOVE == 'false' }
                 expression { return  IS_DELETE == 'true' }
             }
