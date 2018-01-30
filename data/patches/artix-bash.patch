@@ -1,5 +1,5 @@
 --- /dev/null
-+++ b/bash/artix.bashrc
++++ b/bash/trunk/artix.bashrc
 @@ -0,0 +1,46 @@
 +use_color=true
 +
@@ -47,8 +47,8 @@
 +fi
 +
 +unset use_color safe_term match_lhs sh
---- a/bash/dot.bashrc
-+++ b/bash/dot.bashrc
+--- a/bash/trunk/dot.bashrc
++++ b/bash/trunk/dot.bashrc
 @@ -5,5 +5,5 @@
  # If not running interactively, don't do anything
  [[ $- != *i* ]] && return
@@ -58,8 +58,8 @@
 +# alias ls='ls --color=auto'
 +# PS1='[\u@\h \W]\$ '
 
---- a/bash/system.bashrc
-+++ a/bash/system.bashrc
+--- a/bash/trunk/system.bashrc
++++ a/bash/trunk/system.bashrc
 @@ -1,5 +1,5 @@
  #
 -# /etc/bash.bashrc
@@ -77,8 +77,8 @@
 +
  [ -r /usr/share/bash-completion/bash_completion   ] && . /usr/share/bash-completion/bash_completion
 
---- a/bash/system.bash_logout
-+++ a/bash/system.bash_logout
+--- a/bash/trunk/system.bash_logout
++++ a/bash/trunk/system.bash_logout
 @@ -1,3 +1,3 @@
  #
 -# /etc/bash.bash_logout
