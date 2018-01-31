@@ -61,21 +61,20 @@ clone_tree(){
 
 pull_tree_arch(){
     cd ${tree_dir_arch}
-        for tree in packages community;do
-            if [[ -d ${tree} ]];then
-                cd ${tree}
-                    pull_tree "${tree}"
-                cd ..
-            else
-                clone_tree "${tree}" "${host_tree_arch}/${tree}"
-            fi
-        done
-    cd ..
+    for tree in packages community;do
+        if [[ -d ${tree} ]];then
+            cd ${tree}
+                pull_tree "${tree}"
+            cd ..
+        else
+            clone_tree "${tree}" "${host_tree_arch}/${tree}"
+        fi
+    done
 }
 
 pull_tree_artix(){
-    local tree="$1"
     cd ${tree_dir_artix}
+    for tree in packages packages-galaxy;do
         if [[ -d ${tree} ]];then
             cd ${tree}
                 git config --bool pull.rebase true
@@ -84,7 +83,7 @@ pull_tree_artix(){
         else
             clone_tree "${tree}" "${host_tree_artix}/${tree}"
         fi
-    cd ..
+    done
 }
 
 read_import_list(){
@@ -174,19 +173,15 @@ show_version_table(){
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
     for pkg in ${tree_dir_artix}/$tree/*; do
-        
         local repo=$(find_repo "$pkg")
         node=repos/$repo
-        if $trunk;then
-            node=trunk
-        fi
+        $trunk && node=trunk
         if [[ -f $pkg/$node/PKGBUILD ]];then
             source $pkg/$node/PKGBUILD 2>/dev/null
             package=${pkg##*/}
             cd $pkg/$node
             artixver=$(get_full_version $package)
             local src=$(get_import_path "$tree" "$package")
-
             if [[ -f $src/$package/$node/PKGBUILD ]];then
                 source $src/$package/$node/PKGBUILD 2>/dev/null
                 cd $src/$package/$node
@@ -197,7 +192,7 @@ show_version_table(){
                 if $trunk;then
                     msg_row_update "%-30s %-30s %-30s %-30s" "${node}" "$package" "$artixver" "$archver"
                 else
-                msg_row_update "%-30s %-30s %-30s %-30s" "${repo%-*}" "$package" "$artixver" "$archver"
+                    msg_row_update "%-30s %-30s %-30s %-30s" "${repo%-*}" "$package" "$artixver" "$archver"
                 fi
             fi
             unset pkgver epoch pkgrel artixver archver package
@@ -227,11 +222,15 @@ import_from_arch(){
             else
                 rsync "${rsync_args[@]}"  $src/$pkg/repos/ $dest/$pkg/repos/
             fi
-
             unset pkgver epoch pkgrel ver
         done
     fi
     show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+sync_repos(){   
+    pull_tree_arch
+    pull_tree_artix
 }
 
 display_settings(){
@@ -242,11 +241,11 @@ display_settings(){
     msg2 "git_tree: %s" "${git_tree}"
 
     msg "ARGS:"
-    msg2 "pull_artix: %s" "${pull_artix}"
-    msg2 "pull_arch: %s" "${pull_arch}"
+    msg2 "sync: %s" "${sync}"
     msg2 "import_arch: %s" "${import_arch}"
+    msg2 "compare: %s" "${compare}"
     msg2 "trunk_only: %s" "${trunk_only}"
-
+    
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
@@ -258,8 +257,7 @@ load_user_info
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
 
 pretend=false
-pull_arch=false
-pull_artix=false
+sync=false
 import_arch=false
 trunk_only=false
 compare=false
@@ -270,9 +268,8 @@ rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -r <git>      Git repo [default:${git_tree}]"
-    echo "    -a            Pull arch tree"
-    echo "    -b            Pull artix tree"
+    echo "    -g <git>      Git repo [default:${git_tree}]"
+    echo "    -s            Sync repos"
     echo '    -i            Import arch packages'
     echo '    -t            Import trunk only'
     echo '    -c            Compare packages'
@@ -285,13 +282,12 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='r:abcitqh'
+opts='g:scitqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        r) git_tree="$OPTARG" ;;
-        a) pull_arch=true ;;
-        b) pull_artix=true ;;
+        g) git_tree="$OPTARG" ;;
+        s) sync=true ;;
         i) import_arch=true ;;
         t) trunk_only=true ;;
         c) compare=true ;;
@@ -309,9 +305,7 @@ prepare_dir "${patches_dir}/${git_tree}"
 
 ${pretend} && display_settings && exit 1
 
-${pull_artix} && pull_tree_artix "${git_tree}"
-
-${pull_arch} && pull_tree_arch
+${sync} && sync_repos
 
 ${compare} && show_version_table "${git_tree}" "$trunk_only"
 
