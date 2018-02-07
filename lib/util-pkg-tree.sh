@@ -106,8 +106,8 @@ patch_pkg(){
                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
                 -i $pkg/PKGBUILD
 
-            patch -p1 -i $DATADIR/patches/artix-bash.patch
             cd $pkg
+                patch -p0 -i $DATADIR/patches/artix-bash.patch
                 updpkgsums
             cd ..
         ;;
