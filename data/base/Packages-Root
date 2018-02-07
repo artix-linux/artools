@@ -60,6 +60,19 @@ ntfs-3g
 >openrc rsync-openrc
 >openrc wpa_supplicant-openrc
 >openrc opentmpfiles
+>runit runit-artix
+>runit acpid-runit
+>runit cronie-runit
+>runit dbus-runit
+>runit dhcpcd-runit
+>runit elogind-runit
+>runit haveged-runit
+>runit lvm2-runit
+>runit mdadm-runit
+>runit nfs-utils-runit
+>runit rsync-runit
+>runit wpa_supplicant-runit
+>runit opentmpfiles
 os-prober
 pacman
 pciutils
