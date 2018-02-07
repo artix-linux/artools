@@ -1,11 +1,10 @@
-def REPO = ''
-def PACKAGE = ''
-def SOURCE_PATH = ''
-def IS_MOVE = 'false'
-def IS_DELETE = 'false'
-def IS_BUILD = 'false'
+def ADD_REPO = ''
+def RM_REPO = ''
 def IS_ADD = 'false'
-def MOVE_TO_REPO = ''
+def IS_REMOVE = 'false'
+def IS_BUILD = 'false'
+def PKG_TRUNK = ''
+def PKG_PATH = ''
 
 pipeline {
     agent any
@@ -24,100 +23,130 @@ pipeline {
 
                     def changedFilesStatus = sh(returnStdout: true, script: "git show --pretty=format: --name-status ${currentCommit}").tokenize('\n')
                     echo "changedFilesStatus: " + changedFilesStatus
-
+                    def changedPkgStatus = []
+                    def pkgPath = []
                     for ( int i = 0; i < changedFilesStatus.size(); i++ ) {
                         def entry = changedFilesStatus[i].split()
-                        def status = entry[0]
-                        def filePath = []
+                        def fileStatus = entry[0]
+                        
                         for ( int j = 1; j < entry.size(); j++ ) {
-                            if ( entry[j].contains('PKGBUILD') ){
-                                filePath << entry[j].minus('/PKGBUILD')
+                            if ( entry[j].contains('PKGBUILD') && entry[j].contains('repos') ){
+                                changedPkgStatus << "${fileStatus} " + entry[j].minus('/PKGBUILD')
+                                pkgPath << entry[j].minus('/PKGBUILD')
                             }
                         }
-                        def pathSize = filePath.size()
-                        if ( pathSize > 1 ){
-                            if ( status.contains('R') ) {
-                                IS_MOVE = 'true'
-                                if ( filePath[0].contains('staging') ) {
-                                    SOURCE_PATH = filePath[1]
-                                    REPO = 'goblins'
-                                    MOVE_TO_REPO = 'gremlins'
-                                } else if ( filePath[0].contains('testing') ) {
-                                    SOURCE_PATH = filePath[1]
-                                    if ( SOURCE_PATH.contains('staging') ) {
-                                        REPO = 'gremlins'
-                                        MOVE_TO_REPO = 'goblins'
-                                    } else if ( SOURCE_PATH.contains('core') ) {
-                                        REPO = 'gremlins'
-                                        MOVE_TO_REPO = 'system'
-                                    } else if ( SOURCE_PATH.contains('extra') ) {
-                                        REPO = 'gremlins'
-                                        MOVE_TO_REPO = 'world'
-                                    }
+                    }
+                    
+                    def pkgCount = changedPkgStatus.size()
+                    echo "pkgCount: ${pkgCount}"
+                    def pkgPathCount = pkgPath.size()
+                    echo "pkgPathCount: ${pkgPathCount}"
+                    echo "changedPkgStatus: ${changedPkgStatus}"
+                    
+                    if ( pkgCount > 1 && pkgPathCount < 2 ) {
+                        def pkgEntry1 = changedPkgStatus[0].split()
+                        def pkgEntry2 = changedPkgStatus[1].split()
+                        def srcPath = []
+                        def pkgStatus = []
+                        srcPath << pkgEntry1[1]
+                        srcPath << pkgEntry2[1]
+                        pkgStatus << pkgEntry1[0]
+                        pkgStatus << pkgEntry2[0]
+                        def buildInfo1 = srcPath[0].tokenize('/')
+                        def buildInfo2 = srcPath[1].tokenize('/')
+                        for ( s in pkgStatus ) {
+                            if ( s == "M" ) {
+                                IS_ADD = 'true'
+                                if ( srcPath[0].contains('testing') ) {
+                                    ADD_REPO = 'gremlins'
+                                } else if ( srcPath[0].contains('core') ) {
+                                    ADD_REPO = 'system'
+                                } else if ( srcPath[0].contains('extra') ) {
+                                    ADD_REPO = 'world'
                                 }
                             }
+                            if ( s == 'D' ) {
+                                IS_REMOVE = 'true'
+                                if ( srcPath[1].contains('testing') ) {
+                                    RM_REPO = 'gremlins'
+                                } else if ( srcPath[1].contains('core') ) {
+                                    RM_REPO = 'system'
+                                } else if ( srcPath[1].contains('extra') ) {
+                                    RM_REPO = 'world'
+                                }
+                            }
+                        }
+                        PKG_TRUNK = buildInfo1[0] + '/trunk'
+                    } else {
+                        if ( pkgPathCount > 1 ) {
+                            def pkgEntry = changedPkgStatus[0].split()
+                            def pkgStatus = pkgEntry[0]
+                            def buildInfo1 = pkgPath[0].tokenize('/')
+                            def buildInfo2 = pkgPath[1].tokenize('/')
+                            if ( pkgStatus.contains('R') ) {
+                                IS_ADD = 'true'
+                                IS_REMOVE = 'true'
+                                if ( pkgPath[0].contains('staging') ) {
+                                    RM_REPO = 'goblins'
+                                } 
+                                if ( pkgPath[1].contains('testing') ) {
+                                    ADD_REPO = 'gremlins'
+                                }
+                                if ( pkgPath[1].contains('staging') ) {
+                                    RM_REPO = 'gremlins'
+                                } 
+                                if ( pkgPath[0].contains('testing') ) {
+                                    ADD_REPO = 'goblins'
+                                }
+                            }
+                            PKG_TRUNK = buildInfo1[0] + '/trunk'
                         } else {
-                            if ( filePath[0] != null ) {
-                                SOURCE_PATH = filePath[0]
-                                def buildInfo = SOURCE_PATH.tokenize('/')
-                                PACKAGE = buildInfo[0]
-                                def repoNode = buildInfo[1]
-                                REPO = buildInfo[2]
-                                if ( repoNode == 'repos' ) {
-                                    
-                                    if ( status == 'A' ) {
+                            if ( pkgCount > 0 ) {
+                                def pkgEntry = changedPkgStatus[0].split()
+                                def pkgStatus = pkgEntry[0]
+                                def srcPath = pkgEntry[1]
+                                def buildInfo = srcPath.tokenize('/')
+                                if ( srcPath.contains('staging') ) {
+                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
                                         IS_BUILD = 'true'
-                                        if ( REPO.contains('staging') ) {
-                                            REPO = 'goblins'
-                                        } else if ( REPO.contains('testing') ) {
-                                            REPO = 'gremlins'
-                                        } else if ( REPO.contains('core') ) {
-                                            REPO = 'system'
-                                        } else if ( REPO.contains('extra') ) {
-                                            REPO = 'world'
-                                        }
                                     }
-                                    
-                                    if ( status == 'M' ) {
-                                        if ( REPO.contains('staging') ) {
-                                            IS_BUILD = 'true'
-                                            REPO = 'goblins'
-                                        } else if ( REPO.contains('testing') ) {
-                                            IS_BUILD = 'true'
-                                            REPO = 'gremlins'
-                                        } else if ( REPO.contains('core') ) {
-                                            IS_ADD = 'true'
-                                            REPO = 'system'
-                                        } else if ( REPO.contains('extra') ) {
-                                            IS_BUILD = 'true'
-                                            REPO = 'world'
-                                        }
+                                    if ( pkgStatus == 'D' ) {
+                                        IS_REMOVE = 'true'
                                     }
-                                    
-                                    if ( status == 'D' ) {
-                                        IS_DELETE = 'true'
-                                        if ( REPO.contains('staging') ) {
-                                            REPO = 'goblins'
-                                        } else if ( REPO.contains('testing') ) {
-                                            REPO = 'gremlins'
-                                        } else if ( REPO.contains('core') ) {
-                                            REPO = 'system'
-                                        } else if ( REPO.contains('extra') ) {
-                                            REPO = 'world'
-                                        }
-                                        SOURCE_PATH = "${PACKAGE}/trunk"
+                                    ADD_REPO = 'goblins'
+                                    RM_REPO = ADD_REPO
+                                } else if ( srcPath.contains('testing') ) {
+                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                        IS_BUILD = 'true'
                                     }
-                                    
+                                    if ( pkgStatus == 'D' ) {
+                                        IS_REMOVE = 'true'
+                                    }
+                                    ADD_REPO = 'gremlins'
+                                    RM_REPO = ADD_REPO
+                                } else if ( srcPath.contains('core') ) {
+                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                        IS_BUILD = 'true'
+                                    }
+                                    if ( pkgStatus == 'D' ) {
+                                        IS_REMOVE = 'true'
+                                    }
+                                    ADD_REPO = 'system'
+                                    RM_REPO = ADD_REPO
+                                } else if ( srcPath.contains('extra') ) {
+                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                        IS_BUILD = 'true'
+                                    }
+                                    if ( pkgStatus == 'D' ) {
+                                        IS_REMOVE = 'true'
+                                    }
+                                    ADD_REPO = 'world'
+                                    RM_REPO = ADD_REPO
                                 }
+                                PKG_PATH = srcPath
+                                PKG_TRUNK = buildInfo[0] + '/trunk'
                             }
                         }
-                        echo "PACKAGE: ${PACKAGE}"
-                        echo "SOURCE_PATH: ${SOURCE_PATH}"
-                        echo "REPO: ${REPO}"
-                        echo "IS_BUILD: ${IS_BUILD}"
-                        echo "IS_ADD: ${IS_ADD}"
-                        echo "IS_MOVE: ${IS_MOVE} MOVE_TO_REPO: ${MOVE_TO_REPO}"
-                        echo "IS_DELETE: ${IS_DELETE}"
                     }
                 }
             }
@@ -128,73 +157,37 @@ pipeline {
             }
             when {
                 expression { return  IS_BUILD == 'true' }
-                expression { return  IS_ADD == 'false' }
-                expression { return  IS_MOVE == 'false' }
-                expression { return  IS_DELETE == 'false' }
             }
             steps {
-                script {
-                    dir("${SOURCE_PATH}") {
-                        if ( PACKAGE != '' ) {
-                            sh "buildpkg2 -r ${REPO}"
-                        }
-                    }
+                dir("${PKG_PATH}") {
+                    echo "buildpkg2 -r ${ADD_REPO}"
                 }
             }
             post {
                 success {
-                    script {
-                        dir("${SOURCE_PATH}") {
-                            if ( PACKAGE != '' ) {
-                                sh "deploypkg2 -a -d ${REPO}"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stage('Move') {
-            when {
-                expression { return  IS_BUILD == 'false' }
-                expression { return  IS_ADD == 'false' }
-                expression { return  IS_MOVE == 'true' }
-                expression { return  IS_DELETE == 'false' }
-            }
-            steps {
-                script {
-                    dir("${SOURCE_PATH}") {
-                        sh "deploypkg2 -m -s ${REPO} -d ${MOVE_TO_REPO}"
+                    dir("${PKG_PATH}") {
+                        echo "deploypkg2 -a -d ${ADD_REPO}"
                     }
                 }
             }
         }
         stage('Add') {
             when {
-                expression { return  IS_BUILD == 'false' }
                 expression { return  IS_ADD == 'true' }
-                expression { return  IS_MOVE == 'false' }
-                expression { return  IS_DELETE == 'false' }
             }
             steps {
-                script {
-                    dir("${SOURCE_PATH}") {
-                        sh "deploypkg2 -a -d ${REPO}"
-                    }
+                dir("${PKG_TRUNK}") {
+                    echo "deploypkg2 -a -d ${ADD_REPO}"
                 }
             }
         }
-        stage('Delete') {
+        stage('Remove') {
             when {
-                expression { return  IS_BUILD == 'false' }
-                expression { return  IS_ADD == 'false' }
-                expression { return  IS_MOVE == 'false' }
-                expression { return  IS_DELETE == 'true' }
+                expression { return  IS_REMOVE == 'true' }
             }
             steps {
-                script {
-                    dir("${SOURCE_PATH}") {
-                        sh "deploypkg2 -r -d ${REPO}"
-                    }
+                dir("${PKG_TRUNK}") {
+                    echo "deploypkg2 -r -d ${RM_REPO}"
                 }
             }
         }
