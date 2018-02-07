@@ -63,7 +63,7 @@ prepare_build(){
             
     base_devel=('base-devel')
     
-    if [[ "${repository}" == 'system' || "${repository}" == 'world' ]]|;then
+    if [[ "${repository}" == 'system' ]] || [[ "${repository}" == 'world' ]];then
         repository='default'
     elif [[ "${repository}" == lib32* ]];then
         base_devel+=('multilib-devel')
