@@ -54,7 +54,7 @@ clone_tree(){
     local timer=$(get_timer) tree="$1" host_tree="$2"
     msg "Preparing [%s] ..." "$tree"
     info "clone"
-    git clone $host_tree/$tree.git
+    git clone $host_tree.git
     msg "Done [%s]" "$tree"
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
@@ -93,9 +93,12 @@ read_import_list(){
 }
 
 patch_pkg(){
-    local pkg="$1"
+    local pkg="$1" repo="$2"
     case $pkg in
         'glibc')
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
+                -i $pkg/$repo/PKGBUILD
             sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
                 -e '/nscd.service/d' \
                 -i $pkg/trunk/PKGBUILD
@@ -105,15 +108,24 @@ patch_pkg(){
                 -e 's|etc/bash.|etc/bash/|g' \
                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
+                -i $pkg/$repo/PKGBUILD
+            sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
+                -e 's|etc/bash.|etc/bash/|g' \
+                -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
+                -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
                 -i $pkg/trunk/PKGBUILD
-
-            patch -p1 -i $DATADIR/patches/artix-bash.patch
-
+                
+            cd $pkg/$repo
+                patch -p0 -i $DATADIR/patches/artix-bash.patch
+                updpkgsums
+            cd ../../..
             cd $pkg/trunk
+                patch -p0 -i $DATADIR/patches/artix-bash.patch
                 updpkgsums
             cd ../..
         ;;
         'tp_smapi'|'acpi_call'|'r8168')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
         ;;
     esac
@@ -130,7 +142,15 @@ get_import_path(){
 
 find_repo(){
     local pkg="$1" repo=
-    if [[ -d $pkg/repos/core-x86_64 ]];then
+    if [[ -d $pkg/repos/staging-x86_64 ]];then
+        repo=staging-x86_64  
+    elif [[ -d $pkg/repos/staging-any ]];then
+        repo=staging-any
+    elif [[ -d $pkg/repos/testing-x86_64 ]];then
+        repo=testing-x86_64
+    elif [[ -d $pkg/repos/testing-any ]];then
+        repo=testing-any
+    elif [[ -d $pkg/repos/core-x86_64 ]];then
         repo=core-x86_64
     elif [[ -d $pkg/repos/core-any ]];then
         repo=core-any
@@ -138,44 +158,36 @@ find_repo(){
         repo=extra-x86_64
     elif [[ -d $pkg/repos/extra-any ]];then
         repo=extra-any
-    elif [[ -d $pkg/repos/testing-x86_64 ]];then
-        repo=testing-x86_64
-    elif [[ -d $pkg/repos/testing-any ]];then
-        repo=testing-any
-    elif [[ -d $pkg/repos/staging-x86_64 ]];then
-        repo=staging-x86_64  
-    elif [[ -d $pkg/repos/staging-any ]];then
-        repo=staging-any
-    elif [[ -d $pkg/repos/community-x86_64 ]];then
-        repo=community-x86_64
-    elif [[ -d $pkg/repos/community-any ]];then
-        repo=community-any
-    elif [[ -d $pkg/repos/community-testing-x86_64 ]];then
-        repo=community-testing-x86_64
-    elif [[ -d $pkg/repos/community-testing-any ]];then
-        repo=community-testing-any
     elif [[ -d $pkg/repos/community-staging-x86_64 ]];then
         repo=community-staging-x86_64
     elif [[ -d $pkg/repos/community-staging-any ]];then
         repo=community-staging-any
-    elif [[ -d $pkg/repos/multilib-x86_64 ]];then
-        repo=multilib-x86_64
-    elif [[ -d $pkg/repos/multilib-testing-x86_64 ]];then
-        repo=multilib-testing-x86_64
+    elif [[ -d $pkg/repos/community-testing-x86_64 ]];then
+        repo=community-testing-x86_64
+    elif [[ -d $pkg/repos/community-testing-any ]];then
+        repo=community-testing-any
+    elif [[ -d $pkg/repos/community-x86_64 ]];then
+        repo=community-x86_64
+    elif [[ -d $pkg/repos/community-any ]];then
+        repo=community-any
     elif [[ -d $pkg/repos/multilib-staging-x86_64 ]];then
         repo=multilib-staging-x86_64
+    elif [[ -d $pkg/repos/multilib-testing-x86_64 ]];then
+        repo=multilib-testing-x86_64
+    elif [[ -d $pkg/repos/multilib-x86_64 ]];then
+        repo=multilib-x86_64
     fi
     echo $repo
 }
 
 show_version_table(){
-    local tree="$1" trunk="$2" node=
+    local tree="$1" node=
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
     for pkg in ${tree_dir_artix}/$tree/*; do
         local repo=$(find_repo "$pkg")
+#         info "repo: %s" "$repo"
         node=repos/$repo
-        $trunk && node=trunk
         if [[ -f $pkg/$node/PKGBUILD ]];then
             source $pkg/$node/PKGBUILD 2>/dev/null
             package=${pkg##*/}
@@ -189,11 +201,7 @@ show_version_table(){
             fi
             if [ $(vercmp $artixver $archver) -lt 0 ];then
                 UPDATES[$package]="$pkg/$node/PKGBUILD $src/$package/$node/PKGBUILD"
-                if $trunk;then
-                    msg_row_update "%-30s %-30s %-30s %-30s" "${node}" "$package" "$artixver" "$archver"
-                else
-                    msg_row_update "%-30s %-30s %-30s %-30s" "${repo%-*}" "$package" "$artixver" "$archver"
-                fi
+                msg_row_update "%-30s %-30s %-30s %-30s" "${repo%-*}" "$package" "$artixver" "$archver"
             fi
             unset pkgver epoch pkgrel artixver archver package
         fi
@@ -206,22 +214,26 @@ show_version_table(){
 }
 
 import_from_arch(){
-    local timer=$(get_timer) tree="$1" trunk="$2"
+    local timer=$(get_timer) tree="$1"
     read_import_list "$tree"
     if [[ -n ${import_list[@]} ]];then
         cd ${tree_dir_artix}/$tree
         for pkg in ${import_list[@]};do
             local src=$(get_import_path "$tree")
             local dest=${tree_dir_artix}/$tree
-            source $src/$pkg/trunk/PKGBUILD 2>/dev/null
+            
+            local repo=$(find_repo "$pkg")
+            source $src/$pkg/repos/$repo/PKGBUILD 2>/dev/null
             local ver=$(get_full_version $pkg)
             msg "Package: %s-%s" "$pkg" "$ver"
-            if $trunk;then
-                rsync "${rsync_args[@]}"  $src/$pkg/trunk/ $dest/$pkg/trunk/
-                patch_pkg "$pkg"
-            else
-                rsync "${rsync_args[@]}"  $src/$pkg/repos/ $dest/$pkg/repos/
-            fi
+            rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
+#             cd $pkg/repos
+#             git add .
+#             git commit -m "[$repo] $pkg-$ver"
+#             sleep 3
+#             git push origin master
+#             cd ../..
+            patch_pkg "$pkg" "repos/$repo"
             unset pkgver epoch pkgrel ver
         done
     fi
@@ -244,7 +256,6 @@ display_settings(){
     msg2 "sync: %s" "${sync}"
     msg2 "import_arch: %s" "${import_arch}"
     msg2 "compare: %s" "${compare}"
-    msg2 "trunk_only: %s" "${trunk_only}"
     
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -259,7 +270,6 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 pretend=false
 sync=false
 import_arch=false
-trunk_only=false
 compare=false
 move=false
 git_tree='packages'
@@ -271,7 +281,7 @@ usage() {
     echo "    -g <git>      Git repo [default:${git_tree}]"
     echo "    -s            Sync repos"
     echo '    -i            Import arch packages'
-    echo '    -t            Import trunk only'
+    echo '    -t            Compare trunk only'
     echo '    -c            Compare packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
@@ -282,14 +292,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='g:scitqh'
+opts='g:sciqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         g) git_tree="$OPTARG" ;;
         s) sync=true ;;
         i) import_arch=true ;;
-        t) trunk_only=true ;;
         c) compare=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
@@ -307,6 +316,6 @@ ${pretend} && display_settings && exit 1
 
 ${sync} && sync_repos
 
-${compare} && show_version_table "${git_tree}" "$trunk_only"
+${compare} && show_version_table "${git_tree}"
 
-${import_arch} && import_from_arch "${git_tree}" "$trunk_only"
+${import_arch} && import_from_arch "${git_tree}"
