@@ -16,7 +16,41 @@ SYSCONFDIR='@sysconfdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-pkg-publish.sh
+import ${LIBDIR}/util-pkg.sh
+
+del_from_repo(){
+    local ver
+    local repo="$1"
+    local repo_path=${repos_root}/$repo/os/${target_arch}
+    source PKGBUILD
+    for name in ${pkgname[@]};do
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
+            info "pkgfile: %s" "${pkgfile##*/}"
+            repo-remove -R $repo_path/$repo.db.tar.xz $name
+            rm -v $repo_path/${pkgfile##*/}{,.sig}
+        fi
+    done
+}
+
+add_to_repo(){
+    local ver pkgfile=
+    local repo="$1"
+    local repo_path=${repos_root}/$repo/os/${target_arch}
+    source PKGBUILD
+    for name in ${pkgname[@]};do
+        [[ $arch == any ]] && CARCH=any
+        ver=$(get_full_version $name)
+        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
+            info "pkgfile: %s" "${pkgfile##*/}"
+            [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
+            signfile ${pkgfile}
+            ln -sf ${pkgfile}{,.sig} $repo_path/
+            repo-add -R $repo_path/$repo.db.tar.xz $pkgfile
+        fi
+    done
+}
 
 display_settings(){
     show_version
@@ -24,9 +58,6 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "repository: %s" "${repository}"
-    msg2 "to_repository: %s" "${to_repository}"
-    msg2 "package: %s" "${package[@]}"
-    msg2 "target_arch: %s" "${target_arch}"
 
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
@@ -43,22 +74,13 @@ load_vars /etc/makepkg.conf
 pretend=false
 add_pkg=false
 del_pkg=false
-move_pkg=false
-package=''
-repository=${PWD##*/}
-to_repository=${PWD##*/}
-
-rsync_args=(-rtxisP --progress --delete -e ssh)
+repository=
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -a                 Repository arch [default:${target_arch}]"
-    echo "    -r                 Repository [default:${repository}]"
-    echo "    -t                 Repository to move to [default:${to_repository}]"
-    echo "    -p                 Package name to add/delete"
-    echo '    -x                 Add package to repository'
-    echo '    -y                 Delete package from repository'
-    echo '    -m                 Move packages from source to destination repository'
+    echo "    -d                 Destination repository [default:${repository}]"
+    echo '    -a                 Add package to repository'
+    echo '    -r                 Remove package from repository'
     echo '    -q                 Query settings and pretend upload'
     echo '    -h                 This help'
     echo ''
@@ -68,17 +90,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:a:r:t:xymqh'
+opts='d:arqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        a) target_arch="$OPTARG" ;;
-        r) repository="$OPTARG" ;;
-        p) package="$OPTARG" ;;
-        t) to_repository="$OPTARG" ;;
-        m) move_pkg=true ;;
-        x) add_pkg=true ;;
-        y) del_pkg=true ;;
+        d) repository="$OPTARG" ;;
+        a) add_pkg=true ;;
+        r) del_pkg=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -93,10 +111,8 @@ prepare_dir "${repos_root}"
 
 ${pretend} && display_settings && exit 1
 
-${move_pkg} && move_to_repo "${repository}" "${to_repository}" "${target_arch}"
+${del_pkg} && del_from_repo "${repository}"
 
-${del_pkg} && del_from_repo "${repository}" "${target_arch}" "${package}"
-
-${add_pkg} && add_to_repo "${repository}" "${target_arch}" "${package}"
+${add_pkg} && add_to_repo "${repository}"
 
 exit 0
