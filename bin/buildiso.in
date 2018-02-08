@@ -26,10 +26,10 @@ prepare_build(){
 
     netgroups=${netgroups_url}/netgroups-${initsys}.yaml
 
-    local pacman_conf pac_file="pacman.conf"
+    local pacman_conf pac_file="pacman-default.conf"
 
     case "${stablility}" in
-        'testing') pac_file="pacman-${stablility}.conf" ;;
+        'gremlins') pac_file="pacman-${stablility}.conf" ;;
     esac
 
     pacman_conf="${DATADIR}/$pac_file"

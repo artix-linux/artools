@@ -1,4 +1,4 @@
-Version=0.6
+Version=0.7
 
 PREFIX = /usr/local
 SYSCONFDIR = /etc
@@ -31,15 +31,11 @@ BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
 	bin/finddeps \
-	bin/findupdates \
 	bin/find-libdeps \
 	bin/mkchrootpkg \
 	bin/buildpkg \
 	bin/buildtree \
-	bin/deploypkg \
-	bin/buildpkg2 \
-	bin/buildtree2 \
-	bin/deploypkg2
+	bin/deploypkg
 
 LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
@@ -156,7 +152,7 @@ install_iso:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
-	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-testing
+	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_ISO} $(DESTDIR)$(PREFIX)/lib/artools
@@ -182,7 +178,6 @@ uninstall_pkg:
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
-	rm -f $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
@@ -196,7 +191,7 @@ uninstall_isobase:
 
 uninstall_iso:
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-testing
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
 	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
