@@ -36,7 +36,10 @@ BIN_PKG = \
 	bin/mkchrootpkg \
 	bin/buildpkg \
 	bin/buildtree \
-	bin/deploypkg
+	bin/deploypkg \
+	bin/buildpkg2 \
+	bin/buildtree2 \
+	bin/deploypkg2
 
 LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
@@ -121,7 +124,7 @@ install_pkg:
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
 
 	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
-
+	
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools

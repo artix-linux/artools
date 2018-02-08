@@ -99,21 +99,18 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/PKGBUILD
         ;;
-        'bash')
-            sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
-                -e 's|etc/bash.|etc/bash/|g' \
-                -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
-                -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
-                -i $pkg/PKGBUILD
-
-            patch -p1 -i $DATADIR/patches/dot-bashrc.patch
-            patch -p1 -i $DATADIR/patches/system-bashrc.patch
-            patch -p1 -i $DATADIR/patches/system-bashrc_logout.patch
-            patch -p1 -i $DATADIR/patches/artix-bashrc.patch
-            cd $pkg
-                updpkgsums
-            cd ..
-        ;;
+#         'bash')
+#             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
+#                 -e 's|etc/bash.|etc/bash/|g' \
+#                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
+#                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
+#                 -i $pkg/PKGBUILD
+# 
+#             cd $pkg
+#                 patch -p1 -i $DATADIR/patches/artix-bash.patch
+#                 updpkgsums
+#             cd ..
+#         ;;
         'tp_smapi'|'acpi_call'|'r8168')
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/PKGBUILD
         ;;

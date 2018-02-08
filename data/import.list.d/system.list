@@ -23,7 +23,6 @@ gdbm
 xz
 zlib
 file
-zstd
 icu
 perl
 openssl

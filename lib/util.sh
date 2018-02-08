@@ -27,7 +27,7 @@ load_vars() {
     [[ -f $1 ]] || return 1
 
     for var in {SRC,SRCPKG,PKG,LOG}DEST MAKEFLAGS PACKAGER CARCH GPGKEY; do
-        [[ -z ${!var} ]] && eval $(grep -a "^${var}=" "$1")
+        [[ -z ${!var:-} ]] && eval "$(grep -a "^${var}=" "$1")"
     done
 
     return 0
@@ -67,12 +67,14 @@ init_artools_pkg(){
 
     [[ -z ${tree_dir_artix} ]] && tree_dir_artix=${workspace_dir}/artix
 
+    # to be removed
     [[ -z ${repo_tree_artix[@]} ]] && repo_tree_artix=('system' 'world' 'galaxy' 'lib32')
 
     [[ -z ${host_tree_artix} ]] && host_tree_artix='https://github.com/artix-linux'
 
     [[ -z ${tree_dir_arch} ]] && tree_dir_arch=${workspace_dir}/archlinux
 
+    # to be removed
     [[ -z ${repo_tree_arch} ]] && repo_tree_arch=('packages' 'community')
 
     [[ -z ${host_tree_arch} ]] && host_tree_arch='git://projects.archlinux.org/svntogit'

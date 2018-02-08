@@ -32,7 +32,6 @@ usage() {
     echo "usage: ${0##*/} [options] root [packages...]"
     echo " -C <config>      Use an alternate config file for pacman"
     echo " -c               Use the package cache on the host, rather than the target"
-    echo " -d               Allow installation to a non-mountpoint directory"
     echo " -G               Avoid copying the host's pacman keyring to the target"
     echo " -i               Avoid auto-confirmation of package selections"
     echo " -M               Avoid copying the host's mirrorlist to the target"
@@ -47,12 +46,11 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts=':C:cdGiM'
+opts=':C:cGiM'
 
 while getopts ${opts} arg; do
     case "${arg}" in
         C) pacman_conf=$OPTARG ;;
-        d) directory=true ;;
         c) hostcache=true ;;
         i) interactive=true ;;
         G) copykeyring=false ;;
@@ -76,10 +74,6 @@ ${interactive} || pacman_args+=(--noconfirm)
 [[ -n $pacman_conf ]] && pacman_args+=(--config="$pacman_conf")
 
 [[ -d $newroot ]] || die "%s is not a directory" "$newroot"
-
-if ! mountpoint -q "$newroot" && ! ${directory}; then
-    die '%s is not a mountpoint!' "$newroot"
-fi
 
 # create obligatory directories
 create_min_fs "$newroot"
