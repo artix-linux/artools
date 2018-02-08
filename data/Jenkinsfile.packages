@@ -25,10 +25,11 @@ pipeline {
                     echo "changedFilesStatus: " + changedFilesStatus
                     def changedPkgStatus = []
                     def pkgPath = []
+                    int entrySize = 0
                     for ( int i = 0; i < changedFilesStatus.size(); i++ ) {
                         def entry = changedFilesStatus[i].split()
                         def fileStatus = entry[0]
-                        
+                        entrySize = entry.size()
                         for ( int j = 1; j < entry.size(); j++ ) {
                             if ( entry[j].contains('PKGBUILD') && entry[j].contains('repos') ){
                                 changedPkgStatus << "${fileStatus} " + entry[j].minus('/PKGBUILD')
@@ -37,48 +38,53 @@ pipeline {
                         }
                     }
                     
-                    def pkgCount = changedPkgStatus.size()
+                    int pkgCount = changedPkgStatus.size()
+                    int pkgPathCount = pkgPath.size()
                     echo "pkgCount: ${pkgCount}"
-                    def pkgPathCount = pkgPath.size()
+                    echo "pkgPath: ${pkgPath}"
+                    echo "entrySize: ${entrySize}"
                     echo "pkgPathCount: ${pkgPathCount}"
                     echo "changedPkgStatus: ${changedPkgStatus}"
                     
-                    if ( pkgCount > 1 && pkgPathCount < 2 ) {
-                        def pkgEntry1 = changedPkgStatus[0].split()
-                        def pkgEntry2 = changedPkgStatus[1].split()
-                        def srcPath = []
-                        def pkgStatus = []
-                        srcPath << pkgEntry1[1]
-                        srcPath << pkgEntry2[1]
-                        pkgStatus << pkgEntry1[0]
-                        pkgStatus << pkgEntry2[0]
-                        def buildInfo1 = srcPath[0].tokenize('/')
-                        def buildInfo2 = srcPath[1].tokenize('/')
-                        for ( s in pkgStatus ) {
-                            if ( s == "M" ) {
-                                IS_ADD = 'true'
-                                if ( srcPath[0].contains('testing') ) {
-                                    ADD_REPO = 'gremlins'
-                                } else if ( srcPath[0].contains('core') ) {
-                                    ADD_REPO = 'system'
-                                } else if ( srcPath[0].contains('extra') ) {
-                                    ADD_REPO = 'world'
+                    if ( pkgCount > 0 ) {
+                    
+                        if ( entrySize == 2 && pkgCount == 2 ) {
+                            def pkgEntry1 = changedPkgStatus[0].split()
+                            def pkgEntry2 = changedPkgStatus[1].split()
+                            def srcPath = []
+                            def pkgStatus = []
+                            srcPath << pkgEntry1[1]
+                            srcPath << pkgEntry2[1]
+                            pkgStatus << pkgEntry1[0]
+                            pkgStatus << pkgEntry2[0]
+                            def buildInfo1 = srcPath[0].tokenize('/')
+                            def buildInfo2 = srcPath[1].tokenize('/')
+                            for ( s in pkgStatus ) {
+                                if ( s == "M" ) {
+                                    IS_ADD = 'true'
+                                    if ( srcPath[0].contains('testing') ) {
+                                        ADD_REPO = 'gremlins'
+                                    } else if ( srcPath[0].contains('core') ) {
+                                        ADD_REPO = 'system'
+                                    } else if ( srcPath[0].contains('extra') ) {
+                                        ADD_REPO = 'world'
+                                    }
+                                }
+                                if ( s == 'D' ) {
+                                    IS_REMOVE = 'true'
+                                    if ( srcPath[1].contains('testing') ) {
+                                        RM_REPO = 'gremlins'
+                                    } else if ( srcPath[1].contains('core') ) {
+                                        RM_REPO = 'system'
+                                    } else if ( srcPath[1].contains('extra') ) {
+                                        RM_REPO = 'world'
+                                    }
                                 }
                             }
-                            if ( s == 'D' ) {
-                                IS_REMOVE = 'true'
-                                if ( srcPath[1].contains('testing') ) {
-                                    RM_REPO = 'gremlins'
-                                } else if ( srcPath[1].contains('core') ) {
-                                    RM_REPO = 'system'
-                                } else if ( srcPath[1].contains('extra') ) {
-                                    RM_REPO = 'world'
-                                }
-                            }
-                        }
-                        PKG_TRUNK = buildInfo1[0] + '/trunk'
-                    } else {
-                        if ( pkgPathCount > 1 ) {
+                            PKG_TRUNK = buildInfo1[0] + '/trunk'
+                        } 
+
+                        if ( entrySize == 3 && pkgCount == 2 ) {
                             def pkgEntry = changedPkgStatus[0].split()
                             def pkgStatus = pkgEntry[0]
                             def buildInfo1 = pkgPath[0].tokenize('/')
@@ -100,53 +106,54 @@ pipeline {
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
-                        } else {
-                            if ( pkgCount > 0 ) {
-                                def pkgEntry = changedPkgStatus[0].split()
-                                def pkgStatus = pkgEntry[0]
-                                def srcPath = pkgEntry[1]
-                                def buildInfo = srcPath.tokenize('/')
-                                if ( srcPath.contains('staging') ) {
-                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
-                                        IS_BUILD = 'true'
-                                    }
-                                    if ( pkgStatus == 'D' ) {
-                                        IS_REMOVE = 'true'
-                                    }
-                                    ADD_REPO = 'goblins'
-                                    RM_REPO = ADD_REPO
-                                } else if ( srcPath.contains('testing') ) {
-                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
-                                        IS_BUILD = 'true'
-                                    }
-                                    if ( pkgStatus == 'D' ) {
-                                        IS_REMOVE = 'true'
-                                    }
-                                    ADD_REPO = 'gremlins'
-                                    RM_REPO = ADD_REPO
-                                } else if ( srcPath.contains('core') ) {
-                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
-                                        IS_BUILD = 'true'
-                                    }
-                                    if ( pkgStatus == 'D' ) {
-                                        IS_REMOVE = 'true'
-                                    }
-                                    ADD_REPO = 'system'
-                                    RM_REPO = ADD_REPO
-                                } else if ( srcPath.contains('extra') ) {
-                                    if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
-                                        IS_BUILD = 'true'
-                                    }
-                                    if ( pkgStatus == 'D' ) {
-                                        IS_REMOVE = 'true'
-                                    }
-                                    ADD_REPO = 'world'
-                                    RM_REPO = ADD_REPO
+                        } 
+                    
+                        if ( pkgCount == 1 ) {
+                            def pkgEntry = changedPkgStatus[0].split()
+                            def pkgStatus = pkgEntry[0]
+                            def srcPath = pkgEntry[1]
+                            def buildInfo = srcPath.tokenize('/')
+                            if ( srcPath.contains('staging') ) {
+                                if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                    IS_BUILD = 'true'
                                 }
-                                PKG_PATH = srcPath
-                                PKG_TRUNK = buildInfo[0] + '/trunk'
+                                if ( pkgStatus == 'D' ) {
+                                    IS_REMOVE = 'true'
+                                }
+                                ADD_REPO = 'goblins'
+                                RM_REPO = ADD_REPO
+                            } else if ( srcPath.contains('testing') ) {
+                                if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                    IS_BUILD = 'true'
+                                }
+                                if ( pkgStatus == 'D' ) {
+                                    IS_REMOVE = 'true'
+                                }
+                                ADD_REPO = 'gremlins'
+                                RM_REPO = ADD_REPO
+                            } else if ( srcPath.contains('core') ) {
+                                if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                    IS_BUILD = 'true'
+                                }
+                                if ( pkgStatus == 'D' ) {
+                                    IS_REMOVE = 'true'
+                                }
+                                ADD_REPO = 'system'
+                                RM_REPO = ADD_REPO
+                            } else if ( srcPath.contains('extra') ) {
+                                if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
+                                    IS_BUILD = 'true'
+                                }
+                                if ( pkgStatus == 'D' ) {
+                                    IS_REMOVE = 'true'
+                                }
+                                ADD_REPO = 'world'
+                                RM_REPO = ADD_REPO
                             }
+                            PKG_PATH = srcPath
+                            PKG_TRUNK = buildInfo[0] + '/trunk'
                         }
+                    
                     }
                 }
             }
