@@ -232,12 +232,6 @@ import_from_arch(){
             msg "Repo: [%s] Package: %s-%s" "$repo" "$pkg" "$ver"
             
             patch_pkg "$pkg" "repos/$repo"
-#                 cd $pkg
-#                 git add .
-#                 git commit -m "[$repo] $pkg-$ver"
-#                 sleep 5
-#                 git push origin master
-#                 cd ..
             unset pkgver epoch pkgrel ver
         done
     fi
@@ -285,7 +279,6 @@ usage() {
     echo "    -g <git>      Git repo [default:${git_tree}]"
     echo "    -s            Sync repos"
     echo '    -i            Import arch packages'
-    echo '    -t            Compare trunk only'
     echo '    -c            Compare packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
