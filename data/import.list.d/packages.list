@@ -10,7 +10,7 @@ attr
 acl
 ncurses
 readline
-bash
+# bash
 sed
 diffutils
 expat
@@ -382,7 +382,7 @@ libvpx
 libwebp
 libwmf
 libx11
-# libxau
+libxau
 libxaw
 # libxcb
 libxcomposite
@@ -669,3 +669,6 @@ zita-resampler
 zsh
 zvbi
 zziplib
+re2
+geoip-database
+mercurial

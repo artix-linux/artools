@@ -228,7 +228,7 @@ libvpx
 libwebp
 libwmf
 libx11
-# libxau
+libxau
 libxaw
 # libxcb
 libxcomposite
@@ -524,3 +524,5 @@ zita-resampler
 zsh
 zvbi
 zziplib
+geoip-database
+mercurial
