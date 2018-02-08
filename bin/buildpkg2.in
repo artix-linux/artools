@@ -63,11 +63,11 @@ prepare_build(){
             
     base_devel=('base-devel')
     
-    if [[ "${repository}" == 'system' ]] || [[ "${repository}" == 'world' ]];then
-        repository='default'
-    elif [[ "${repository}" == lib32* ]];then
-        base_devel+=('multilib-devel')
-    fi
+    case ${repository} in
+        'system'|'world'|'galaxy') repository='default' ;;
+        lib32*) base_devel+=('multilib-devel') ;;
+        galaxy-gremlins|galaxy-goblins) repository=${repository#*-} ;;
+    esac
     local pac_file="pacman-${repository}.conf"
 
     local pacman_conf="${DATADIR}/$pac_file"
@@ -81,8 +81,6 @@ prepare_build(){
     mkchroot_args+=(-C "${pacman_conf}" -M "${makepkg_conf}" "${work_dir}/root")
 
     mkchrootpkg_args+=(-r "${work_dir}" "${makepkg_args[@]}")
-   
-    timer_start=$(get_timer)
 }
 
 build(){
@@ -118,7 +116,6 @@ while getopts "${opts}" arg; do
     esac
 done
 
-# shift $(($OPTIND - 1))
 makepkg_args+=("${@:$OPTIND}")
 
 check_root
