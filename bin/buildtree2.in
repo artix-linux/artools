@@ -108,27 +108,6 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/trunk/PKGBUILD
         ;;
-#         'bash')
-#             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
-#                 -e 's|etc/bash.|etc/bash/|g' \
-#                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
-#                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
-#                 -i $pkg/$repo/PKGBUILD
-#             sed -e 's|system.bash_logout)|system.bash_logout\n        artix.bashrc)|' \
-#                 -e 's|etc/bash.|etc/bash/|g' \
-#                 -e 's|install -dm755 "$pkgdir"/etc/skel/|install -dm755 "$pkgdir"/etc/{skel,bash/bashrc.d}/|' \
-#                 -e 's|/etc/skel/.bash_logout|/etc/skel/.bash_logout\n  install -m644 artix.bashrc "$pkgdir"/etc/bash/bashrc.d/artix.bashrc|' \
-#                 -i $pkg/trunk/PKGBUILD
-                
-#             cd $pkg/$repo
-#                 patch -p1 -i $DATADIR/patches/artix-bash.patch
-#                 updpkgsums
-#             cd ../../..
-#             cd $pkg/trunk
-#                 patch -p1 -i $DATADIR/patches/artix-bash.patch
-#                 updpkgsums
-#             cd ../..
-#         ;;
         'tp_smapi'|'acpi_call'|'r8168')
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
@@ -206,28 +185,27 @@ find_repo(){
 }
 
 show_version_table(){
-    local tree="$1" node=
+    local tree="$1"
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
     for pkg in ${tree_dir_artix}/$tree/*; do
-        local repo=$(find_repo "$pkg")
-        
-        node=repos/$repo
-        if [[ -f $pkg/$node/PKGBUILD ]];then
-            source $pkg/$node/PKGBUILD 2>/dev/null
+        local artixrepo=$(find_repo "$pkg")
+        if [[ -f $pkg/repos/$artixrepo/PKGBUILD ]];then
+            source $pkg/repos/$artixrepo/PKGBUILD 2>/dev/null
             package=${pkg##*/}
-            cd $pkg/$node
+            cd $pkg/repos/$artixrepo
             artixver=$(get_full_version $package)
             local src=$(get_import_path "$tree" "$package")
-            if [[ -f $src/$package/$node/PKGBUILD ]];then
-                source $src/$package/$node/PKGBUILD 2>/dev/null
-                cd $src/$package/$node
+            local archrepo=$(find_repo "$src/$package")
+            if [[ -f $src/$package/repos/$archrepo/PKGBUILD ]];then
+                source $src/$package/repos/$archrepo/PKGBUILD 2>/dev/null
+                cd $src/$package/repos/$archrepo
                 archver=$(get_full_version $package)
                 
             fi
             if [ $(vercmp $artixver $archver) -lt 0 ];then
-                UPDATES[$package]="$pkg/$node/PKGBUILD $src/$package/$node/PKGBUILD"
-                msg_row_update "%-30s %-30s %-30s %-30s" "${repo%-*}" "$package" "$artixver" "$archver"
+                UPDATES[$package]="$pkg/repos/$artixrepo/PKGBUILD $src/$package/repos/$archrepo/PKGBUILD"
+                msg_row_update "%-30s %-30s %-30s %-30s" "${archrepo%-*}" "$package" "$artixver" "$archver"
             fi
             unset pkgver epoch pkgrel artixver archver package
         fi
