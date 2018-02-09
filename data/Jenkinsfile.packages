@@ -12,6 +12,9 @@ pipeline {
         skipDefaultCheckout()
         timestamps()
     }
+    environment {
+        BUILDBOT_GPGP = credentials('BUILDBOT_GPGP')
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -22,14 +25,13 @@ pipeline {
                     echo "currentCommit: ${currentCommit}"
 
                     def changedFilesStatus = sh(returnStdout: true, script: "git show --pretty=format: --name-status ${currentCommit}").tokenize('\n')
-                    echo "changedFilesStatus: " + changedFilesStatus
                     def changedPkgStatus = []
                     def pkgPath = []
-                    int entrySize = 0
+                    int entryCount = 0
                     for ( int i = 0; i < changedFilesStatus.size(); i++ ) {
                         def entry = changedFilesStatus[i].split()
                         def fileStatus = entry[0]
-                        entrySize = entry.size()
+                        entryCount = entry.size()
                         for ( int j = 1; j < entry.size(); j++ ) {
                             if ( entry[j].contains('PKGBUILD') && entry[j].contains('repos') ){
                                 changedPkgStatus << "${fileStatus} " + entry[j].minus('/PKGBUILD')
@@ -41,14 +43,13 @@ pipeline {
                     int pkgCount = changedPkgStatus.size()
                     int pkgPathCount = pkgPath.size()
                     echo "pkgCount: ${pkgCount}"
-                    echo "pkgPath: ${pkgPath}"
-                    echo "entrySize: ${entrySize}"
+                    echo "entryCount: ${entryCount}"
                     echo "pkgPathCount: ${pkgPathCount}"
                     echo "changedPkgStatus: ${changedPkgStatus}"
                     
                     if ( pkgCount > 0 ) {
                     
-                        if ( entrySize == 2 && pkgCount == 2 ) {
+                        if ( entryCount == 2 && pkgCount == 2 ) {
                             def pkgEntry1 = changedPkgStatus[0].split()
                             def pkgEntry2 = changedPkgStatus[1].split()
                             def srcPath = []
@@ -84,7 +85,7 @@ pipeline {
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
                         } 
 
-                        if ( entrySize == 3 && pkgCount == 2 ) {
+                        if ( entryCount == 3 && pkgCount == 2 ) {
                             def pkgEntry = changedPkgStatus[0].split()
                             def pkgStatus = pkgEntry[0]
                             def buildInfo1 = pkgPath[0].tokenize('/')
@@ -159,21 +160,18 @@ pipeline {
             }
         }
         stage('Build') {
-            environment {
-                BUILDBOT_GPGP = credentials('BUILDBOT_GPGP')
-            }
             when {
                 expression { return  IS_BUILD == 'true' }
             }
             steps {
                 dir("${PKG_PATH}") {
-                    echo "buildpkg2 -r ${ADD_REPO}"
+                    echo "buildpkg -r ${ADD_REPO}"
                 }
             }
             post {
                 success {
                     dir("${PKG_PATH}") {
-                        echo "deploypkg2 -a -d ${ADD_REPO}"
+                        echo "deploypkg -a -d ${ADD_REPO}"
                     }
                 }
             }
@@ -184,7 +182,7 @@ pipeline {
             }
             steps {
                 dir("${PKG_TRUNK}") {
-                    echo "deploypkg2 -a -d ${ADD_REPO}"
+                    echo "deploypkg -a -d ${ADD_REPO}"
                 }
             }
         }
@@ -194,7 +192,7 @@ pipeline {
             }
             steps {
                 dir("${PKG_TRUNK}") {
-                    echo "deploypkg2 -r -d ${RM_REPO}"
+                    echo "deploypkg -r -d ${RM_REPO}"
                 }
             }
         }

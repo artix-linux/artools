@@ -105,8 +105,6 @@ done
 
 shift $(($OPTIND - 1))
 
-timer_start=$(get_timer)
-
 prepare_dir "${repos_root}"
 
 ${pretend} && display_settings && exit 1
