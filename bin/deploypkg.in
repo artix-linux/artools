@@ -44,8 +44,10 @@ add_to_repo(){
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
             info "pkgfile: %s" "${pkgfile##*/}"
-            [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
-            signfile ${pkgfile}
+            if ${sign_pkg};then
+                [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
+                signfile ${pkgfile}
+            fi
             ln -sf ${pkgfile}{,.sig} $repo_path/
             repo-add -R $repo_path/$repo.db.tar.xz $pkgfile
         fi
@@ -62,7 +64,7 @@ display_settings(){
     msg "ARGS:"
     msg2 "add_pkg: %s" "${add_pkg}"
     msg2 "del_pkg: %s" "${del_pkg}"
-    msg2 "move_pkg: %s" "${move_pkg}"
+    msg2 "sign_pkg: %s" "${sign_pkg}"
 }
 
 load_user_info
@@ -75,12 +77,14 @@ pretend=false
 add_pkg=false
 del_pkg=false
 repository=
+sign_pkg=false
 
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -d                 Destination repository [default:${repository}]"
     echo '    -a                 Add package to repository'
     echo '    -r                 Remove package from repository'
+    echo '    -s                 Sign package'
     echo '    -q                 Query settings and pretend upload'
     echo '    -h                 This help'
     echo ''
@@ -90,13 +94,14 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='d:arqh'
+opts='d:arsqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         d) repository="$OPTARG" ;;
         a) add_pkg=true ;;
         r) del_pkg=true ;;
+        s) sign_pkg=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
