@@ -208,7 +208,7 @@ pipeline {
             post {
                 success {
                     dir("${PKG_PATH}") {
-                        echo "deploypkg -a -d ${ADD_REPO}"
+                        echo "deploypkg -a -d ${ADD_REPO} -s"
                     }
                 }
             }
