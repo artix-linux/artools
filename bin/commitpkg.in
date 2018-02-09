@@ -63,7 +63,7 @@ to_new(){
     cd ${tree_dir_artix}/$tree/$pkg
     source trunk/PKGBUILD
     [[ $arch == 'any' ]] && CARCH=any
-    cp trunk repos/$repo-$CARCH
+    cp -r trunk repos/$repo-$CARCH
     git add .
     git commit -m "Update '$pkg' [$repo]"
     ${push} && git push origin master
@@ -79,11 +79,11 @@ display_settings(){
     msg2 "package: %s" "${package}"
 
     msg "ARGS:"
-    msg2 "push: %s" "${push}"
     msg2 "move_staging: %s" "${move_staging}"
     msg2 "move_testing: %s" "${move_testing}"
     msg2 "move_repo: %s" "${move_repo}"
     msg2 "move_new: %s" "${move_new}"
+    msg2 "push: %s" "${push}"
 }
 
 load_user_info
@@ -107,11 +107,11 @@ usage() {
     echo "    -g                 Git repository [default:${git_tree}]"
     echo "    -r                 Repository [default:${repository}]"
     echo "    -p                 Package name [default:${package}]"
-    echo '    -S                 Move package to staging repo'
-    echo '    -T                 Move package to testing repo'
-    echo '    -R                 Move package to repo'
-    echo '    -N                 New repo package from trunk'
-    echo '    -P                 Push'
+    echo '    -z                 Move package to staging repo'
+    echo '    -y                 Move package to testing repo'
+    echo '    -x                 Move package from testing to repo'
+    echo '    -n                 New repo package from trunk'
+    echo '    -u                 Push'
     echo '    -q                 Query settings and pretend'
     echo '    -h                 This help'
     echo ''
@@ -121,18 +121,18 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:r:g:STRNPqh'
+opts='p:r:g:nuxyzqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         r) repository="$OPTARG" ;;
         p) package="$OPTARG" ;;
         g) git_tree="$OPTARG" ;;
-        S) move_staging=true ;;
-        T) move_testing=true ;;
-        R) move_repo=true ;;
-        N) move_new=true ;;
-        P) push=true ;;
+        z) move_staging=true ;;
+        y) move_testing=true ;;
+        x) move_repo=true ;;
+        n) move_new=true ;;
+        u) push=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
