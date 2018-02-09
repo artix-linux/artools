@@ -119,8 +119,6 @@ install_pkg:
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
-
-	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 	
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
 
