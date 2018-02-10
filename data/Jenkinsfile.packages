@@ -134,6 +134,14 @@ pipeline {
                                     ADD_REPO = 'world'
                                     RM_REPO = 'gremlins'
                                 }
+                                
+                                if ( pkgPath[0].contains('core') && pkgPath[1].contains('extra')) {
+                                    ADD_REPO = 'world'
+                                    RM_REPO = 'system'
+                                } else if ( pkgPath[0].contains('extra') && pkgPath[1].contains('core')) {
+                                    ADD_REPO = 'system'
+                                    RM_REPO = 'world'
+                                }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
                         } 
