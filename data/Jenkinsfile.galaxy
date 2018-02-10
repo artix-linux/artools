@@ -78,7 +78,7 @@ pipeline {
                                     IS_REMOVE = 'true'
                                     if ( srcPath[1].contains('community-testing') ) {
                                         RM_REPO = 'galaxy-gremlins'
-                                    } else if ( srcPath[1].contains('community-x86_64') || srcPath[0].contains('community-any') ) {
+                                    } else if ( srcPath[1].contains('community-x86_64') || srcPath[1].contains('community-any') ) {
                                         RM_REPO = 'galaxy'
                                     }
                                     if ( srcPath[1].contains('multilib-testing') ) {
@@ -99,29 +99,19 @@ pipeline {
                             if ( pkgStatus.contains('R') ) {
                                 IS_ADD = 'true'
                                 IS_REMOVE = 'true'
-                                if ( pkgPath[0].contains('community-staging') ) {
-                                    RM_REPO = 'galaxy-goblins'
-                                } 
-                                if ( pkgPath[1].contains('community-testing') ) {
+                                if ( pkgPath[0].contains('community-staging') && pkgPath[1].contains('community-testing') ) {
                                     ADD_REPO = 'galaxy-gremlins'
-                                }
-                                if ( pkgPath[1].contains('community-staging') ) {
-                                    RM_REPO = 'galaxy-gremlins'
-                                } 
-                                if ( pkgPath[0].contains('community-testing') ) {
+                                    RM_REPO = 'galaxy-goblins'
+                                } else if ( pkgPath[0].contains('community-testing') && pkgPath[1].contains('community-staging') ) {
                                     ADD_REPO = 'galaxy-goblins'
+                                    RM_REPO = 'galaxy-gremlins'
                                 }
-                                if ( pkgPath[0].contains('multilib-staging') ) {
-                                    RM_REPO = 'lib32-goblins'
-                                } 
-                                if ( pkgPath[1].contains('multilib-testing') ) {
+                                if ( pkgPath[0].contains('multilib-staging') && pkgPath[1].contains('multilib-testing') ) {
                                     ADD_REPO = 'lib32-gremlins'
-                                }
-                                if ( pkgPath[1].contains('multilib-staging') ) {
-                                    RM_REPO = 'lib32-gremlins'
-                                } 
-                                if ( pkgPath[0].contains('multilib-testing') ) {
+                                    RM_REPO = 'lib32-goblins'
+                                } else if ( pkgPath[0].contains('multilib-testing') && pkgPath[1].contains('multilib-staging') ) {
                                     ADD_REPO = 'lib32-goblins'
+                                    RM_REPO = 'lib32-gremlins'
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'

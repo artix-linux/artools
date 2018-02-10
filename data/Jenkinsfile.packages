@@ -93,17 +93,19 @@ pipeline {
                             if ( pkgStatus.contains('R') ) {
                                 IS_ADD = 'true'
                                 IS_REMOVE = 'true'
-                                if ( pkgPath[0].contains('staging') ) {
-                                    RM_REPO = 'goblins'
-                                } 
-                                if ( pkgPath[1].contains('testing') ) {
+                                if ( pkgPath[0].contains('staging') && pkgPath[1].contains('testing') ) {
                                     ADD_REPO = 'gremlins'
-                                }
-                                if ( pkgPath[1].contains('staging') ) {
-                                    RM_REPO = 'gremlins'
-                                } 
-                                if ( pkgPath[0].contains('testing') ) {
+                                    RM_REPO = 'goblins'
+                                } else if ( pkgPath[0].contains('testing') && pkgPath[1].contains('staging') ) {
                                     ADD_REPO = 'goblins'
+                                    RM_REPO = 'gremlins'
+                                }
+                                if ( pkgPath[0].contains('core') && pkgPath[1].contains('extra')) {
+                                    ADD_REPO = 'world'
+                                    RM_REPO = 'system'
+                                } else if ( pkgPath[0].contains('extra') && pkgPath[1].contains('core')) {
+                                    ADD_REPO = 'system'
+                                    RM_REPO = 'world'
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
