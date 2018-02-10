@@ -33,7 +33,7 @@ pipeline {
                         def fileStatus = entry[0]
                         entryCount = entry.size()
                         for ( int j = 1; j < entry.size(); j++ ) {
-                            if ( entry[j].contains('PKGBUILD') && entry[j].contains('repos') ){
+                            if ( entry[j].contains('/PKGBUILD') && entry[j].contains('/repos') ){
                                 changedPkgStatus << "${fileStatus} " + entry[j].minus('/PKGBUILD')
                                 pkgPath << entry[j].minus('/PKGBUILD')
                             }
@@ -106,12 +106,27 @@ pipeline {
                                     ADD_REPO = 'galaxy-goblins'
                                     RM_REPO = 'galaxy-gremlins'
                                 }
+                                if ( pkgPath[0].contains('community-testing') && pkgPath[1].contains('community-x86_64') || pkgPath[0].contains('community-any') ) {
+                                    ADD_REPO = 'galaxy-gremlins'
+                                    RM_REPO = 'galaxy'
+                                } else if ( pkgPath[0].contains('community-x86_64') || pkgPath[0].contains('community-any') && pkgPath[1].contains('community-testing') ) {
+                                    ADD_REPO = 'galaxy'
+                                    RM_REPO = 'galaxy-gremlins'
+                                }
+                                
                                 if ( pkgPath[0].contains('multilib-staging') && pkgPath[1].contains('multilib-testing') ) {
                                     ADD_REPO = 'lib32-gremlins'
                                     RM_REPO = 'lib32-goblins'
                                 } else if ( pkgPath[0].contains('multilib-testing') && pkgPath[1].contains('multilib-staging') ) {
                                     ADD_REPO = 'lib32-goblins'
                                     RM_REPO = 'lib32-gremlins'
+                                }
+                                if ( pkgPath[0].contains('multilib-testing') && pkgPath[1].contains('multilib-x86_64') ) {
+                                    ADD_REPO = 'lib32'
+                                    RM_REPO = 'lib32-gremlins'
+                                } else if ( pkgPath[0].contains('multilib-x86_64') && pkgPath[1].contains('multilib-testing') ) {
+                                    ADD_REPO = 'lib32-gremlins'
+                                    RM_REPO = 'lib32'
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'

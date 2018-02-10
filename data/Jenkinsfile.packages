@@ -33,7 +33,7 @@ pipeline {
                         def fileStatus = entry[0]
                         entryCount = entry.size()
                         for ( int j = 1; j < entry.size(); j++ ) {
-                            if ( entry[j].contains('PKGBUILD') && entry[j].contains('repos') ){
+                            if ( entry[j].contains('/PKGBUILD') && entry[j].contains('/repos') ){
                                 changedPkgStatus << "${fileStatus} " + entry[j].minus('/PKGBUILD')
                                 pkgPath << entry[j].minus('/PKGBUILD')
                             }
@@ -100,12 +100,19 @@ pipeline {
                                     ADD_REPO = 'goblins'
                                     RM_REPO = 'gremlins'
                                 }
-                                if ( pkgPath[0].contains('core') && pkgPath[1].contains('extra')) {
-                                    ADD_REPO = 'world'
+                                if ( pkgPath[0].contains('core') && pkgPath[1].contains('testing')) {
+                                    ADD_REPO = 'gremlins'
                                     RM_REPO = 'system'
-                                } else if ( pkgPath[0].contains('extra') && pkgPath[1].contains('core')) {
+                                } else if ( pkgPath[0].contains('testing') && pkgPath[1].contains('core')) {
                                     ADD_REPO = 'system'
+                                    RM_REPO = 'gremlins'
+                                }
+                                if ( pkgPath[0].contains('extra') && pkgPath[1].contains('testing')) {
+                                    ADD_REPO = 'gremlins'
                                     RM_REPO = 'world'
+                                } else if ( pkgPath[0].contains('testing') && pkgPath[1].contains('extra')) {
+                                    ADD_REPO = 'world'
+                                    RM_REPO = 'gremlins'
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
