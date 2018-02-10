@@ -18,21 +18,8 @@ DATADIR='@datadir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
 
-to_testing(){
-    local pkg="$2" tree="$1" repo="$3"
-    cd ${tree_dir_artix}/$tree/$pkg
-    source trunk/PKGBUILD
-    [[ $arch == 'any' ]] && CARCH=any
-    cd repos
-    git mv $repo-$CARCH testing-$CARCH
-    cd ..
-    git add .
-    git commit -m "Move '$pkg' [$repo] -> [testing]"
-    ${push} && git push origin master
-}
-
 to_staging(){
-    local pkg="$2" tree="$1" repo="$3"
+    local tree="$1" pkg="$2" repo="$3"
     cd ${tree_dir_artix}/$tree/$pkg
     source trunk/PKGBUILD
     [[ $arch == 'any' ]] && CARCH=any
@@ -44,8 +31,21 @@ to_staging(){
     ${push} && git push origin master
 }
 
+to_testing(){
+    local tree="$1" pkg="$2" repo="$3"
+    cd ${tree_dir_artix}/$tree/$pkg
+    source trunk/PKGBUILD
+    [[ $arch == 'any' ]] && CARCH=any
+    cd repos
+    git mv $repo-$CARCH testing-$CARCH
+    cd ..
+    git add .
+    git commit -m "Move '$pkg' [$repo] -> [testing]"
+    ${push} && git push origin master
+}
+
 to_repo(){
-    local pkg="$2" tree="$1" repo="$3"
+    local tree="$1" pkg="$2" repo="$3"
     cd ${tree_dir_artix}/$tree/$pkg
     source trunk/PKGBUILD
     [[ $arch == 'any' ]] && CARCH=any
@@ -59,11 +59,20 @@ to_repo(){
 }
 
 to_new(){
-    local pkg="$2" tree="$1" repo="$3"
+    local tree="$1" pkg="$2" repo="$3"
     cd ${tree_dir_artix}/$tree/$pkg
     source trunk/PKGBUILD
     [[ $arch == 'any' ]] && CARCH=any
+    [[ ! -d repos ]] && mkdir repos
     cp -r trunk repos/$repo-$CARCH
+    git add .
+    git commit -m "Update '$pkg' [$repo]"
+    ${push} && git push origin master
+}
+
+commit_pkg(){
+    local tree="$1" pkg="$2" repo="$3"
+    cd ${tree_dir_artix}/$tree/$pkg
     git add .
     git commit -m "Update '$pkg' [$repo]"
     ${push} && git push origin master
@@ -83,6 +92,7 @@ display_settings(){
     msg2 "move_testing: %s" "${move_testing}"
     msg2 "move_repo: %s" "${move_repo}"
     msg2 "move_new: %s" "${move_new}"
+    msg2 "commit: %s" "${commit}"
     msg2 "push: %s" "${push}"
 }
 
@@ -99,6 +109,7 @@ move_staging=false
 move_testing=false
 move_repo=false
 move_new=false
+commit=false
 push=false
 pretend=false
 
@@ -111,6 +122,7 @@ usage() {
     echo '    -y                 Move package to testing repo'
     echo '    -x                 Move package from testing to repo'
     echo '    -n                 New repo package from trunk'
+    echo '    -c                 Commit a package to repo'
     echo '    -u                 Push'
     echo '    -q                 Query settings and pretend'
     echo '    -h                 This help'
@@ -121,7 +133,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:r:g:nuxyzqh'
+opts='p:r:g:nucxyzqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -132,6 +144,7 @@ while getopts "${opts}" arg; do
         y) move_testing=true ;;
         x) move_repo=true ;;
         n) move_new=true ;;
+        c) commit=true ;;
         u) push=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
@@ -150,3 +163,5 @@ ${move_testing} && to_testing "${git_tree}" "${package}" "${repository}"
 ${move_repo} && to_repo "${git_tree}" "${package}" "${repository}"
 
 ${move_new} && to_new "${git_tree}" "${package}" "${repository}"
+
+${commit} && commit_pkg "${git_tree}" "${package}" "${repository}"
