@@ -103,6 +103,8 @@ kbd
 keyutils
 #licenses
 links
+linux
+linux-lts
 linux-atm
 linux-firmware
 make
