@@ -24,18 +24,16 @@ release_pkg(){
         cd ${tree_dir_artix}/$tree/$pkg
         source trunk/PKGBUILD
         [[ $arch == 'any' ]] && CARCH=any
-        if [[ ${dest_repo} != 'trunk' ]];then
+        if [[ ${src_repo} != 'trunk' ]];then
             cd repos
             local dest=${dest_repo}-$CARCH action='move'
             [[ -d $dest ]] && git rm -r $dest
             git mv ${src_repo}-$CARCH $dest
             cd ..
         else
-            cd trunk
             local dest=${dest_repo}-$CARCH action='release'
             [[ ! -d repos ]] && mkdir repos
             cp -r trunk repos/$dest
-            cd ..
         fi
         git add .
         git commit -m " [${src_repo}] -> [${dest_repo}] '$pkg' ${action}"
