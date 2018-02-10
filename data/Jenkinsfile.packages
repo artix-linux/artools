@@ -12,9 +12,6 @@ pipeline {
         skipDefaultCheckout()
         timestamps()
     }
-    environment {
-        BUILDBOT_GPGP = credentials('BUILDBOT_GPGP')
-    }
     stages {
         stage('Checkout') {
             steps {
@@ -169,6 +166,9 @@ pipeline {
             }
         }
         stage('Build') {
+            environment {
+                BUILDBOT_GPGP = credentials('BUILDBOT_GPGP')
+            }
             when {
                 expression { return  IS_BUILD == 'true' }
             }
