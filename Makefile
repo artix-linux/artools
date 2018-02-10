@@ -47,6 +47,18 @@ SHARED_PKG = \
 PATCHES = \
 	$(wildcard data/patches/*.patch)
 
+COMMITPKG_SYMS = \
+	extrapkg \
+	corepkg \
+	testingpkg \
+	stagingpkg \
+	communitypkg \
+	community-testingpkg \
+	community-stagingpkg \
+	multilibpkg \
+	multilib-testingpkg \
+	multilib-stagingpkg
+	
 BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
@@ -121,7 +133,9 @@ install_pkg:
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
 	
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
-
+	
+	for l in ${COMMITPKG_SYMS}; do ln -sf commitpkg $(DESTDIR)$(PREFIX)/bin/$$l; done
+	
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_PKG} $(DESTDIR)$(PREFIX)/lib/artools
 
@@ -177,6 +191,7 @@ uninstall_pkg:
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
+	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done

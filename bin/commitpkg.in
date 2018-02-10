@@ -18,63 +18,36 @@ DATADIR='@datadir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
 
-to_staging(){
-    local tree="$1" pkg="$2" repo="$3"
-    cd ${tree_dir_artix}/$tree/$pkg
-    source trunk/PKGBUILD
-    [[ $arch == 'any' ]] && CARCH=any
-    cd repos
-    git mv $repo-$CARCH staging-$CARCH
-    cd ..
-    git add .
-    git commit -m "Move '$pkg' [$repo] -> [staging]"
-    ${push} && git push origin master
-}
-
-to_testing(){
-    local tree="$1" pkg="$2" repo="$3"
-    cd ${tree_dir_artix}/$tree/$pkg
-    source trunk/PKGBUILD
-    [[ $arch == 'any' ]] && CARCH=any
-    cd repos
-    git mv $repo-$CARCH testing-$CARCH
-    cd ..
-    git add .
-    git commit -m "Move '$pkg' [$repo] -> [testing]"
-    ${push} && git push origin master
-}
-
-to_repo(){
-    local tree="$1" pkg="$2" repo="$3"
-    cd ${tree_dir_artix}/$tree/$pkg
-    source trunk/PKGBUILD
-    [[ $arch == 'any' ]] && CARCH=any
-    cd repos
-    git rm -r $repo-$CARCH
-    git mv testing-$CARCH $repo-$CARCH
-    cd ..
-    git add .
-    git commit -m "Move '$pkg' [testing] -> [$repo]"
-    ${push} && git push origin master
-}
-
-to_new(){
-    local tree="$1" pkg="$2" repo="$3"
-    cd ${tree_dir_artix}/$tree/$pkg
-    source trunk/PKGBUILD
-    [[ $arch == 'any' ]] && CARCH=any
-    [[ ! -d repos ]] && mkdir repos
-    cp -r trunk repos/$repo-$CARCH
-    git add .
-    git commit -m "Update '$pkg' [$repo]"
-    ${push} && git push origin master
+release_pkg(){
+    local tree="$1" pkg="$2" src_repo="$3" dest_repo="$4"
+    if [[ -d ${tree_dir_artix}/$tree/$pkg ]];then
+        cd ${tree_dir_artix}/$tree/$pkg
+        source trunk/PKGBUILD
+        [[ $arch == 'any' ]] && CARCH=any
+        if [[ ${dest_repo} != 'trunk' ]];then
+            cd repos
+            local dest=${dest_repo}-$CARCH action='move'
+            [[ -d $dest ]] && git rm -r $dest
+            git mv ${src_repo}-$CARCH $dest
+            cd ..
+        else
+            cd trunk
+            local dest=${dest_repo}-$CARCH action='release'
+            [[ ! -d repos ]] && mkdir repos
+            cp -r trunk repos/$dest
+            cd ..
+        fi
+        git add .
+        git commit -m " [${src_repo}] -> [${dest_repo}] '$pkg' ${action}"
+        ${push} && git push origin master
+    fi
 }
 
 commit_pkg(){
-    local tree="$1" pkg="$2" repo="$3"
+    local tree="$1" pkg="$2" dest_repo="$3"
     cd ${tree_dir_artix}/$tree/$pkg
     git add .
-    git commit -m "Update '$pkg' [$repo]"
+    git commit -m "Update '$pkg' [${dest_repo}]"
     ${push} && git push origin master
 }
 
@@ -84,14 +57,12 @@ display_settings(){
 
     msg "OPTIONS:"
     msg2 "git_tree: %s" "${git_tree}"
-    msg2 "repository: %s" "${repository}"
+    msg2 "source_repo: %s" "${source_repo}"
+    msg2 "target_repo: %s" "${target_repo}"
     msg2 "package: %s" "${package}"
 
     msg "ARGS:"
-    msg2 "move_staging: %s" "${move_staging}"
-    msg2 "move_testing: %s" "${move_testing}"
-    msg2 "move_repo: %s" "${move_repo}"
-    msg2 "move_new: %s" "${move_new}"
+    msg2 "release: %s" "${release}"
     msg2 "commit: %s" "${commit}"
     msg2 "push: %s" "${push}"
 }
@@ -102,27 +73,27 @@ load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artoo
 load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
 load_vars /etc/makepkg.conf
 
-repository='core'
+source_repo='trunk'
 package=''
-git_tree='packages'
-move_staging=false
-move_testing=false
-move_repo=false
-move_new=false
+release=false
 commit=false
 push=false
 pretend=false
+git_tree='packages'
+
+cmd=${0##*/}
+target_repo=${cmd%pkg}
+
+case ${target_repo} in
+    community*|multilib*) git_tree='packages-galaxy' ;;
+esac
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -g                 Git repository [default:${git_tree}]"
-    echo "    -r                 Repository [default:${repository}]"
-    echo "    -p                 Package name [default:${package}]"
-    echo '    -z                 Move package to staging repo'
-    echo '    -y                 Move package to testing repo'
-    echo '    -x                 Move package from testing to repo'
-    echo '    -n                 New repo package from trunk'
-    echo '    -c                 Commit a package to repo'
+    echo "    -s                 Source repository [default:${source_repo}]"
+    echo '    -p                 Package name'
+    echo '    -r                 Release a package'
+    echo '    -c                 Commit a package'
     echo '    -u                 Push'
     echo '    -q                 Query settings and pretend'
     echo '    -h                 This help'
@@ -133,19 +104,15 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:r:g:nucxyzqh'
+opts='p:s:rucqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        r) repository="$OPTARG" ;;
+        s) source_repo="$OPTARG" ;;
         p) package="$OPTARG" ;;
-        g) git_tree="$OPTARG" ;;
-        z) move_staging=true ;;
-        y) move_testing=true ;;
-        x) move_repo=true ;;
-        n) move_new=true ;;
         c) commit=true ;;
         u) push=true ;;
+        r) release=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -156,12 +123,6 @@ shift $(($OPTIND - 1))
 
 ${pretend} && display_settings && exit 1
 
-${move_staging} && to_staging "${git_tree}" "${package}" "${repository}"
+${commit} && commit_pkg "${git_tree}" "${package}" "${target_repo}"
 
-${move_testing} && to_testing "${git_tree}" "${package}" "${repository}"
-
-${move_repo} && to_repo "${git_tree}" "${package}" "${repository}"
-
-${move_new} && to_new "${git_tree}" "${package}" "${repository}"
-
-${commit} && commit_pkg "${git_tree}" "${package}" "${repository}"
+${release} && release_pkg "${git_tree}" "${package}" "${source_repo}" "${target_repo}"
