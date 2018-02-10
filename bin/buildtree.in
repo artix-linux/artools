@@ -17,7 +17,6 @@ DATADIR='@datadir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-pkg.sh
 
 get_local_head(){
     echo $(git log --pretty=%H ...refs/heads/$1^ | head -n 1)
@@ -111,6 +110,20 @@ patch_pkg(){
         'tp_smapi'|'acpi_call'|'r8168')
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+        ;;
+        'linux')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+            sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
+                -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
+                -i $pkg/$repo/config
+            sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
+                -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
+                -i $pkg/trunk/config
+        ;;
+        'licenses') 
+            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/$repo/PKGBUILD
+            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/trunk/PKGBUILD
         ;;
     esac
 }
