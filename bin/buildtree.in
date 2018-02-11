@@ -17,55 +17,306 @@ DATADIR='@datadir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-pkg.sh
-import ${LIBDIR}/util-pkg-tree.sh
+
+get_local_head(){
+    echo $(git log --pretty=%H ...refs/heads/$1^ | head -n 1)
+}
+
+get_remote_head(){
+    echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
+}
+
+is_dirty() {
+    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
+    return 0
+}
+
+is_untracked(){
+    [[ $(git ls-files --others --exclude-standard)  != "" ]] || return 1
+    return 0
+}
+
+from_arch(){
+    local pkg="$1" archtree="$2" artixtree="$3" src= dest=
+    src=${tree_dir_arch}/$archtree/$pkg/trunk
+    dest=${tree_dir_artix}/$artixtree/$pkg/trunk
+
+    source $src/PKGBUILD 2>/dev/null
+    cd ${tree_dir_arch}/$archtree/$pkg
+    msg "Package: %s" "$pkg"
+    local archver=$(get_full_version $pkg)
+    msg2 "Arch Version: %s" "$archver"
+
+    source $dest/PKGBUILD 2>/dev/null
+    cd ${tree_dir_artix}/$artixtree
+    local artixver=$(get_full_version $pkg)
+    msg2 "Artix Version: %s" "$artixver"
+    if [ $(vercmp $artixver $archver) -lt 0 ];then
+        info "Importing from archlinux (%s)" "$archtree"
+        rsync "${rsync_args[@]}" $src/ $dest/
+    else
+        warning "Versions match! Nothing to do!"
+    fi
+}
+
+pull_tree(){
+    local branch="master" tree="$1"
+    local local_head=$(get_local_head "$branch")
+    local remote_head=$(get_remote_head "$branch")
+    local timer=$(get_timer)
+    msg "Checking [%s] ..." "$tree"
+    msg2 "local: %s" "${local_head}"
+    msg2 "remote: %s" "${remote_head}"
+    if [[ "${local_head}" == "${remote_head}" ]]; then
+        info "nothing to do"
+    else
+        info "needs pull"
+        git pull origin $branch
+    fi
+    msg "Done [%s]" "$tree"
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+clone_tree(){
+    local timer=$(get_timer) tree="$1" host_tree="$2"
+    msg "Preparing [%s] ..." "$tree"
+    info "clone"
+    git clone $host_tree.git
+    msg "Done [%s]" "$tree"
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+pull_tree_arch(){
+    cd ${tree_dir_arch}
+    for tree in packages community;do
+        if [[ -d ${tree} ]];then
+            cd ${tree}
+                pull_tree "${tree}"
+            cd ..
+        else
+            clone_tree "${tree}" "${host_tree_arch}/${tree}"
+        fi
+    done
+}
+
+pull_tree_artix(){
+    cd ${tree_dir_artix}
+    for tree in packages packages-galaxy;do
+        if [[ -d ${tree} ]];then
+            cd ${tree}
+                git config --bool pull.rebase true
+                pull_tree "${tree}"
+            cd ..
+        else
+            clone_tree "${tree}" "${host_tree_artix}/${tree}"
+        fi
+    done
+}
+
+read_import_list(){
+    local tree="$1"
+    local _space="s| ||g" _clean=':a;N;$!ba;s/\n/ /g' _com_rm="s|#.*||g"
+    import_list=$(sed "$_com_rm" "${list_dir_import}/$tree.list" | sed "$_space" | sed "$_clean")
+}
+
+patch_pkg(){
+    local pkg="$1" repo="$2"
+    case $pkg in
+        'glibc')
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
+                -i $pkg/$repo/PKGBUILD
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
+                -i $pkg/trunk/PKGBUILD
+        ;;
+        'tp_smapi'|'acpi_call'|'r8168')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+        ;;
+        'linux')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+            sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
+                -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
+                -i $pkg/$repo/config
+            sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
+                -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
+                -i $pkg/trunk/config
+        ;;
+        'licenses')
+            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/$repo/PKGBUILD
+            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/trunk/PKGBUILD
+        ;;
+    esac
+}
+
+get_import_path(){
+    local tree="$1" import_path=
+    case $tree in
+        packages) import_path=${tree_dir_arch}/packages ;;
+        packages-galaxy) import_path=${tree_dir_arch}/community ;;
+    esac
+    echo $import_path
+}
+
+find_repo(){
+    local pkg="$1" repo=
+
+    if [[ -d $pkg/repos/core-x86_64 ]];then
+        repo=core-x86_64
+    elif [[ -d $pkg/repos/core-any ]];then
+        repo=core-any
+    fi
+
+    if [[ -d $pkg/repos/extra-x86_64 ]];then
+        repo=extra-x86_64
+    elif [[ -d $pkg/repos/extra-any ]];then
+        repo=extra-any
+    fi
+
+    if [[ -d $pkg/repos/testing-x86_64 ]];then
+        repo=testing-x86_64
+    elif [[ -d $pkg/repos/testing-any ]];then
+        repo=testing-any
+    fi
+
+    if [[ -d $pkg/repos/staging-x86_64 ]];then
+        repo=staging-x86_64
+    elif [[ -d $pkg/repos/staging-any ]];then
+        repo=staging-any
+    fi
+
+    if [[ -d $pkg/repos/community-x86_64 ]];then
+        repo=community-x86_64
+    elif [[ -d $pkg/repos/community-any ]];then
+        repo=community-any
+    fi
+
+    if [[ -d $pkg/repos/community-testing-x86_64 ]];then
+        repo=community-testing-x86_64
+    elif [[ -d $pkg/repos/community-testing-any ]];then
+        repo=community-testing-any
+    fi
+
+    if [[ -d $pkg/repos/community-staging-x86_64 ]];then
+        repo=community-staging-x86_64
+    elif [[ -d $pkg/repos/community-staging-any ]];then
+        repo=community-staging-any
+    fi
+
+    if [[ -d $pkg/repos/multilib-x86_64 ]];then
+        repo=multilib-x86_64
+    fi
+
+    if [[ -d $pkg/repos/multilib-testing-x86_64 ]];then
+        repo=multilib-testing-x86_64
+    fi
+
+    if [[ -d $pkg/repos/multilib-staging-x86_64 ]];then
+        repo=multilib-staging-x86_64
+    fi
+
+    echo $repo
+}
+
+show_version_table(){
+    declare -A UPDATES
+    msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
+    for tree in packages packages-galaxy;do
+        for pkg_path in ${tree_dir_artix}/$tree/*; do
+            local artixrepo=$(find_repo "$pkg_path")
+            if [[ -d $pkg_path/repos/$artixrepo ]];then
+                source $pkg_path/repos/$artixrepo/PKGBUILD 2>/dev/null
+                local pkg=${pkg_path##*/}
+                cd $pkg_path/repos/$artixrepo
+                local artixver=$(get_full_version $pkg)
+                local src=$(get_import_path "$tree" "$pkg")
+                local archrepo=$(find_repo "$src/$pkg")
+                if [[ -d $src/$pkg/repos/$archrepo ]];then
+                    source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
+                    cd $src/$pkg/repos/$archrepo
+                    local archver=$(get_full_version $pkg)
+
+                fi
+                if [ $(vercmp $artixver $archver) -lt 0 ];then
+                    UPDATES[$pkg]="$pkg_path/repos/$artixrepo/PKGBUILD $src/$pkg/repos/$archrepo/PKGBUILD"
+                    msg_row_update "%-30s %-30s %-30s %-30s" "${archrepo%-*}" "$pkg" "$artixver" "$archver"
+                fi
+                unset pkgver epoch pkgrel artixver archver _package
+            fi
+        done
+        find "${patches_dir}/$tree/" -name *.patch -delete
+        for upd in "${!UPDATES[@]}"; do
+            diff -u ${UPDATES[$upd]} > ${patches_dir}/$tree/"$upd"-archlinux.patch
+        done
+    done
+}
+
+import_from_arch(){
+    for tree in packages packages-galaxy;do
+        info "Importing from archlinux %s" "$tree"
+        read_import_list "$tree"
+        cd ${tree_dir_artix}/$tree
+        for pkg in ${import_list[@]};do
+            [[ "$tree" == 'packages' ]] && from_arch "$pkg" "$tree" "$tree"
+            [[ "$tree" == 'packages-galaxy' ]] && from_arch "$pkg" "community" "$tree"
+        done
+    done
+}
+
+sync_repos(){
+    pull_tree_arch
+    pull_tree_artix
+}
 
 display_settings(){
     show_version
     show_config
 
-    msg "REPOS:"
-    msg2 "repo_tree_artix: %s" "${repo_tree_artix[*]}"
-    msg2 "repo_tree_arch: %s" "${repo_tree_arch[*]}"
-
     msg "OPTIONS:"
-    msg2 "repository: %s" "${repository}"
+    msg2 "package: %s" "${package}"
 
     msg "ARGS:"
-    msg2 "artix: %s" "${artix}"
-    msg2 "arch: %s" "${arch}"
+    msg2 "sync: %s" "${sync}"
+    msg2 "import_all: %s" "${import_all}"
     msg2 "compare: %s" "${compare}"
-    msg2 "import_arch: %s" "${import_arch}"
-#     msg2 "gitpush: %s" "${gitpush}"
+    msg2 "import_packages: %s" "${import_packages}"
+    msg2 "import_community: %s" "${import_community}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-    msg2 "patches_dir: %s" "${patches_dir}/${repository}"
+    msg2 "patches_dir: %s" "${patches_dir}/${git_tree}"
 }
 
 load_user_info
 
 load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
 
 pretend=false
-arch=false
-artix=false
+sync=false
+import_all=false
 compare=false
-import_arch=false
-# gitpush=false
-repository='system' #${PWD##*/}
+import_packages=false
+import_community=false
+package=''
+
+git_artix='packages'
+git_arch='packages'
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -r <repo>     Repository [default:${repository}]"
-    echo "    -a            Sync arch tree"
-    echo "    -s            Sync artix tree"
-    echo "    -c            Compare artix and arch versions"
-    echo '    -i            Import arch packages'
-#     echo '    -p            Push import packages'
+    echo '    -p <pkg>      Package name'
+    echo "    -s            Clone or pull repos"
+    echo '    -i            Import from arch packages'
+    echo '    -j            Import from arch community'
+    echo '    -a            Import arch packages'
+    echo '    -c            Compare packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -75,17 +326,16 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-# opts='r:aipscqh'
-opts='r:aiscqh'
+opts='p:scijaqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        r) repository="$OPTARG" ;;
-        a) arch=true ;;
-        s) artix=true ;;
+        p) package="$OPTARG" ;;
+        s) sync=true ;;
+        a) import_all=true ;;
         c) compare=true ;;
-        i) import_arch=true ;;
-#         p) gitpush=true ;;
+        i) import_packages=true ;;
+        j) import_community=true; git_artix='packages-galaxy'; git_arch='community' ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -96,14 +346,17 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
-prepare_dir "${patches_dir}/${repository}"
+prepare_dir "${patches_dir}/packages"
+prepare_dir "${patches_dir}/packages-galaxy"
 
 ${pretend} && display_settings && exit 1
 
-${artix} && sync_tree_artix
+${sync} && sync_repos
 
-${arch} && sync_tree_arch
+${compare} && show_version_table
 
-${compare} && show_version_table "${repository}"
+${import_all} && import_from_arch
 
-${import_arch} && import_from_arch "${repository}" #"${gitpush}"
+${import_packages} && from_arch "${package}" "${git_arch}" "${git_artix}"
+
+${import_community} && from_arch "${package}" "${git_arch}" "${git_artix}"

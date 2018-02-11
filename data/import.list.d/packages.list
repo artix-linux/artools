@@ -10,7 +10,7 @@ attr
 acl
 ncurses
 readline
-bash
+# bash
 sed
 diffutils
 expat
@@ -103,6 +103,8 @@ kbd
 keyutils
 #licenses
 links
+linux
+linux-lts
 linux-atm
 linux-firmware
 make
@@ -184,10 +186,8 @@ cifs-utils
 cln
 cmake
 extra-cmake-modules
-compositeproto
 convertlit
 cpio
-damageproto
 dbus-glib
 dbus-python
 dcadec
@@ -209,10 +209,8 @@ faad2
 ffmpeg
 ffmpeg2.8
 fftw
-fixesproto
 flac
 fontconfig
-fontsproto
 freetype2
 fribidi
 fuse2
@@ -262,7 +260,6 @@ ilmbase
 imagemagick
 imlib2
 iniparser
-inputproto
 intltool
 iso-codes
 itstool
@@ -276,7 +273,6 @@ js
 # json-c
 jsoncpp
 json-glib
-kbproto
 lame
 lapack
 lcms
@@ -374,7 +370,6 @@ libtar
 libtheora
 libtiff
 libtommath
-libtxc_dxtn
 libunwind
 libupnp
 libusb-compat
@@ -389,7 +384,7 @@ libvpx
 libwebp
 libwmf
 libx11
-# libxau
+libxau
 libxaw
 # libxcb
 libxcomposite
@@ -424,6 +419,7 @@ lirc
 llvm
 lmdb
 lua
+xorgproto
 mesa
 # meson
 mailcap
@@ -570,12 +566,8 @@ qt5-websockets
 qt5-webview
 qt5-x11extras
 qt5-xmlpatterns
-randrproto
-recordproto
-renderproto
 ruby
 schroedinger
-scrnsaverproto
 sdl
 sdl2
 sdl_image
@@ -615,7 +607,6 @@ unzip
 v4l-utils
 vala
 valgrind
-videoproto
 vid.stab
 volume_key
 vte
@@ -638,7 +629,6 @@ xcb-util-cursor
 # xcb-util-renderutil
 # xcb-util-wm
 xdg-utils
-xextproto
 xf86-input-libinput
 xf86-video-dummy
 xf86-video-fbdev
@@ -646,8 +636,6 @@ xf86-video-sisusb
 xf86-video-vesa
 xf86-video-vmware
 xf86-video-voodoo
-xf86vidmodeproto
-xineramaproto
 xkeyboard-config
 xmlto
 xorg-bdftopcf
@@ -663,7 +651,7 @@ xorg-setxkbmap
 xorg-twm
 xorg-util-macros
 xorg-xauth
-xorg-xinit
+# xorg-xinit
 xorg-xkbcomp
 xorg-xmessage
 xorg-xmodmap
@@ -672,7 +660,6 @@ xorg-xrandr
 xorg-xrdb
 xorg-xset
 xorg-xsetroot
-# xproto
 xterm
 xvidcore
 yajl
@@ -684,3 +671,6 @@ zita-resampler
 zsh
 zvbi
 zziplib
+re2
+geoip-database
+mercurial

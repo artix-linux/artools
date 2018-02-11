@@ -146,7 +146,7 @@ prepare_chroot() {
     local keepbuilddir=$3
     local run_namcap=$4
 
-    $keepbuilddir || rm -rf "$copydir/build"
+    [[ $keepbuilddir = true ]] || rm -rf "$copydir/build"
 
     local builduser_uid="${SUDO_UID:-$UID}"
     local builduser_gid="$(id -g "$builduser_uid")"

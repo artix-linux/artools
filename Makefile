@@ -1,4 +1,4 @@
-Version=0.6
+Version=0.7
 
 PREFIX = /usr/local
 SYSCONFDIR = /etc
@@ -31,15 +31,12 @@ BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
 	bin/finddeps \
-	bin/findupdates \
 	bin/find-libdeps \
 	bin/mkchrootpkg \
 	bin/buildpkg \
 	bin/buildtree \
 	bin/deploypkg \
-	bin/buildpkg2 \
-	bin/buildtree2 \
-	bin/deploypkg2
+	bin/commitpkg
 
 LIBS_PKG = \
 	$(wildcard lib/util-pkg*.sh)
@@ -50,6 +47,18 @@ SHARED_PKG = \
 PATCHES = \
 	$(wildcard data/patches/*.patch)
 
+COMMITPKG_SYMS = \
+	extrapkg \
+	corepkg \
+	testingpkg \
+	stagingpkg \
+	communitypkg \
+	community-testingpkg \
+	community-stagingpkg \
+	multilibpkg \
+	multilib-testingpkg \
+	multilib-stagingpkg
+	
 BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
@@ -122,11 +131,11 @@ install_pkg:
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
-
-	ln -sf buildpkg $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
 	
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
-
+	
+	for l in ${COMMITPKG_SYMS}; do ln -sf commitpkg $(DESTDIR)$(PREFIX)/bin/$$l; done
+	
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_PKG} $(DESTDIR)$(PREFIX)/lib/artools
 
@@ -156,7 +165,7 @@ install_iso:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
-	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-testing
+	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_ISO} $(DESTDIR)$(PREFIX)/lib/artools
@@ -182,7 +191,7 @@ uninstall_pkg:
 	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
-	rm -f $(DESTDIR)$(PREFIX)/bin/buildpkg-testing
+	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
 	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
 	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
@@ -196,7 +205,7 @@ uninstall_isobase:
 
 uninstall_iso:
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-testing
+	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
 	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
