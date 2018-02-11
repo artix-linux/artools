@@ -246,9 +246,9 @@ show_version_table(){
                 unset pkgver epoch pkgrel artixver archver _package
             fi
         done
-        find "${patches_dir}/$tree/" -name *.patch -delete
+        find "${patches_dir}/" -name *.patch -delete
         for upd in "${!UPDATES[@]}"; do
-            diff -u ${UPDATES[$upd]} > ${patches_dir}/$tree/"$upd"-archlinux.patch
+            diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
         done
     done
 }
@@ -346,8 +346,7 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
-prepare_dir "${patches_dir}/packages"
-prepare_dir "${patches_dir}/packages-galaxy"
+prepare_dir "${patches_dir}"
 
 ${pretend} && display_settings && exit 1
 
