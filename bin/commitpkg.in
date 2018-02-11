@@ -18,35 +18,34 @@ DATADIR='@datadir@'
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
 
+commit_pkg(){
+    cd ${tree_dir_artix}/${git_tree}/${package}
+    info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}" "${action}"
+    git add .
+    git commit -m "[${source_repo}] -> [${target_repo}] '${package}' ${action}"
+    ${push} && git push origin master
+}
+
 release_pkg(){
-    local tree="$1" pkg="$2" src_repo="$3" dest_repo="$4"
-    if [[ -d ${tree_dir_artix}/$tree/$pkg ]];then
-        cd ${tree_dir_artix}/$tree/$pkg
+    if [[ -d ${tree_dir_artix}/${git_tree}/${package} ]];then
+        cd ${tree_dir_artix}/${git_tree}/${package}
         source trunk/PKGBUILD
         [[ $arch == 'any' ]] && CARCH=any
-        if [[ ${src_repo} != 'trunk' ]];then
+        if [[ ${source_repo} != 'trunk' ]];then
             cd repos
-            local dest=${dest_repo}-$CARCH action='move'
+            dest=${target_repo}-$CARCH
+            action='move'
             [[ -d $dest ]] && git rm -r $dest
-            git mv ${src_repo}-$CARCH $dest
+            git mv ${source_repo}-$CARCH $dest
             cd ..
         else
-            local dest=${dest_repo}-$CARCH action='release'
+            dest=${target_repo}-$CARCH
+            action='release'
             [[ ! -d repos ]] && mkdir repos
             cp -r trunk repos/$dest
         fi
-        git add .
-        git commit -m " [${src_repo}] -> [${dest_repo}] '$pkg' ${action}"
-        ${push} && git push origin master
+        commit_pkg
     fi
-}
-
-commit_pkg(){
-    local tree="$1" pkg="$2" dest_repo="$3"
-    cd ${tree_dir_artix}/$tree/$pkg
-    git add .
-    git commit -m "Update '$pkg' [${dest_repo}]"
-    ${push} && git push origin master
 }
 
 display_settings(){
@@ -60,8 +59,6 @@ display_settings(){
     msg2 "package: %s" "${package}"
 
     msg "ARGS:"
-    msg2 "release: %s" "${release}"
-    msg2 "commit: %s" "${commit}"
     msg2 "push: %s" "${push}"
 }
 
@@ -73,10 +70,9 @@ load_vars /etc/makepkg.conf
 
 source_repo='trunk'
 package=''
-release=false
-commit=false
 push=false
 pretend=false
+
 git_tree='packages'
 
 cmd=${0##*/}
@@ -88,10 +84,8 @@ esac
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -s                 Source repository [default:${source_repo}]"
-    echo '    -p                 Package name'
-    echo '    -r                 Release a package'
-    echo '    -c                 Commit a package'
+    echo "    -s <name>          Source repository [default:${source_repo}]"
+    echo '    -p <pkg>           Package name'
     echo '    -u                 Push'
     echo '    -q                 Query settings and pretend'
     echo '    -h                 This help'
@@ -102,15 +96,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:s:rucqh'
+opts='p:s:uqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         s) source_repo="$OPTARG" ;;
         p) package="$OPTARG" ;;
-        c) commit=true ;;
         u) push=true ;;
-        r) release=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -121,6 +113,4 @@ shift $(($OPTIND - 1))
 
 ${pretend} && display_settings && exit 1
 
-${commit} && commit_pkg "${git_tree}" "${package}" "${target_repo}"
-
-${release} && release_pkg "${git_tree}" "${package}" "${source_repo}" "${target_repo}"
+release_pkg
