@@ -198,57 +198,60 @@ find_repo(){
 }
 
 show_version_table(){
-    local tree="$1"
     declare -A UPDATES
     msg_table_header "%-30s %-30s %-30s %-30s" "Repository" "Package" "Artix version" "Arch version"
-    for pkg in ${tree_dir_artix}/$tree/*; do
-        local artixrepo=$(find_repo "$pkg")
-        if [[ -f $pkg/repos/$artixrepo/PKGBUILD ]];then
-            source $pkg/repos/$artixrepo/PKGBUILD 2>/dev/null
-            package=${pkg##*/}
-            cd $pkg/repos/$artixrepo
-            artixver=$(get_full_version $package)
-            local src=$(get_import_path "$tree" "$package")
-            local archrepo=$(find_repo "$src/$package")
-            if [[ -f $src/$package/repos/$archrepo/PKGBUILD ]];then
-                source $src/$package/repos/$archrepo/PKGBUILD 2>/dev/null
-                cd $src/$package/repos/$archrepo
-                archver=$(get_full_version $package)
-                
+    for tree in packages packages-galaxy;do
+        for pkg in ${tree_dir_artix}/$tree/*; do
+            local artixrepo=$(find_repo "$pkg")
+            if [[ -f $pkg/repos/$artixrepo/PKGBUILD ]];then
+                source $pkg/repos/$artixrepo/PKGBUILD 2>/dev/null
+                package=${pkg##*/}
+                cd $pkg/repos/$artixrepo
+                artixver=$(get_full_version $package)
+                local src=$(get_import_path "$tree" "$package")
+                local archrepo=$(find_repo "$src/$package")
+                if [[ -f $src/$package/repos/$archrepo/PKGBUILD ]];then
+                    source $src/$package/repos/$archrepo/PKGBUILD 2>/dev/null
+                    cd $src/$package/repos/$archrepo
+                    archver=$(get_full_version $package)
+                    
+                fi
+                if [ $(vercmp $artixver $archver) -lt 0 ];then
+                    UPDATES[$package]="$pkg/repos/$artixrepo/PKGBUILD $src/$package/repos/$archrepo/PKGBUILD"
+                    msg_row_update "%-30s %-30s %-30s %-30s" "${archrepo%-*}" "$package" "$artixver" "$archver"
+                fi
+                unset pkgver epoch pkgrel artixver archver package
             fi
-            if [ $(vercmp $artixver $archver) -lt 0 ];then
-                UPDATES[$package]="$pkg/repos/$artixrepo/PKGBUILD $src/$package/repos/$archrepo/PKGBUILD"
-                msg_row_update "%-30s %-30s %-30s %-30s" "${archrepo%-*}" "$package" "$artixver" "$archver"
-            fi
-            unset pkgver epoch pkgrel artixver archver package
-        fi
-    done
-    find "${patches_dir}/$tree/" -name *.patch -delete
-    for upd in "${!UPDATES[@]}"; do
-        msg "Writing %s update patch ..." "$upd"
-        diff -u ${UPDATES[$upd]} > ${patches_dir}/$tree/"$upd"-archlinux.patch
+        done
+        find "${patches_dir}/$tree/" -name *.patch -delete
+        for upd in "${!UPDATES[@]}"; do
+            diff -u ${UPDATES[$upd]} > ${patches_dir}/$tree/"$upd"-archlinux.patch
+        done
     done
 }
 
 import_from_arch(){
-    local timer=$(get_timer) tree="$1"
-    read_import_list "$tree"
-    if [[ -n ${import_list[@]} ]];then
-        cd ${tree_dir_artix}/$tree
-        for pkg in ${import_list[@]};do
-            local src=$(get_import_path "$tree")
-            local dest=${tree_dir_artix}/$tree
-            rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
-            local repo=$(find_repo "$pkg")
-            source $src/$pkg/repos/$repo/PKGBUILD 2>/dev/null
-            local ver=$(get_full_version $pkg)
-            msg "Repo: [%s] Package: %s-%s" "$repo" "$pkg" "$ver"
-            
-            patch_pkg "$pkg" "repos/$repo"
-            unset pkgver epoch pkgrel ver
-        done
-    fi
-    show_elapsed_time "${FUNCNAME}" "${timer}"
+    for tree in packages packages-galaxy;do
+        info "Importing from archlinux %s" "$tree"
+        read_import_list "$tree"
+        if [[ -n ${import_list[@]} ]];then
+            cd ${tree_dir_artix}/$tree
+            for pkg in ${import_list[@]};do
+                local src=$(get_import_path "$tree")
+                local dest=${tree_dir_artix}/$tree
+                msg "Package: %s" "$pkg"
+                rsync "${rsync_args[@]}"  $src/$pkg/ $dest/$pkg/
+                local repo=$(find_repo "$pkg")
+                source $src/$pkg/repos/$repo/PKGBUILD 2>/dev/null
+                local ver=$(get_full_version $pkg)
+                msg2 "Repo: [%s]" "$repo"
+                msg2 "Version: %s" "$ver"
+                patch_pkg "$pkg" "repos/$repo"
+                unset pkgver epoch pkgrel ver
+            done
+        fi
+        info "Importing from archlinux %s" "$tree"
+    done
 }
 
 sync_repos(){   
@@ -259,9 +262,6 @@ sync_repos(){
 display_settings(){
     show_version
     show_config
-
-    msg "OPTIONS:"
-    msg2 "git_tree: %s" "${git_tree}"
 
     msg "ARGS:"
     msg2 "sync: %s" "${sync}"
@@ -282,14 +282,11 @@ pretend=false
 sync=false
 import_arch=false
 compare=false
-move=false
-git_tree='packages'
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
 usage() {
     echo "Usage: ${0##*/} [options]"
-    echo "    -g <git>      Git repo [default:${git_tree}]"
     echo "    -s            Sync repos"
     echo '    -i            Import arch packages'
     echo '    -c            Compare packages'
@@ -302,11 +299,10 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='g:sciqh'
+opts='sciqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
-        g) git_tree="$OPTARG" ;;
         s) sync=true ;;
         i) import_arch=true ;;
         c) compare=true ;;
@@ -320,12 +316,13 @@ shift $(($OPTIND - 1))
 
 prepare_dir "${tree_dir_artix}"
 prepare_dir "${tree_dir_arch}"
-prepare_dir "${patches_dir}/${git_tree}"
+prepare_dir "${patches_dir}/packages"
+prepare_dir "${patches_dir}/packages-galaxy"
 
 ${pretend} && display_settings && exit 1
 
 ${sync} && sync_repos
 
-${compare} && show_version_table "${git_tree}"
+${compare} && show_version_table
 
-${import_arch} && import_from_arch "${git_tree}"
+${import_arch} && import_from_arch
