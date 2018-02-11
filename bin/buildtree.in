@@ -304,7 +304,8 @@ import_packages=false
 import_community=false
 package=''
 
-
+git_artix='packages'
+git_arch='packages'
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
@@ -334,7 +335,7 @@ while getopts "${opts}" arg; do
         a) import_all=true ;;
         c) compare=true ;;
         i) import_packages=true ;;
-        j) import_community=true ;;
+        j) import_community=true; git_artix='packages-galaxy'; git_arch='community' ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -356,7 +357,6 @@ ${compare} && show_version_table
 
 ${import_all} && import_from_arch
 
-${import_packages} && from_arch "${package}" "packages" "packages"
+${import_packages} && from_arch "${package}" "${git_arch}" "${git_artix}"
 
-${import_community} && from_arch "${package}" "community" "packages-galaxy"
-
+${import_community} && from_arch "${package}" "${git_arch}" "${git_artix}"
