@@ -36,29 +36,6 @@ is_untracked(){
     return 0
 }
 
-from_arch(){
-    local pkg="$1" archtree="$2" artixtree="$3" src= dest=
-    src=${tree_dir_arch}/$archtree/$pkg/trunk
-    dest=${tree_dir_artix}/$artixtree/$pkg/trunk
-
-    source $src/PKGBUILD 2>/dev/null
-    cd ${tree_dir_arch}/$archtree/$pkg
-    msg "Package: %s" "$pkg"
-    local archver=$(get_full_version $pkg)
-    msg2 "Arch Version: %s" "$archver"
-
-    source $dest/PKGBUILD 2>/dev/null
-    cd ${tree_dir_artix}/$artixtree
-    local artixver=$(get_full_version $pkg)
-    msg2 "Artix Version: %s" "$artixver"
-    if [ $(vercmp $artixver $archver) -lt 0 ];then
-        info "Importing from archlinux (%s)" "$archtree"
-        rsync "${rsync_args[@]}" $src/ $dest/
-    else
-        warning "Versions match! Nothing to do!"
-    fi
-}
-
 pull_tree(){
     local branch="master" tree="$1"
     local local_head=$(get_local_head "$branch")
@@ -237,7 +214,6 @@ show_version_table(){
                     source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
                     cd $src/$pkg/repos/$archrepo
                     local archver=$(get_full_version $pkg)
-
                 fi
                 if [ $(vercmp $artixver $archver) -lt 0 ];then
                     UPDATES[$pkg]="$pkg_path/repos/$artixrepo/PKGBUILD $src/$pkg/repos/$archrepo/PKGBUILD"
@@ -251,6 +227,29 @@ show_version_table(){
             diff -u ${UPDATES[$upd]} > ${patches_dir}/"$upd"-archlinux.patch
         done
     done
+}
+
+from_arch(){
+    local pkg="$1" archtree="$2" artixtree="$3" src= dest=
+    src=${tree_dir_arch}/$archtree/$pkg/trunk
+    dest=${tree_dir_artix}/$artixtree/$pkg/trunk
+
+    source $src/PKGBUILD 2>/dev/null
+    cd ${tree_dir_arch}/$archtree
+    msg "Package: %s" "$pkg"
+    local archver=$(get_full_version $pkg)
+    msg2 "Arch Version: %s" "$archver"
+
+    source $dest/PKGBUILD 2>/dev/null
+    cd ${tree_dir_artix}/$artixtree
+    local artixver=$(get_full_version $pkg)
+    msg2 "Artix Version: %s" "$artixver"
+    if [ $(vercmp $artixver $archver) -lt 0 ];then
+        info "Importing from archlinux (%s)" "$archtree"
+        rsync "${rsync_args[@]}" $src/ $dest/
+    else
+        warning "Versions match! Nothing to do!"
+    fi
 }
 
 import_from_arch(){

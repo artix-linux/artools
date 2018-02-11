@@ -41,6 +41,7 @@ release_pkg(){
         else
             dest=${target_repo}-$CARCH
             action='release'
+            [[ -d $dest ]] && git rm -r repos/$dest
             [[ ! -d repos ]] && mkdir repos
             cp -r trunk repos/$dest
         fi
