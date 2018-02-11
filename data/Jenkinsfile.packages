@@ -36,16 +36,16 @@ pipeline {
                             }
                         }
                     }
-                    
+
                     int pkgCount = changedPkgStatus.size()
                     int pkgPathCount = pkgPath.size()
                     echo "pkgCount: ${pkgCount}"
                     echo "entryCount: ${entryCount}"
                     echo "pkgPathCount: ${pkgPathCount}"
                     echo "changedPkgStatus: ${changedPkgStatus}"
-                    
+
                     if ( pkgCount > 0 ) {
-                    
+
                         if ( entryCount == 2 && pkgCount == 2 ) {
                             def pkgEntry1 = changedPkgStatus[0].split()
                             def pkgEntry2 = changedPkgStatus[1].split()
@@ -57,7 +57,7 @@ pipeline {
                             pkgStatus << pkgEntry2[0]
                             def buildInfo1 = srcPath[0].tokenize('/')
                             def buildInfo2 = srcPath[1].tokenize('/')
-                            
+
                             if ( pkgStatus[0] == 'M' ) {
                                 IS_ADD = 'true'
                                 if ( srcPath[0].contains('testing') ) {
@@ -77,7 +77,7 @@ pipeline {
                                     ADD_REPO = 'world'
                                 }
                             }
-                            
+
                             if ( pkgStatus[0] == 'D' ) {
                                 IS_REMOVE = 'true'
                                 if ( srcPath[0].contains('testing') ) {
@@ -97,20 +97,20 @@ pipeline {
                                     RM_REPO = 'world'
                                 }
                             }
-                            
+
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
-                        } 
+                        }
 
                         if ( entryCount == 3 && pkgCount == 2 ) {
                             def pkgEntry = changedPkgStatus[0].split()
                             def pkgStatus = pkgEntry[0]
                             def buildInfo1 = pkgPath[0].tokenize('/')
                             def buildInfo2 = pkgPath[1].tokenize('/')
-                            
+
                             if ( pkgStatus.contains('R') ) {
                                 IS_ADD = 'true'
                                 IS_REMOVE = 'true'
-                                
+
                                 if ( pkgPath[0].contains('staging') && pkgPath[1].contains('testing') ) {
                                     ADD_REPO = 'gremlins'
                                     RM_REPO = 'goblins'
@@ -118,7 +118,7 @@ pipeline {
                                     ADD_REPO = 'goblins'
                                     RM_REPO = 'gremlins'
                                 }
-                                
+
                                 if ( pkgPath[0].contains('core') && pkgPath[1].contains('testing')) {
                                     ADD_REPO = 'gremlins'
                                     RM_REPO = 'system'
@@ -126,7 +126,7 @@ pipeline {
                                     ADD_REPO = 'system'
                                     RM_REPO = 'gremlins'
                                 }
-                                
+
                                 if ( pkgPath[0].contains('extra') && pkgPath[1].contains('testing')) {
                                     ADD_REPO = 'gremlins'
                                     RM_REPO = 'world'
@@ -134,7 +134,7 @@ pipeline {
                                     ADD_REPO = 'world'
                                     RM_REPO = 'gremlins'
                                 }
-                                
+
                                 if ( pkgPath[0].contains('core') && pkgPath[1].contains('extra')) {
                                     ADD_REPO = 'world'
                                     RM_REPO = 'system'
@@ -144,14 +144,14 @@ pipeline {
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
-                        } 
-                    
+                        }
+
                         if ( pkgCount == 1 ) {
                             def pkgEntry = changedPkgStatus[0].split()
                             def pkgStatus = pkgEntry[0]
                             def srcPath = pkgEntry[1]
                             def buildInfo = srcPath.tokenize('/')
-                            
+
                             if ( srcPath.contains('staging') ) {
                                 if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
                                     IS_BUILD = 'true'
@@ -192,7 +192,7 @@ pipeline {
                             PKG_PATH = srcPath
                             PKG_TRUNK = buildInfo[0] + '/trunk'
                         }
-                    
+
                     }
                 }
             }
@@ -206,13 +206,13 @@ pipeline {
             }
             steps {
                 dir("${PKG_PATH}") {
-                    echo "buildpkg -r ${ADD_REPO}"
+                    sh "buildpkg -r ${ADD_REPO}"
                 }
             }
             post {
                 success {
                     dir("${PKG_PATH}") {
-                        echo "deploypkg -a -d ${ADD_REPO} -s"
+                        sh "deploypkg -a -d ${ADD_REPO} -s"
                     }
                 }
             }
@@ -223,7 +223,7 @@ pipeline {
             }
             steps {
                 dir("${PKG_TRUNK}") {
-                    echo "deploypkg -a -d ${ADD_REPO}"
+                    sh "deploypkg -a -d ${ADD_REPO}"
                 }
             }
         }
@@ -233,7 +233,7 @@ pipeline {
             }
             steps {
                 dir("${PKG_TRUNK}") {
-                    echo "deploypkg -r -d ${RM_REPO}"
+                    sh "deploypkg -r -d ${RM_REPO}"
                 }
             }
         }

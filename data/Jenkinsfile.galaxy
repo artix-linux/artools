@@ -36,16 +36,16 @@ pipeline {
                             }
                         }
                     }
-                    
+
                     int pkgCount = changedPkgStatus.size()
                     int pkgPathCount = pkgPath.size()
                     echo "pkgCount: ${pkgCount}"
                     echo "entryCount: ${entryCount}"
                     echo "pkgPathCount: ${pkgPathCount}"
                     echo "changedPkgStatus: ${changedPkgStatus}"
-                    
+
                     if ( pkgCount > 0 ) {
-                    
+
                         if ( entryCount == 2 && pkgCount == 2 ) {
                             def pkgEntry1 = changedPkgStatus[0].split()
                             def pkgEntry2 = changedPkgStatus[1].split()
@@ -57,7 +57,7 @@ pipeline {
                             pkgStatus << pkgEntry2[0]
                             def buildInfo1 = srcPath[0].tokenize('/')
                             def buildInfo2 = srcPath[1].tokenize('/')
-                            
+
                             if ( pkgStatus[0] == "M" ) {
                                 IS_ADD = 'true'
                                 if ( srcPath[0].contains('community-testing') ) {
@@ -83,7 +83,7 @@ pipeline {
                                     ADD_REPO = 'lib32'
                                 }
                             }
-                            
+
                             if ( pkgStatus[0] == "D" ) {
                                 IS_REMOVE = 'true'
                                 if ( srcPath[0].contains('community-testing') ) {
@@ -109,22 +109,22 @@ pipeline {
                                     RM_REPO = 'lib32'
                                 }
                             }
-                            
-                            
-                            
+
+
+
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
-                        } 
+                        }
 
                         if ( entryCount == 3 && pkgCount == 2 ) {
                             def pkgEntry = changedPkgStatus[0].split()
                             def pkgStatus = pkgEntry[0]
                             def buildInfo1 = pkgPath[0].tokenize('/')
                             def buildInfo2 = pkgPath[1].tokenize('/')
-                            
+
                             if ( pkgStatus.contains('R') ) {
                                 IS_ADD = 'true'
                                 IS_REMOVE = 'true'
-                                
+
                                 if ( pkgPath[0].contains('community-staging') && pkgPath[1].contains('community-testing') ) {
                                     ADD_REPO = 'galaxy-gremlins'
                                     RM_REPO = 'galaxy-goblins'
@@ -132,7 +132,7 @@ pipeline {
                                     ADD_REPO = 'galaxy-goblins'
                                     RM_REPO = 'galaxy-gremlins'
                                 }
-                                
+
                                 if ( pkgPath[0].contains('community-testing') && pkgPath[1].contains('community-x86_64') || pkgPath[0].contains('community-any') ) {
                                     ADD_REPO = 'galaxy-gremlins'
                                     RM_REPO = 'galaxy'
@@ -140,15 +140,15 @@ pipeline {
                                     ADD_REPO = 'galaxy'
                                     RM_REPO = 'galaxy-gremlins'
                                 }
-                                
+
                                 if ( pkgPath[0].contains('multilib-staging') && pkgPath[1].contains('multilib-testing') ) {
                                     ADD_REPO = 'lib32-gremlins'
                                     RM_REPO = 'lib32-goblins'
                                 } else if ( pkgPath[0].contains('multilib-testing') && pkgPath[1].contains('multilib-staging') ) {
                                     ADD_REPO = 'lib32-goblins'
                                     RM_REPO = 'lib32-gremlins'
-                                } 
-                                
+                                }
+
                                 if ( pkgPath[0].contains('multilib-testing') && pkgPath[1].contains('multilib-x86_64') ) {
                                     ADD_REPO = 'lib32'
                                     RM_REPO = 'lib32-gremlins'
@@ -158,14 +158,14 @@ pipeline {
                                 }
                             }
                             PKG_TRUNK = buildInfo1[0] + '/trunk'
-                        } 
-                    
+                        }
+
                         if ( pkgCount == 1 ) {
                             def pkgEntry = changedPkgStatus[0].split()
                             def pkgStatus = pkgEntry[0]
                             def srcPath = pkgEntry[1]
                             def buildInfo = srcPath.tokenize('/')
-                            
+
                             if ( srcPath.contains('community-staging') ) {
                                 if ( pkgStatus == 'A' || pkgStatus == 'M' ) {
                                     IS_BUILD = 'true'
@@ -225,7 +225,7 @@ pipeline {
                             PKG_PATH = srcPath
                             PKG_TRUNK = buildInfo[0] + '/trunk'
                         }
-                    
+
                     }
                 }
             }
@@ -239,13 +239,13 @@ pipeline {
             }
             steps {
                 dir("${PKG_PATH}") {
-                    echo "buildpkg -r ${ADD_REPO}"
+                    sh "buildpkg -r ${ADD_REPO}"
                 }
             }
             post {
                 success {
                     dir("${PKG_PATH}") {
-                        echo "deploypkg -a -d ${ADD_REPO} -s"
+                        sh "deploypkg -a -d ${ADD_REPO} -s"
                     }
                 }
             }
@@ -256,7 +256,7 @@ pipeline {
             }
             steps {
                 dir("${PKG_TRUNK}") {
-                    echo "deploypkg -a -d ${ADD_REPO}"
+                    sh "deploypkg -a -d ${ADD_REPO}"
                 }
             }
         }
@@ -266,7 +266,7 @@ pipeline {
             }
             steps {
                 dir("${PKG_TRUNK}") {
-                    echo "deploypkg -r -d ${RM_REPO}"
+                    sh "deploypkg -r -d ${RM_REPO}"
                 }
             }
         }
