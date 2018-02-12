@@ -199,17 +199,13 @@ EOF
 # These functions aren't run in makechrootpkg,
 # so no global variables
 _chrootbuild() {
-    exec </dev/console
-
-    /usr/bin/env \
-        TERM="$TERM" \
-        PS1='\u:\w\$ ' \
-        /usr/bin/bash --login +h \
-        PATH=${PATH} \
-        LANG=C
-
     # No coredumps
     ulimit -c 0
+
+    exec </dev/console
+
+    export LANG=C
+    export TERM=$TERM
 
     . /etc/profile
 
