@@ -200,16 +200,16 @@ find_repo(){
 view_artix_repo(){
     local repo="$1"
     case $repo in
-        core-x86_64|core-any) repo=system ;;
-        extra-x86_64|extra-any) repo=world ;;
-        community-x86_64|community-any) repo=galaxy ;;
+        core-*) repo=system ;;
+        extra-*) repo=world ;;
+        community-*) repo=galaxy ;;
         multilib-x86_64) repo=lib32 ;;
-        testing-x86_64|testing-any) repo=gremlins ;;
-        staging-x86_64|staging-any) repo=goblins ;;
+        testing-*) repo=gremlins ;;
+        staging-*) repo=goblins ;;
         multilib-testing-x86_64) repo=lib32-gremlins ;;
         multilib-staging-x86_64) repo=lib32-goblins ;;
-        community-testing-x86_64|community-testing-any) repo=galaxy-gremlins ;;
-        community-staging-x86_64|community-staging-any) repo=galaxy-goblins ;;
+        community-testing-*) repo=galaxy-gremlins ;;
+        community-staging-*) repo=galaxy-goblins ;;
     esac
     echo $repo
 }
