@@ -20,9 +20,11 @@ import ${LIBDIR}/util.sh
 
 commit_pkg(){
     cd ${tree_dir_artix}/${git_tree}/${package}
-    info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}" "${action}"
+    source trunk/PKGBUILD
+    local ver=$(get_full_version ${package}) action='modify'
+    info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
     git add .
-    git commit -m "[${source_repo}] -> [${target_repo}] '${package}' ${action}"
+    git commit -m "[${source_repo}] '${package}-$ver' ${action}"
     ${push} && git push origin master
 }
 
@@ -41,11 +43,15 @@ release_pkg(){
         else
             dest=${target_repo}-$CARCH
             action='release'
-            [[ -d $dest ]] && git rm -r repos/$dest
+            [[ -d repos/$dest ]] && git rm -r repos/$dest
             [[ ! -d repos ]] && mkdir repos
             cp -r trunk repos/$dest
         fi
-        commit_pkg
+        local ver=$(get_full_version ${package})
+        info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
+        git add .
+        git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
+        ${push} && git push origin master
     fi
 }
 
@@ -114,4 +120,8 @@ shift $(($OPTIND - 1))
 
 ${pretend} && display_settings && exit 1
 
-release_pkg
+if [[ "${cmd}" == 'commitpkg' ]];then
+    commit_pkg
+else
+    release_pkg
+fi
