@@ -214,7 +214,32 @@ view_artix_repo(){
     echo $repo
 }
 
-show_version_table(){
+show_downgrade_table(){
+    msg_table_header "%-20s %-20s %-25s %-30s %-30s" "Arch Repo" "Artix Repo" "Package" "Arch version" "Artix version"
+    for tree in packages packages-galaxy;do
+        for pkg_path in ${tree_dir_artix}/$tree/*; do
+            local artixrepo=$(find_repo "$pkg_path")
+            if [[ -d $pkg_path/repos/$artixrepo ]];then
+                source $pkg_path/repos/$artixrepo/PKGBUILD 2>/dev/null
+                local pkg=${pkg_path##*/}
+                local artixver=$(get_full_version $pkg)
+                local src=$(get_import_path "$tree" "$pkg")
+                local archrepo=$(find_repo "$src/$pkg")
+                if [[ -d $src/$pkg/repos/$archrepo ]];then
+                    source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
+                    local archver=$(get_full_version $pkg)
+                fi
+                if [ $(vercmp $artixver $archver) -gt 0 ];then
+                    local ar=$(view_artix_repo "$artixrepo")
+                    msg_row_downgrade "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
+                fi
+                unset pkgver epoch pkgrel artixver archver _package
+            fi
+        done
+    done
+}
+
+show_upgrade_table(){
     declare -A UPDATES
     msg_table_header "%-20s %-20s %-25s %-30s %-30s" "Arch Repo" "Artix Repo" "Package" "Arch version" "Artix version"
     for tree in packages packages-galaxy;do
@@ -294,15 +319,16 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "sync: %s" "${sync}"
-    msg2 "import_all: %s" "${import_all}"
-    msg2 "compare: %s" "${compare}"
+    msg2 "upgrades: %s" "${upgrades}"
+    msg2 "downgrades: %s" "${downgrades}"
     msg2 "import_packages: %s" "${import_packages}"
     msg2 "import_community: %s" "${import_community}"
+    msg2 "import_all: %s" "${import_all}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
     msg2 "tree_dir_arch: %s" "${tree_dir_arch}"
-    msg2 "patches_dir: %s" "${patches_dir}/${git_tree}"
+    msg2 "patches_dir: %s" "${patches_dir}"
 }
 
 load_user_info
@@ -313,10 +339,11 @@ load_vars /etc/makepkg.conf
 
 pretend=false
 sync=false
-import_all=false
-compare=false
+upgrades=false
+downgrades=false
 import_packages=false
 import_community=false
+import_all=false
 package=''
 
 git_artix='packages'
@@ -328,10 +355,11 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo '    -p <pkg>      Package name'
     echo "    -s            Clone or pull repos"
+    echo '    -u            Show upgrade packages'
+    echo '    -d            Show downgrade packages'
     echo '    -i            Import from arch packages'
     echo '    -j            Import from arch community'
-    echo '    -a            Import arch packages'
-    echo '    -c            Compare packages'
+    echo '    -k            Import arch packages'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -341,16 +369,17 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:scijaqh'
+opts='p:sudijkqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
         s) sync=true ;;
-        a) import_all=true ;;
-        c) compare=true ;;
+        u) upgrades=true ;;
+        d) downgrades=true ;;
         i) import_packages=true ;;
         j) import_community=true; git_artix='packages-galaxy'; git_arch='community' ;;
+        k) import_all=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -367,7 +396,9 @@ ${pretend} && display_settings && exit 1
 
 ${sync} && sync_repos
 
-${compare} && show_version_table
+${upgrades} && show_upgrade_table
+
+${downgrades} && show_downgrade_table
 
 ${import_all} && import_from_arch
 
