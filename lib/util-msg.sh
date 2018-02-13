@@ -76,6 +76,11 @@ die() {
     cleanup 255
 }
 
+msg_row(){
+    local mesg=$1; shift
+    printf "${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+}
+
 msg_table_header(){
     local mesg=$1; shift
     printf "${GREEN} ${mesg} ${ALL_OFF}\n" "$@" >&2
