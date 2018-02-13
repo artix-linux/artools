@@ -22,12 +22,17 @@ commit_pkg(){
     cd ${tree_dir_artix}/${git_tree}/${package}
     source trunk/PKGBUILD
     local ver=$(get_full_version ${package})
-    if ${delete};then
+    if ${remove};then
         local action='remove'
         local pkg=${package}-$ver
-        [[ ${source_repo} == 'trunk' ]] && pkg=${package}
-        info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
-        git rm -r ${source_repo}-$CARCH
+        if [[ ${source_repo} == 'trunk' ]];then
+            pkg=${package}
+            info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+            git rm -r trunk
+        else
+            info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+            git rm -r repos/${source_repo}-$CARCH
+        fi
         git commit -m "[${source_repo}] '$pkg' ${action}"
         ${push} && git push origin master
     else
@@ -36,6 +41,7 @@ commit_pkg(){
         git add .
         git commit -m "[${source_repo}] '${package}-$ver' ${action}"
         ${push} && git push origin master
+    fi
 }
 
 release_pkg(){
