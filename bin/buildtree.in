@@ -102,27 +102,22 @@ patch_pkg(){
         'glibc')
             sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
                 -e '/nscd.service/d' \
-                -i $pkg/$repo/PKGBUILD
-            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
-                -e '/nscd.service/d' \
                 -i $pkg/trunk/PKGBUILD
         ;;
         'tp_smapi'|'acpi_call'|'r8168')
-            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
         ;;
         'linux')
-            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/$repo/PKGBUILD
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
             sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
                 -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
-                -i $pkg/$repo/config
-            sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
-                -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
                 -i $pkg/trunk/config
+            cd $pkg/trunk
+                updpkgsums
+            cd ../..
+
         ;;
         'licenses')
-            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/$repo/PKGBUILD
             sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/trunk/PKGBUILD
         ;;
     esac
@@ -288,6 +283,7 @@ from_arch(){
     if [ $(vercmp $artixver $archver) -lt 0 ];then
         info "Importing from archlinux (%s)" "$archtree"
         rsync "${rsync_args[@]}" $src/ $dest/
+        patch_pkg "$pkg" "$tree"
     else
         warning "Versions match! Nothing to do!"
     fi
