@@ -21,11 +21,21 @@ import ${LIBDIR}/util.sh
 commit_pkg(){
     cd ${tree_dir_artix}/${git_tree}/${package}
     source trunk/PKGBUILD
-    local ver=$(get_full_version ${package}) action='modify'
-    info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
-    git add .
-    git commit -m "[${source_repo}] '${package}-$ver' ${action}"
-    ${push} && git push origin master
+    local ver=$(get_full_version ${package})
+    if ${delete};then
+        local action='remove'
+        local pkg=${package}-$ver
+        [[ ${source_repo} == 'trunk' ]] && pkg=${package}
+        info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+        git rm -r ${source_repo}-$CARCH
+        git commit -m "[${source_repo}] '$pkg' ${action}"
+        ${push} && git push origin master
+    else
+        local action='modify'
+        info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
+        git add .
+        git commit -m "[${source_repo}] '${package}-$ver' ${action}"
+        ${push} && git push origin master
 }
 
 release_pkg(){
@@ -42,7 +52,7 @@ release_pkg(){
             cd ..
         else
             dest=${target_repo}-$CARCH
-            action='release'
+            action='add'
             [[ -d repos/$dest ]] && git rm -r repos/$dest
             [[ ! -d repos ]] && mkdir repos
             cp -r trunk repos/$dest
@@ -77,6 +87,7 @@ load_vars /etc/makepkg.conf
 
 source_repo='trunk'
 package=''
+remove=false
 push=false
 pretend=false
 
@@ -93,6 +104,7 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -s <name>          Source repository [default:${source_repo}]"
     echo '    -p <pkg>           Package name'
+    echo '    -r                 Delete from repo'
     echo '    -u                 Push'
     echo '    -q                 Query settings and pretend'
     echo '    -h                 This help'
@@ -103,12 +115,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:s:uqh'
+opts='p:s:urqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         s) source_repo="$OPTARG" ;;
         p) package="$OPTARG" ;;
+        r) remove=true ;;
         u) push=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
