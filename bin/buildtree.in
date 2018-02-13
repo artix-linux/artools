@@ -276,16 +276,25 @@ from_arch(){
     local archver=$(get_full_version $pkg)
     msg2 "Arch Version: %s" "$archver"
 
-    source $dest/PKGBUILD 2>/dev/null
-    cd ${tree_dir_artix}/$artixtree
-    local artixver=$(get_full_version $pkg)
-    msg2 "Artix Version: %s" "$artixver"
-    if [ $(vercmp $artixver $archver) -lt 0 ];then
+    if [[ -d $dest ]];then
+        source $dest/PKGBUILD 2>/dev/null
+        cd ${tree_dir_artix}/$artixtree
+        local artixver=$(get_full_version $pkg)
+        msg2 "Artix Version: %s" "$artixver"
+        info "artixver: %s" "$artixver"
+        if [ $(vercmp $artixver $archver) -lt 0 ];then
+            info "Importing from archlinux (%s)" "$archtree"
+            rsync "${rsync_args[@]}" $src/ $dest/
+            patch_pkg "$pkg" "$tree"
+        else
+            warning "Versions match! Nothing to do!"
+        fi
+    else
+        cd ${tree_dir_artix}/$artixtree
         info "Importing from archlinux (%s)" "$archtree"
+        mkdir $pkg
         rsync "${rsync_args[@]}" $src/ $dest/
         patch_pkg "$pkg" "$tree"
-    else
-        warning "Versions match! Nothing to do!"
     fi
 }
 

@@ -25,7 +25,7 @@ commit_pkg(){
     if ${remove};then
         local action='remove'
         local pkg=${package}-$ver
-        if [[ ${source_repo} == 'trunk' ]];then
+        if [[ "${source_repo}" == 'trunk' ]];then
             pkg=${package}
             info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
             git rm -r trunk
@@ -82,6 +82,7 @@ display_settings(){
     msg2 "package: %s" "${package}"
 
     msg "ARGS:"
+    msg2 "remove: %s" "${remove}"
     msg2 "push: %s" "${push}"
 }
 
