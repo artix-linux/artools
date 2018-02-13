@@ -612,9 +612,9 @@ vid.stab
 volume_key
 vte
 vte3
-vulkan-headers
-vulkan-icd-loader
-vulkan-validation-layers
+vulkan-docs
+vulkan-loader-layers
+vulkan-tools
 wavpack
 wayland
 wayland-protocols
