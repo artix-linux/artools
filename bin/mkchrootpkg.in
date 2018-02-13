@@ -199,9 +199,16 @@ EOF
 # These functions aren't run in makechrootpkg,
 # so no global variables
 _chrootbuild() {
+    # No coredumps
+    ulimit -c 0
+
     exec </dev/console
-    export LANG=en_US.UTF-8
+
+    export LANG=C
+    export TERM=$TERM
+
     . /etc/profile
+
     sudo --preserve-env=SOURCE_DATE_EPOCH -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
 }
 

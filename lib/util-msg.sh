@@ -81,9 +81,9 @@ msg_table_header(){
     printf "${GREEN} ${mesg} ${ALL_OFF}\n" "$@" >&2
 }
 
-msg_row(){
+msg_row_downgrade(){
     local mesg=$1; shift
-    printf "${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
+    printf "${YELLOW} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
 msg_row_update(){

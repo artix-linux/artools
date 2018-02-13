@@ -17,12 +17,131 @@ DATADIR='@datadir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
-import ${LIBDIR}/util-pkg.sh
 
-move_pkg(){
-    local pkg="$1" src_repo="$2" dest_repo="$3" tree="$4"
-    cd ${tree_dir_artix}/$tree/$pkg/repos
-    git mv --force $src_repo $dest_repo
-    git add -u $dest_repo
-    git commit -m "Move '$pkg' from [$src_repo] to [$dest_repo]"
+commit_pkg(){
+    cd ${tree_dir_artix}/${git_tree}/${package}
+    source trunk/PKGBUILD
+    local ver=$(get_full_version ${package})
+    if ${remove};then
+        local action='remove'
+        local pkg=${package}-$ver
+        if [[ "${source_repo}" == 'trunk' ]];then
+            pkg=${package}
+            info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+            git rm -r trunk
+        else
+            info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+            git rm -r repos/${source_repo}-$CARCH
+        fi
+        git commit -m "[${source_repo}] '$pkg' ${action}"
+        ${push} && git push origin master
+    else
+        local action='modify'
+        info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
+        git add .
+        git commit -m "[${source_repo}] '${package}-$ver' ${action}"
+        ${push} && git push origin master
+    fi
 }
+
+release_pkg(){
+    if [[ -d ${tree_dir_artix}/${git_tree}/${package} ]];then
+        cd ${tree_dir_artix}/${git_tree}/${package}
+        source trunk/PKGBUILD
+        [[ $arch == 'any' ]] && CARCH=any
+        if [[ ${source_repo} != 'trunk' ]];then
+            cd repos
+            dest=${target_repo}-$CARCH
+            action='move'
+            [[ -d $dest ]] && git rm -r $dest
+            git mv ${source_repo}-$CARCH $dest
+            cd ..
+        else
+            dest=${target_repo}-$CARCH
+            action='add'
+            [[ -d repos/$dest ]] && git rm -r repos/$dest
+            [[ ! -d repos ]] && mkdir repos
+            cp -r trunk repos/$dest
+        fi
+        local ver=$(get_full_version ${package})
+        info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
+        git add .
+        git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
+        ${push} && git push origin master
+    fi
+}
+
+display_settings(){
+    show_version
+    show_config
+
+    msg "OPTIONS:"
+    msg2 "git_tree: %s" "${git_tree}"
+    msg2 "source_repo: %s" "${source_repo}"
+    msg2 "target_repo: %s" "${target_repo}"
+    msg2 "package: %s" "${package}"
+
+    msg "ARGS:"
+    msg2 "remove: %s" "${remove}"
+    msg2 "push: %s" "${push}"
+}
+
+load_user_info
+
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
+
+source_repo='trunk'
+package=''
+remove=false
+push=false
+pretend=false
+
+git_tree='packages'
+
+cmd=${0##*/}
+target_repo=${cmd%pkg}
+
+case ${target_repo} in
+    community*|multilib*) git_tree='packages-galaxy' ;;
+esac
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -s <name>          Source repository [default:${source_repo}]"
+    echo '    -p <pkg>           Package name'
+    echo '    -r                 Delete from repo'
+    echo '    -u                 Push'
+    echo '    -q                 Query settings and pretend'
+    echo '    -h                 This help'
+    echo ''
+    echo ''
+    exit $1
+}
+
+orig_argv=("$0" "$@")
+
+opts='p:s:urqh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+        s) source_repo="$OPTARG" ;;
+        p) package="$OPTARG" ;;
+        r) remove=true ;;
+        u) push=true ;;
+        q) pretend=true ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '${arg}'"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+${pretend} && display_settings && exit 1
+
+if [[ "${cmd}" == 'commitpkg' ]];then
+    commit_pkg
+else
+    release_pkg
+fi
