@@ -226,7 +226,9 @@ show_downgrade_table(){
                 fi
                 if [ $(vercmp $artixver $archver) -gt 0 ];then
                     local ar=$(view_artix_repo "$artixrepo")
-                    msg_row_downgrade "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
+                    if [[ -n $archver ]] && [[ -n $archrepo ]];then
+                        msg_row_downgrade "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
+                    fi
                 fi
                 unset pkgver epoch pkgrel artixver archver _package
             fi
