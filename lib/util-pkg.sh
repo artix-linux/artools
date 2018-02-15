@@ -9,6 +9,154 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+get_local_head(){
+    echo $(git log --pretty=%H ...refs/heads/$1^ | head -n 1)
+}
+
+get_remote_head(){
+    echo $(git ls-remote origin -h refs/heads/$1 | cut -f1)
+}
+
+is_dirty() {
+    [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] || return 1
+    return 0
+}
+
+is_untracked(){
+    [[ $(git ls-files --others --exclude-standard)  != "" ]] || return 1
+    return 0
+}
+
+patch_pkg(){
+    local pkg="$1" repo="$2"
+    case $pkg in
+        'glibc')
+            sed -e 's|{locale,systemd/system,tmpfiles.d}|{locale,tmpfiles.d}|' \
+                -e '/nscd.service/d' \
+                -i $pkg/trunk/PKGBUILD
+        ;;
+        'tp_smapi'|'acpi_call'|'r8168'|'bbswitch')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+        ;;
+        'nvidia')
+            sed -e 's|-ARCH|-ARTIX|g'  -e 's|for Arch kernel|for Artix kernel|g' \
+                -e 's|for LTS Arch kernel|for LTS Artix kernel|g' \
+                -i $pkg/trunk/PKGBUILD
+        ;;
+        'linux')
+            sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+            sed -e 's|CONFIG_LOCALVERSION=.*|CONFIG_LOCALVERSION="-ARTIX"|' \
+                -e 's|CONFIG_DEFAULT_HOSTNAME=.*|CONFIG_DEFAULT_HOSTNAME="artixlinux"|' \
+                -i $pkg/trunk/config
+            cd $pkg/trunk
+                updpkgsums
+            cd ../..
+
+        ;;
+        'licenses')
+            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/trunk/PKGBUILD
+        ;;
+        'bash')
+            sed -e 's|system.bash_logout)|system.bash_logout artix.bashrc)|' \
+            -e "s|etc/bash.|etc/bash/|g" \
+            -e 's|"$pkgdir/etc/skel/.bash_logout"|"$pkgdir/etc/skel/.bash_logout"\n  install -Dm644 artix.bashrc $pkgdir/etc/bash/bashrc.d/artix.bashrc|' \
+            -i $pkg/trunk/PKGBUILD
+
+
+            cd $pkg/trunk
+                patch -Np 1 -i ${DATADIR}/patches/artix-bash.patch
+                updpkgsums
+            cd ../..
+        ;;
+    esac
+}
+
+get_import_path(){
+    local tree="$1" import_path=
+    case $tree in
+        packages) import_path=${tree_dir_arch}/packages ;;
+        packages-galaxy) import_path=${tree_dir_arch}/community ;;
+    esac
+    echo $import_path
+}
+
+find_repo(){
+    local pkg="$1" repo=
+
+    if [[ -d $pkg/repos/core-x86_64 ]];then
+        repo=core-x86_64
+    elif [[ -d $pkg/repos/core-any ]];then
+        repo=core-any
+    fi
+
+    if [[ -d $pkg/repos/extra-x86_64 ]];then
+        repo=extra-x86_64
+    elif [[ -d $pkg/repos/extra-any ]];then
+        repo=extra-any
+    fi
+
+    if [[ -d $pkg/repos/testing-x86_64 ]];then
+        repo=testing-x86_64
+    elif [[ -d $pkg/repos/testing-any ]];then
+        repo=testing-any
+    fi
+
+    if [[ -d $pkg/repos/staging-x86_64 ]];then
+        repo=staging-x86_64
+    elif [[ -d $pkg/repos/staging-any ]];then
+        repo=staging-any
+    fi
+
+    if [[ -d $pkg/repos/community-x86_64 ]];then
+        repo=community-x86_64
+    elif [[ -d $pkg/repos/community-any ]];then
+        repo=community-any
+    fi
+
+    if [[ -d $pkg/repos/community-testing-x86_64 ]];then
+        repo=community-testing-x86_64
+    elif [[ -d $pkg/repos/community-testing-any ]];then
+        repo=community-testing-any
+    fi
+
+    if [[ -d $pkg/repos/community-staging-x86_64 ]];then
+        repo=community-staging-x86_64
+    elif [[ -d $pkg/repos/community-staging-any ]];then
+        repo=community-staging-any
+    fi
+
+    if [[ -d $pkg/repos/multilib-x86_64 ]];then
+        repo=multilib-x86_64
+    fi
+
+    if [[ -d $pkg/repos/multilib-testing-x86_64 ]];then
+        repo=multilib-testing-x86_64
+    fi
+
+    if [[ -d $pkg/repos/multilib-staging-x86_64 ]];then
+        repo=multilib-staging-x86_64
+    fi
+
+    echo $repo
+}
+
+arch_to_artix_repo(){
+    local repo="$1"
+    case $repo in
+        core-*) repo=system ;;
+        extra-*) repo=world ;;
+        community-x86_64|community-any) repo=galaxy ;;
+        multilib-x86_64) repo=lib32 ;;
+        testing-*) repo=gremlins ;;
+        staging-*) repo=goblins ;;
+        multilib-testing-x86_64) repo=lib32-gremlins ;;
+        multilib-staging-x86_64) repo=lib32-goblins ;;
+        community-testing-*) repo=galaxy-gremlins ;;
+        community-staging-*) repo=galaxy-goblins ;;
+    esac
+    echo $repo
+}
+
 # $1: sofile
 # $2: soarch
 process_sofile() {

@@ -204,10 +204,10 @@ _chrootbuild() {
 
     exec </dev/console
 
-    export LANG=C
-    export TERM=$TERM
-
     . /etc/profile
+
+    export LANG=en_US.UTF-8
+    locale-gen &> /dev/null
 
     sudo --preserve-env=SOURCE_DATE_EPOCH -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
 }

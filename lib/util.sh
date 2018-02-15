@@ -73,13 +73,7 @@ init_artools_pkg(){
 
     [[ -z ${host_tree_arch} ]] && host_tree_arch='git://projects.archlinux.org/svntogit'
 
-    list_dir_import="${SYSCONFDIR}/import.list.d"
-
-    [[ -d ${AT_USERCONFDIR}/import.list.d ]] && list_dir_import=${AT_USERCONFDIR}/import.list.d
-
     chroots_pkg="${chroots_dir}/buildpkg"
-
-    [[ -z ${patches_dir} ]] && patches_dir=${workspace_dir}/archlinux-patches
 
     [[ -z ${repos_root} ]] && repos_root="${workspace_dir}/repos"
 }

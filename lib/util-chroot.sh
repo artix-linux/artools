@@ -53,9 +53,8 @@ default_locale(){
         if [[ ! -f "$mnt/etc/locale.gen.bak" ]];then
             info "Setting locale ..."
             mv "$mnt/etc/locale.gen" "$mnt/etc/locale.gen.bak"
-            printf '%s.UTF-8 UTF-8\n' en_US > "$mnt/etc/locale.gen"
-            printf 'LANG=%s.UTF-8\n' en_US > "$mnt/etc/locale.conf"
-            printf 'LC_MESSAGES=C\n' >> "$mnt/etc/locale.conf"
+            printf '%s.UTF-8 UTF-8\n' en_US de_DE > "$mnt/etc/locale.gen"
+            echo 'LANG=en_US.UTF-8.UTF-8' > "$mnt/etc/locale.conf"
         fi
     elif [[ $action == "reset" ]];then
         if [[ -f "$mnt/etc/locale.gen.bak" ]];then

@@ -24,9 +24,6 @@ LIBS_BASE = \
 SHARED_BASE = \
 	$(wildcard data/pacman*.conf)
 
-LIST_IMPORT = \
-	$(wildcard data/import.list.d/*.list)
-
 BIN_PKG = \
 	bin/checkpkg \
 	bin/lddd \
@@ -58,7 +55,7 @@ COMMITPKG_SYMS = \
 	multilibpkg \
 	multilib-testingpkg \
 	multilib-stagingpkg
-	
+
 BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
@@ -126,16 +123,13 @@ install_base:
 	install -m0644 ${SHARED_BASE} $(DESTDIR)$(PREFIX)/share/artools
 
 install_pkg:
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
-	install -m0644 ${LIST_IMPORT} $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d
-
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
-	
+
 	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
-	
+
 	for l in ${COMMITPKG_SYMS}; do ln -sf commitpkg $(DESTDIR)$(PREFIX)/bin/$$l; done
-	
+
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_PKG} $(DESTDIR)$(PREFIX)/lib/artools
 
@@ -188,7 +182,6 @@ uninstall_base:
 	for f in ${LIBS_BASE}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_pkg:
-	for f in ${LIST_IMPORT}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/import.list.d/$$f; done
 	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
 	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
