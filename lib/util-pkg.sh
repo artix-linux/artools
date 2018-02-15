@@ -35,8 +35,13 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/trunk/PKGBUILD
         ;;
-        'tp_smapi'|'acpi_call'|'r8168')
+        'tp_smapi'|'acpi_call'|'r8168'|'bbswitch')
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
+        ;;
+        'nvidia')
+            sed -e 's|-ARCH|-ARTIX|g'  -e 's|for Arch kernel|for Artix kernel|g' \
+                -e 's|for LTS Arch kernel|for LTS Artix kernel|g' \
+                -i $pkg/trunk/PKGBUILD
         ;;
         'linux')
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
@@ -50,6 +55,18 @@ patch_pkg(){
         ;;
         'licenses')
             sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' -i $pkg/trunk/PKGBUILD
+        ;;
+        'bash')
+            sed -e 's|system.bash_logout)|system.bash_logout artix.bashrc)|' \
+            -e "s|etc/bash.|etc/bash/|g" \
+            -e 's|"$pkgdir/etc/skel/.bash_logout"|"$pkgdir/etc/skel/.bash_logout"\n  install -Dm644 artix.bashrc $pkgdir/etc/bash/bashrc.d/artix.bashrc|' \
+            -i $pkg/trunk/PKGBUILD
+
+
+            cd $pkg/trunk
+                patch -Np 1 -i ${DATADIR}/patches/artix-bash.patch
+                updpkgsums
+            cd ../..
         ;;
     esac
 }
@@ -128,7 +145,7 @@ arch_to_artix_repo(){
     case $repo in
         core-*) repo=system ;;
         extra-*) repo=world ;;
-        community-*) repo=galaxy ;;
+        community-x86_64|community-any) repo=galaxy ;;
         multilib-x86_64) repo=lib32 ;;
         testing-*) repo=gremlins ;;
         staging-*) repo=goblins ;;

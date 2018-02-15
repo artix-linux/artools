@@ -76,14 +76,19 @@ die() {
     cleanup 255
 }
 
+msg_table_header(){
+    local mesg=$1; shift
+    printf "${BLUE} ${mesg} ${ALL_OFF}\n" "$@" >&2
+}
+
 msg_row(){
     local mesg=$1; shift
     printf "${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
-msg_table_header(){
+msg_row_notify(){
     local mesg=$1; shift
-    printf "${GREEN} ${mesg} ${ALL_OFF}\n" "$@" >&2
+    printf "${GREEN} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
 msg_row_downgrade(){
@@ -91,7 +96,7 @@ msg_row_downgrade(){
     printf "${YELLOW} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
-msg_row_update(){
+msg_row_upgrade(){
     local mesg=$1; shift
     printf "${RED}${BOLD} ${mesg} ${ALL_OFF}\n" "$@" >&2
 }
