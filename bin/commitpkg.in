@@ -60,9 +60,7 @@ release_pkg(){
             dest=${target_repo}-$CARCH
             action='add'
             [[ ! -d repos ]] && mkdir repos
-            cd repos
-            [[ -d $dest ]] && git rm -r $dest
-            cd ..
+            [[ -d repos/$dest ]] && git rm -r repos/$dest
             cp -r trunk repos/$dest
         fi
         local ver=$(get_full_version ${package})
