@@ -71,6 +71,30 @@ patch_pkg(){
     esac
 }
 
+pull_tree(){
+    local branch="master" tree="$1"
+    local local_head=$(get_local_head "$branch")
+    local remote_head=$(get_remote_head "$branch")
+    local timer=$(get_timer)
+    msg "Checking [%s] ..." "$tree"
+    msg2 "local: %s" "${local_head}"
+    msg2 "remote: %s" "${remote_head}"
+    if [[ "${local_head}" == "${remote_head}" ]]; then
+        info "nothing to do"
+    else
+        info "needs pull"
+        git pull origin $branch
+    fi
+    msg "Done [%s]" "$tree"
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+push_tree(){
+    local tree="$1"
+    pull_tree "$1"
+    git push origin master
+}
+
 get_import_path(){
     local tree="$1" import_path=
     case $tree in

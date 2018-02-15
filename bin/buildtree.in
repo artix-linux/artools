@@ -19,24 +19,6 @@ DATADIR='@datadir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
 
-pull_tree(){
-    local branch="master" tree="$1"
-    local local_head=$(get_local_head "$branch")
-    local remote_head=$(get_remote_head "$branch")
-    local timer=$(get_timer)
-    msg "Checking [%s] ..." "$tree"
-    msg2 "local: %s" "${local_head}"
-    msg2 "remote: %s" "${remote_head}"
-    if [[ "${local_head}" == "${remote_head}" ]]; then
-        info "nothing to do"
-    else
-        info "needs pull"
-        git pull origin $branch
-    fi
-    msg "Done [%s]" "$tree"
-    show_elapsed_time "${FUNCNAME}" "${timer}"
-}
-
 clone_tree(){
     local timer=$(get_timer) tree="$1" host_tree="$2"
     msg "Preparing [%s] ..." "$tree"

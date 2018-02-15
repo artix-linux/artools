@@ -17,6 +17,7 @@ DATADIR='@datadir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
 
 commit_pkg(){
     cd ${tree_dir_artix}/${git_tree}/${package}
@@ -34,13 +35,13 @@ commit_pkg(){
             git rm -r repos/${source_repo}-$CARCH
         fi
         git commit -m "[${source_repo}] '$pkg' ${action}"
-        ${push} && git push origin master
+        ${push} && push_tree "${git_tree}"
     else
         local action='modify'
         info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
         git add .
         git commit -m "[${source_repo}] '${package}-$ver' ${action}"
-        ${push} && git push origin master
+        ${push} && push_tree "${git_tree}"
     fi
 }
 
@@ -69,7 +70,7 @@ release_pkg(){
         info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
         git add .
         git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
-        ${push} && git push origin master
+        ${push} && push_tree "${git_tree}"
     fi
 }
 
@@ -139,6 +140,10 @@ while getopts "${opts}" arg; do
 done
 
 shift $(($OPTIND - 1))
+
+case ${source_repo} in
+    community*|multilib*) git_tree='packages-galaxy' ;;
+esac
 
 ${pretend} && display_settings && exit 1
 
