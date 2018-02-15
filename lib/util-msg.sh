@@ -91,14 +91,14 @@ msg_row_notify(){
     printf "${GREEN} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
-msg_row_downgrade(){
+msg_row(){
     local mesg=$1; shift
-    printf "${YELLOW} ${mesg}${ALL_OFF}\n" "$@" >&2
+    printf "${BOLD} ${mesg}${ALL_OFF}\n" "$@" >&2
 }
 
 msg_row_upgrade(){
     local mesg=$1; shift
-    printf "${RED}${BOLD} ${mesg} ${ALL_OFF}\n" "$@" >&2
+    printf "${RED}${RED} ${mesg} ${ALL_OFF}\n" "$@" >&2
 }
 
 import(){
