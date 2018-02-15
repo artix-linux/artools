@@ -61,7 +61,7 @@ release_pkg(){
             action='add'
             [[ ! -d repos ]] && mkdir repos
             cd repos
-            [[ -d $dest ]] && git rm -r $dest
+            [[ -d repos/$dest ]] && git rm -r repos/$dest
             cd ..
             cp -r trunk repos/$dest
         fi
