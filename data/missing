@@ -18,3 +18,8 @@ extra/python-packaging
 extra/python-pyparsing
 extra/ttf-liberation
 extra/appstream-glib
+extra/libxkbui
+extra/libxkbfile
+extra/libunicodenames
+extra/mpg123
+extra/opencl-headers
