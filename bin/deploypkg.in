@@ -29,7 +29,8 @@ del_from_repo(){
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
             info "pkgfile: %s" "${pkgfile##*/}"
             repo-remove -R $repo_path/$repo.db.tar.xz $name
-            [[ -f $repo_path/${pkgfile##*/}{,.sig} ]] && rm -v $repo_path/${pkgfile##*/}{,.sig}
+            [[ -e $repo_path/${pkgfile##*/} ]] && rm -v $repo_path/${pkgfile##*/}
+            [[ -e $repo_path/${pkgfile##*/}.sig ]] && rm -v $repo_path/${pkgfile##*/}.sig
         fi
     done
 }
