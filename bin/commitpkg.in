@@ -17,35 +17,42 @@ DATADIR='@datadir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
 import ${LIBDIR}/util.sh
+import ${LIBDIR}/util-pkg.sh
 
 commit_pkg(){
-    cd ${tree_dir_artix}/${git_tree}/${package}
-    source trunk/PKGBUILD
-    local ver=$(get_full_version ${package})
-    if ${remove};then
-        local action='remove'
-        local pkg=${package}-$ver
-        if [[ "${source_repo}" == 'trunk' ]];then
-            pkg=${package}
-            info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
-            git rm -r trunk
+    local git_tree=$(find_tree "${tree_dir_artix}" "${package}")
+    if [[ -n ${git_tree} ]];then
+        cd ${tree_dir_artix}/${git_tree}/${package}
+        source trunk/PKGBUILD
+        local ver=$(get_full_version ${package})
+        if ${remove};then
+            local action='remove'
+            local pkg=${package}-$ver
+            if [[ "${source_repo}" == 'trunk' ]];then
+                pkg=${package}
+                info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+                git rm -r trunk
+            else
+                info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+                git rm -r repos/${source_repo}-$CARCH
+            fi
+            git commit -m "[${source_repo}] '$pkg' ${action}"
+            ${push} && push_tree "${git_tree}"
         else
-            info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
-            git rm -r repos/${source_repo}-$CARCH
+            local action='modify'
+            info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
+            git add .
+            git commit -m "[${source_repo}] '${package}-$ver' ${action}"
+            ${push} && push_tree "${git_tree}"
         fi
-        git commit -m "[${source_repo}] '$pkg' ${action}"
-        ${push} && git push origin master
     else
-        local action='modify'
-        info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
-        git add .
-        git commit -m "[${source_repo}] '${package}-$ver' ${action}"
-        ${push} && git push origin master
+        error "Package '%s' does not exist!" "${package}"
     fi
 }
 
 release_pkg(){
-    if [[ -d ${tree_dir_artix}/${git_tree}/${package} ]];then
+    local git_tree=$(find_tree "${tree_dir_artix}" "${package}")
+    if [[ -n ${git_tree} ]];then
         cd ${tree_dir_artix}/${git_tree}/${package}
         source trunk/PKGBUILD
         [[ $arch == 'any' ]] && CARCH=any
@@ -69,7 +76,9 @@ release_pkg(){
         info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
         git add .
         git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
-        ${push} && git push origin master
+        ${push} && push_tree "${git_tree}"
+    else
+        error "Package '%s' does not exist!" "${package}"
     fi
 }
 
@@ -78,7 +87,6 @@ display_settings(){
     show_config
 
     msg "OPTIONS:"
-    msg2 "git_tree: %s" "${git_tree}"
     msg2 "source_repo: %s" "${source_repo}"
     msg2 "target_repo: %s" "${target_repo}"
     msg2 "package: %s" "${package}"
@@ -100,14 +108,8 @@ remove=false
 push=false
 pretend=false
 
-git_tree='packages'
-
 cmd=${0##*/}
 target_repo=${cmd%pkg}
-
-case ${target_repo} in
-    community*|multilib*) git_tree='packages-galaxy' ;;
-esac
 
 usage() {
     echo "Usage: ${0##*/} [options]"
@@ -142,8 +144,12 @@ shift $(($OPTIND - 1))
 
 ${pretend} && display_settings && exit 1
 
-if [[ "${cmd}" == 'commitpkg' ]];then
-    commit_pkg
+if $(is_valid_repo "${source_repo}");then
+    if [[ "${cmd}" == 'commitpkg' ]];then
+        commit_pkg
+    else
+        release_pkg
+    fi
 else
-    release_pkg
+    error "source repository '%s' is not valid!" "${source_repo}"
 fi

@@ -71,6 +71,35 @@ patch_pkg(){
     esac
 }
 
+find_tree(){
+    local tree="$1" pkg="$2"
+    local result=$(find $tree -mindepth 2 -maxdepth 2 -type d -name "$pkg")
+    result=${result%/*}
+    echo ${result##*/}
+}
+
+pull_tree(){
+    local branch="master" tree="$1"
+    local local_head=$(get_local_head "$branch")
+    local remote_head=$(get_remote_head "$branch")
+    local timer=$(get_timer)
+    msg "Checking [%s] ..." "$tree"
+    if [[ "${local_head}" == "${remote_head}" ]]; then
+        msg2 "nothing to do"
+    else
+        msg2 "needs pull"
+        git pull origin $branch
+    fi
+    msg "Done [%s]" "$tree"
+    show_elapsed_time "${FUNCNAME}" "${timer}"
+}
+
+push_tree(){
+    local branch="master" tree="$1"
+    pull_tree "$tree"
+    git push origin "$branch"
+}
+
 get_import_path(){
     local tree="$1" import_path=
     case $tree in
@@ -78,6 +107,14 @@ get_import_path(){
         packages-galaxy) import_path=${tree_dir_arch}/community ;;
     esac
     echo $import_path
+}
+
+is_valid_repo(){
+    local src="$1"
+    case $src in
+        core|extra|community|multilib|testing|staging|community-testing|community-staging|multilib-testing|multilib-staging|trunk) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 find_repo(){
