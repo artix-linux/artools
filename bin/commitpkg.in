@@ -24,7 +24,7 @@ commit_pkg(){
     if [[ -n ${git_tree} ]];then
         cd ${tree_dir_artix}/${git_tree}
 
-        msg "Checking (%s)" "${tree}"
+        msg "Checking (%s)" "${git_tree}"
         pull_tree
 
         cd ${package}
@@ -62,7 +62,7 @@ symlink_commit_pkg(){
     if [[ -n ${git_tree} ]];then
         cd ${tree_dir_artix}/${git_tree}
 
-        msg "Checking (%s)" "${tree}"
+        msg "Checking (%s)" "${git_tree}"
         pull_tree
 
         cd ${package}
