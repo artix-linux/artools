@@ -22,61 +22,78 @@ import ${LIBDIR}/util-pkg.sh
 commit_pkg(){
     local git_tree=$(find_tree "${tree_dir_artix}" "${package}")
     if [[ -n ${git_tree} ]];then
-        cd ${tree_dir_artix}/${git_tree}/${package}
+        cd ${tree_dir_artix}/${git_tree}
+
+        msg "Checking (%s)" "${git_tree}"
+        pull_tree
+
+        cd ${package}
+
         source trunk/PKGBUILD
-        local ver=$(get_full_version ${package})
+        [[ $arch == 'any' ]] && CARCH=any
+        local ver=$(get_full_version "${package}")
+
         if ${remove};then
             local action='remove'
-            local pkg=${package}-$ver
             if [[ "${source_repo}" == 'trunk' ]];then
-                pkg=${package}
-                info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+                local pkg=${package}
                 git rm -r trunk
             else
-                info "[%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
+                local pkg=${package}-$ver
                 git rm -r repos/${source_repo}-$CARCH
             fi
+            msg "Action: [%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
             git commit -m "[${source_repo}] '$pkg' ${action}"
-            ${push} && push_tree "${git_tree}"
+            ${push} && push_tree
         else
             local action='modify'
-            info "[%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
+            msg "Action: [%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
             git add .
             git commit -m "[${source_repo}] '${package}-$ver' ${action}"
-            ${push} && push_tree "${git_tree}"
+            ${push} && push_tree
         fi
     else
         error "Package '%s' does not exist!" "${package}"
     fi
 }
 
-release_pkg(){
+symlink_commit_pkg(){
     local git_tree=$(find_tree "${tree_dir_artix}" "${package}")
     if [[ -n ${git_tree} ]];then
-        cd ${tree_dir_artix}/${git_tree}/${package}
+        cd ${tree_dir_artix}/${git_tree}
+
+        msg "Checking (%s)" "${git_tree}"
+        pull_tree
+
+        cd ${package}
+
         source trunk/PKGBUILD
         [[ $arch == 'any' ]] && CARCH=any
-        if [[ ${source_repo} != 'trunk' ]];then
-            cd repos
-            dest=${target_repo}-$CARCH
-            action='move'
-            [[ -d $dest ]] && git rm -r $dest
-            git mv ${source_repo}-$CARCH $dest
-            cd ..
-        else
-            dest=${target_repo}-$CARCH
-            action='add'
+        local ver=$(get_full_version "${package}")
+
+        if [[ ${source_repo} == 'trunk' ]];then
+            local action='add'
+            local dest=${target_repo}-$CARCH
+
             [[ ! -d repos ]] && mkdir repos
             cd repos
-            [[ -d repos/$dest ]] && git rm -r repos/$dest
+                [[ -d $dest ]] && git rm -r $dest
             cd ..
             cp -r trunk repos/$dest
+        else
+            local action='move'
+            local dest=${target_repo}-$CARCH
+
+            cd repos
+                [[ -d $dest ]] && git rm -r $dest
+                git mv ${source_repo}-$CARCH $dest
+            cd ..
         fi
-        local ver=$(get_full_version ${package})
-        info "[%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
+
+        msg "Action: [%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
         git add .
         git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
-        ${push} && push_tree "${git_tree}"
+        ${push} && push_tree
     else
         error "Package '%s' does not exist!" "${package}"
     fi
@@ -115,7 +132,7 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -s <name>          Source repository [default:${source_repo}]"
     echo '    -p <pkg>           Package name'
-    echo '    -r                 Delete from repo'
+    echo '    -r                 Delete from repo (commitpkg only)'
     echo '    -u                 Push'
     echo '    -q                 Query settings and pretend'
     echo '    -h                 This help'
@@ -148,7 +165,7 @@ if $(is_valid_repo "${source_repo}");then
     if [[ "${cmd}" == 'commitpkg' ]];then
         commit_pkg
     else
-        release_pkg
+        symlink_commit_pkg
     fi
 else
     error "source repository '%s' is not valid!" "${source_repo}"

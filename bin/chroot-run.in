@@ -11,6 +11,8 @@
 
 version=@version@
 
+chroot_version=@chroot_version@
+
 LIBDIR='@libdir@'
 
 [[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
@@ -114,8 +116,8 @@ umask 0022
 # Sanity check
 if [[ ! -f "$working_dir/.artools" ]]; then
     die "'%s' does not appear to be an artix chroot." "$working_dir"
-elif [[ $(cat "$working_dir/.artools") != $version ]]; then
-    die "chroot '%s' is not at version %s. Please rebuild." "$working_dir" "$version"
+elif [[ $(cat "$working_dir/.artools") != $chroot_version ]]; then
+    die "chroot '%s' is not at version %s. Please rebuild." "$working_dir" "$chroot_version"
 fi
 
 chroot_api_mount "${working_dir}" || die "failed to setup API filesystems in chroot %s" "${working_dir}"
