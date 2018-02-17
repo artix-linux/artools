@@ -78,25 +78,26 @@ find_tree(){
     echo ${result##*/}
 }
 
-pull_tree(){
-    local branch="master" tree="$1"
-    local local_head=$(get_local_head "$branch")
-    local remote_head=$(get_remote_head "$branch")
-    local timer=$(get_timer)
-    msg "Checking [%s] ..." "$tree"
-    if [[ "${local_head}" == "${remote_head}" ]]; then
-        msg2 "nothing to do"
-    else
-        msg2 "needs pull"
-        git pull origin $branch
-    fi
-    msg "Done [%s]" "$tree"
+clone_tree(){
+    local timer=$(get_timer) host_tree="$1"
+    git clone $host_tree.git
     show_elapsed_time "${FUNCNAME}" "${timer}"
 }
 
+pull_tree(){
+    local branch="master"
+    local local_head=$(get_local_head "$branch")
+    local remote_head=$(get_remote_head "$branch")
+    if [[ "${local_head}" == "${remote_head}" ]]; then
+        msg2 "remote changes: no"
+    else
+        msg2 "remote changes: yes"
+        git pull origin "$branch"
+    fi
+}
+
 push_tree(){
-    local branch="master" tree="$1"
-    pull_tree "$tree"
+    local branch="master"
     git push origin "$branch"
 }
 
