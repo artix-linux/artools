@@ -11,7 +11,7 @@
 
 version=@version@
 
-chroot_version=0.7
+chroot_version=@chroot_version@
 
 LIBDIR='@libdir@'
 

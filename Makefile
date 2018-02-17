@@ -1,5 +1,7 @@
 Version=0.7
 
+Chroot_version=0.7
+
 PREFIX = /usr/local
 SYSCONFDIR = /etc
 
@@ -97,7 +99,8 @@ all: $(BIN_BASE) $(BIN_PKG) $(BIN_ISO)
 edit = sed -e "s|@datadir[@]|$(DESTDIR)$(PREFIX)/share/artools|g" \
 	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/artools|g" \
 	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/artools|g" \
-	-e "s|@version@|${Version}|"
+	-e "s|@version@|${Version}|" \
+	-e "s|@chroot_version@|${Chroot_version}|"
 
 %: %.in Makefile
 	@echo "GEN $@"
