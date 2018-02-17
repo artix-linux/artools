@@ -83,7 +83,7 @@ show_version_table(){
 }
 
 show_artix_table(){
-     msg_table_header "%-20s %-20s %-25s %-30s %-30s" "Arch Repo" "Artix Repo" "Package" "Arch version" "Artix version"
+    msg_table_header "%-20s %-20s %-25s %-30s %-30s" "Arch Repo" "Artix Repo" "Package" "Arch version" "Artix version"
     for tree in packages packages-galaxy;do
         local git=$(find ${tree_dir_artix}/$tree/ -mindepth 1 -maxdepth 1 -type d)
         for pkg_path in ${git[@]}; do
@@ -141,6 +141,9 @@ from_arch(){
 
     msg "Package: %s" "$pkg"
     msg2 "Arch Version: %s" "$archver"
+    [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
+    [[ -n ${checkdepends[@]} ]] && msg2 "depends: %s" "${checkdepends[*]}"
+    [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
 
     if [[ -d $dest ]];then
         cd ${tree_dir_artix}/$git_tree_artix
@@ -149,14 +152,19 @@ from_arch(){
         local artixver=$(get_full_version $pkg)
 
         msg2 "Artix Version: %s" "$artixver"
-
+        info "Update from archlinux (%s)" "$git_tree_arch"
         rsync "${rsync_args[@]}" $src/ $dest/
         patch_pkg "$pkg" "$tree"
     else
+        [[ $git_tree_arch == 'packages' ]] && git_tree_artix=$git_tree_arch
+        [[ $git_tree_arch == 'community' ]] && git_tree_artix='packages-galaxy'
+
         cd ${tree_dir_artix}/$git_tree_artix
 
-        info "Importing from archlinux (%s)" "$git_tree_arch"
+        dest=${tree_dir_artix}/$git_tree_artix/$pkg/trunk
         mkdir $pkg
+
+        info "Import from archlinux (%s)" "$git_tree_arch"
         rsync "${rsync_args[@]}" $src/ $dest/
         patch_pkg "$pkg" "$tree"
     fi
