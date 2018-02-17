@@ -126,31 +126,36 @@ show_artix_table(){
 }
 
 from_arch(){
-    local pkg="$1" archtree="$2" artixtree="$3" src= dest=
-    src=${tree_dir_arch}/$archtree/$pkg/trunk
-    dest=${tree_dir_artix}/$artixtree/$pkg/trunk
+    local pkg="$1" src= dest=
+    local git_tree_arch=$(find_tree "${tree_dir_arch}" "$pkg")
+    [[ -z $git_tree_arch ]] && die "Package '%s' does not exist!" "$pkg"
+    src=${tree_dir_arch}/$git_tree_arch/$pkg/trunk
+
+    local git_tree_artix=$(find_tree "${tree_dir_artix}" "$pkg")
+    dest=${tree_dir_artix}/$git_tree_artix/$pkg/trunk
+
+    cd ${tree_dir_arch}/$git_tree_arch
 
     source $src/PKGBUILD 2>/dev/null
-    cd ${tree_dir_arch}/$archtree
-    msg "Package: %s" "$pkg"
     local archver=$(get_full_version $pkg)
+
+    msg "Package: %s" "$pkg"
     msg2 "Arch Version: %s" "$archver"
 
     if [[ -d $dest ]];then
+        cd ${tree_dir_artix}/$git_tree_artix
+
         source $dest/PKGBUILD 2>/dev/null
-        cd ${tree_dir_artix}/$artixtree
         local artixver=$(get_full_version $pkg)
+
         msg2 "Artix Version: %s" "$artixver"
-        if [ $(vercmp $artixver $archver) -lt 0 ];then
-            info "Importing from archlinux (%s)" "$archtree"
-            rsync "${rsync_args[@]}" $src/ $dest/
-            patch_pkg "$pkg" "$tree"
-        else
-            warning "Versions match! Nothing to do!"
-        fi
+
+        rsync "${rsync_args[@]}" $src/ $dest/
+        patch_pkg "$pkg" "$tree"
     else
-        cd ${tree_dir_artix}/$artixtree
-        info "Importing from archlinux (%s)" "$archtree"
+        cd ${tree_dir_artix}/$git_tree_artix
+
+        info "Importing from archlinux (%s)" "$git_tree_arch"
         mkdir $pkg
         rsync "${rsync_args[@]}" $src/ $dest/
         patch_pkg "$pkg" "$tree"
@@ -175,8 +180,7 @@ display_settings(){
     msg2 "upgrades: %s" "${upgrades}"
     msg2 "downgrades: %s" "${downgrades}"
     msg2 "artix: %s" "${artix}"
-    msg2 "import_packages: %s" "${import_packages}"
-    msg2 "import_community: %s" "${import_community}"
+    msg2 "import: %s" "${import}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -195,12 +199,8 @@ compare=false
 upgrades=true
 downgrades=false
 artix=false
-import_packages=false
-import_community=false
+import=false
 package=''
-
-git_artix='packages'
-git_arch='packages'
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
 
@@ -212,8 +212,7 @@ usage() {
     echo '    -u            Show upgrade packages'
     echo '    -d            Show downgrade packages'
     echo '    -a            Show artix specific packages'
-    echo '    -i            Import from arch packages'
-    echo '    -j            Import from arch community'
+    echo '    -i            Import a package from arch'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -223,7 +222,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:csudaijqh'
+opts='p:csudaiqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -233,8 +232,7 @@ while getopts "${opts}" arg; do
         u) upgrades=false ;;
         d) downgrades=true ;;
         a) artix=true ;;
-        i) import_packages=true ;;
-        j) import_community=true; git_artix='packages-galaxy'; git_arch='community' ;;
+        i) import=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -254,6 +252,4 @@ ${compare} && show_version_table
 
 ${artix} && show_artix_table
 
-${import_packages} && from_arch "${package}" "${git_arch}" "${git_artix}"
-
-${import_community} && from_arch "${package}" "${git_arch}" "${git_artix}"
+${import} && from_arch "${package}"
