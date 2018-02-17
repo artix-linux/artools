@@ -24,9 +24,6 @@ commit_pkg(){
     if [[ -n ${git_tree} ]];then
         cd ${tree_dir_artix}/${git_tree}
 
-        msg "Checking (%s)" "${git_tree}"
-        pull_tree
-
         cd ${package}
 
         source trunk/PKGBUILD
@@ -50,7 +47,11 @@ commit_pkg(){
             msg "Action: [%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
             git add .
             git commit -m "[${source_repo}] '${package}-$ver' ${action}"
-            ${push} && push_tree
+            if ${push};then
+                msg "Checking (%s)" "${git_tree}"
+                pull_tree
+                push_tree
+            fi
         fi
     else
         error "Package '%s' does not exist!" "${package}"
@@ -62,9 +63,6 @@ symlink_commit_pkg(){
     if [[ -n ${git_tree} ]];then
         cd ${tree_dir_artix}/${git_tree}
 
-        msg "Checking (%s)" "${git_tree}"
-        pull_tree
-
         cd ${package}
 
         source trunk/PKGBUILD
@@ -75,10 +73,9 @@ symlink_commit_pkg(){
             local action='add'
             local dest=${target_repo}-$CARCH
 
+            [[ -d repos/$dest ]] && git rm -r repos/$dest
             [[ ! -d repos ]] && mkdir repos
-            cd repos
-                [[ -d $dest ]] && git rm -r $dest
-            cd ..
+
             cp -r trunk repos/$dest
         else
             local action='move'
@@ -93,7 +90,11 @@ symlink_commit_pkg(){
         msg "Action: [%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
         git add .
         git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
-        ${push} && push_tree
+        if ${push};then
+            msg "Checking (%s)" "${git_tree}"
+            pull_tree
+            push_tree
+        fi
     else
         error "Package '%s' does not exist!" "${package}"
     fi
