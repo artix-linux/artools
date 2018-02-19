@@ -95,7 +95,7 @@ init_artools_iso(){
 
     [[ -z ${initsys} ]] && initsys="openrc"
 
-    [[ -z ${kernel} ]] && kernel="linux-lts"
+    [[ -z ${kernel} ]] && kernel="linux"
 
     [[ -z ${kernel_args} ]] && kernel_args=""
 
