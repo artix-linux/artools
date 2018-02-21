@@ -1,10 +1,14 @@
-extra/python-appdirs
-extra/python-beaker
-extra/python-mako
-extra/python-markupsafe
-extra/python-packaging
-extra/python-pyparsing
+extra/python-crypto
+extra/python-nose
+extra/python-requests
+extra/python-urllib3
 
+extra/pygobject2-devel
+extra/python2-gobject2
+
+extra/perl-locale-gettext
+extra/help2man
+extra/autogen
 extra/libmp4v2
 extra/libmpdclient
 extra/audiofile
@@ -15,16 +19,12 @@ extra/sbc
 extra/enchant
 extra/chromaprint
 extra/ttf-liberation
-extra/ethtool
 extra/pygobject2-devel
 extra/python2-gobject2
 extra/faac
 extra/mjpegtools
 extra/mpg123
-extra/serf
 extra/tinycdb
-
-extra/js
 
 extra/speexdsp
 extra/spandsp
@@ -35,17 +35,12 @@ extra/appstream-glib
 extra/opencl-headers
 
 # openrc-world deps
-extra/metalog
-extra/clamav
-extra/lighttpd
 extra/dnsmasq
 extra/postgresql-libs
 extra/postfix
 extra/wicd
-extra/cyrus-sasl
 extra/mpd
 extra/bitlbee
 extra/bind
 extra/lirc
-extra/sane
 extra/transmission-cli
