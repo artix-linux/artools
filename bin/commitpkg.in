@@ -22,9 +22,7 @@ import ${LIBDIR}/util-pkg.sh
 commit_pkg(){
     local git_tree=$(find_tree "${tree_dir_artix}" "${package}")
     if [[ -n ${git_tree} ]];then
-        cd ${tree_dir_artix}/${git_tree}
-
-        cd ${package}
+        cd ${tree_dir_artix}/${git_tree}/${package}
 
         source trunk/PKGBUILD
         [[ $arch == 'any' ]] && CARCH=any
@@ -41,17 +39,17 @@ commit_pkg(){
             fi
             msg "Action: [%s] '%s' %s" "${source_repo}" "$pkg" "${action}"
             git commit -m "[${source_repo}] '$pkg' ${action}"
-            ${push} && push_tree
         else
             local action='modify'
             msg "Action: [%s] '%s' %s" "${source_repo}" "${package}-$ver" "${action}"
             git add .
             git commit -m "[${source_repo}] '${package}-$ver' ${action}"
-            if ${push};then
-                msg "Checking (%s)" "${git_tree}"
-                pull_tree
-                push_tree
-            fi
+        fi
+
+        if ${push};then
+            msg "Checking (%s)" "${git_tree}"
+            git pull origin master
+            git push origin master
         fi
     else
         error "Package '%s' does not exist!" "${package}"
@@ -61,9 +59,7 @@ commit_pkg(){
 symlink_commit_pkg(){
     local git_tree=$(find_tree "${tree_dir_artix}" "${package}")
     if [[ -n ${git_tree} ]];then
-        cd ${tree_dir_artix}/${git_tree}
-
-        cd ${package}
+        cd ${tree_dir_artix}/${git_tree}/${package}
 
         source trunk/PKGBUILD
         [[ $arch == 'any' ]] && CARCH=any
@@ -90,10 +86,11 @@ symlink_commit_pkg(){
         msg "Action: [%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
         git add .
         git commit -m "[${source_repo}] -> [${target_repo}] '${package}-$ver' ${action}"
+
         if ${push};then
             msg "Checking (%s)" "${git_tree}"
-            pull_tree
-            push_tree
+            git pull origin master
+            git push origin master
         fi
     else
         error "Package '%s' does not exist!" "${package}"
