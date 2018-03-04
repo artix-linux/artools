@@ -171,7 +171,7 @@ from_arch(){
 }
 
 sync_repos(){
-    pull_tree_arch
+    ${sync_arch} && pull_tree_arch
     pull_tree_artix
 }
 
@@ -184,6 +184,7 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "sync: %s" "${sync}"
+    msg2 "sync_arch: %s" "${sync_arch}"
     msg2 "compare: %s" "${compare}"
     msg2 "upgrades: %s" "${upgrades}"
     msg2 "downgrades: %s" "${downgrades}"
@@ -203,6 +204,7 @@ load_vars /etc/makepkg.conf
 
 pretend=false
 sync=false
+sync_arch=true
 compare=false
 upgrades=true
 downgrades=false
@@ -216,6 +218,7 @@ usage() {
     echo "Usage: ${0##*/} [options]"
     echo '    -p <pkg>      Package name'
     echo "    -s            Clone or pull repos"
+    echo "    -z            Don't clone or pull arch repos"
     echo '    -c            Compare packages'
     echo '    -u            Show upgrade packages'
     echo '    -d            Show downgrade packages'
@@ -230,12 +233,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:csudaiqh'
+opts='p:csudaizqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) package="$OPTARG" ;;
         s) sync=true ;;
+        z) sync_arch=false ;;
         c) compare=true ;;
         u) upgrades=false ;;
         d) downgrades=true ;;
