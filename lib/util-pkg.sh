@@ -175,6 +175,18 @@ find_repo(){
         repo=multilib-staging-x86_64
     fi
 
+    if [[ -d $pkg/repos/gnome-unstable-x86_64 ]];then
+        repo=gnome-unstable-x86_64
+    elif [[ -d $pkg/repos/gnome-unstable-any ]];then
+        repo=gnome-unstable-any
+    fi
+
+    if [[ -d $pkg/repos/kde-unstable-x86_64 ]];then
+        repo=kde-unstable-x86_64
+    elif [[ -d $pkg/repos/kde-unstable-any ]];then
+        repo=kde-unstable-any
+    fi
+
     echo $repo
 }
 
@@ -191,6 +203,7 @@ arch_to_artix_repo(){
         multilib-staging-x86_64) repo=lib32-goblins ;;
         community-testing-*) repo=galaxy-gremlins ;;
         community-staging-*) repo=galaxy-goblins ;;
+        kde-unstable-*|gnome-unstable-*) repo=goblins ;;
     esac
     echo $repo
 }
