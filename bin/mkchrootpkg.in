@@ -203,7 +203,7 @@ _chrootbuild() {
     ulimit -c 0
 
     # Work around chroot-run not giving a ctty
-    # exec </dev/console
+    exec </dev/console
 
     . /etc/profile
 
