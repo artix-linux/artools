@@ -71,8 +71,9 @@ symlink_commit_pkg(){
 
             [[ -d repos/$dest ]] && git rm -r repos/$dest
             [[ ! -d repos ]] && mkdir repos
+            [[ ! -d repos/$dest ]] && mkdir repos/$dest
 
-            cp -r trunk repos/$dest
+            cp trunk/* repos/$dest/
         else
             local action='move'
             local dest=${target_repo}-$CARCH
