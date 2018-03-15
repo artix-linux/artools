@@ -142,7 +142,7 @@ from_arch(){
     msg "Package: %s" "$pkg"
     msg2 "Arch Version: %s" "$archver"
     [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
-    [[ -n ${checkdepends[@]} ]] && msg2 "depends: %s" "${checkdepends[*]}"
+    [[ -n ${checkdepends[@]} ]] && msg2 "checkdepends: %s" "${checkdepends[*]}"
     [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
 
     if [[ -d $dest ]];then
