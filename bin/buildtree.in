@@ -170,7 +170,7 @@ from_arch(){
     fi
 }
 
-show_depends(){
+view_build(){
     local pkg="$1" src=
     local git_tree_arch=$(find_tree "${tree_dir_arch}" "$pkg")
     [[ -z $git_tree_arch ]] && die "Package '%s' does not exist!" "$pkg"
@@ -179,10 +179,12 @@ show_depends(){
     cd ${tree_dir_arch}/$git_tree_arch
 
     source $src/PKGBUILD 2>/dev/null
+    [[ $arch == 'any' ]] && CARCH=any
     local archver=$(get_full_version $pkg)
 
     msg "Package: %s" "$pkg"
     msg2 "Arch Version: %s" "$archver"
+    msg2 "arch: %s" "$CARCH"
     [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
     [[ -n ${checkdepends[@]} ]] && msg2 "checkdepends: %s" "${checkdepends[*]}"
     [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
@@ -283,7 +285,7 @@ ${pretend} && display_settings && exit 1
 
 ${sync} && sync_repos
 
-${view} && show_depends "${package}"
+${view} && view_build "${package}"
 
 ${compare} && show_version_table
 
