@@ -170,6 +170,25 @@ from_arch(){
     fi
 }
 
+show_depends(){
+    local pkg="$1" src=
+    local git_tree_arch=$(find_tree "${tree_dir_arch}" "$pkg")
+    [[ -z $git_tree_arch ]] && die "Package '%s' does not exist!" "$pkg"
+    src=${tree_dir_arch}/$git_tree_arch/$pkg/trunk
+
+    cd ${tree_dir_arch}/$git_tree_arch
+
+    source $src/PKGBUILD 2>/dev/null
+    local archver=$(get_full_version $pkg)
+
+    msg "Package: %s" "$pkg"
+    msg2 "Arch Version: %s" "$archver"
+    [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
+    [[ -n ${checkdepends[@]} ]] && msg2 "checkdepends: %s" "${checkdepends[*]}"
+    [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
+    [[ -n ${optdepends[@]} ]] && msg2 "optdepends: %s" "${optdepends[@]}"
+}
+
 sync_repos(){
     ${sync_arch} && pull_tree_arch
     pull_tree_artix
@@ -190,6 +209,7 @@ display_settings(){
     msg2 "downgrades: %s" "${downgrades}"
     msg2 "artix: %s" "${artix}"
     msg2 "import: %s" "${import}"
+    msg2 "view: %s" "${view}"
 
     msg "PATHS:"
     msg2 "tree_dir_artix: %s" "${tree_dir_artix}"
@@ -210,6 +230,7 @@ upgrades=true
 downgrades=false
 artix=false
 import=false
+view=false
 package=''
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
@@ -224,6 +245,7 @@ usage() {
     echo '    -d            Show downgrade packages'
     echo '    -a            Show artix specific packages'
     echo '    -i            Import a package from arch'
+    echo '    -v            View package depends'
     echo '    -q            Query settings'
     echo '    -h            This help'
     echo ''
@@ -233,7 +255,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:csudaizqh'
+opts='p:csudaizvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -245,6 +267,7 @@ while getopts "${opts}" arg; do
         d) downgrades=true ;;
         a) artix=true ;;
         i) import=true ;;
+        v) view=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
@@ -259,6 +282,8 @@ prepare_dir "${tree_dir_arch}"
 ${pretend} && display_settings && exit 1
 
 ${sync} && sync_repos
+
+${view} && show_depends "${package}"
 
 ${compare} && show_version_table
 
