@@ -99,7 +99,6 @@ show_artix_table(){
                     local archver=$(get_full_version $pkg)
                 fi
                 if [ $(vercmp $artixver $archver) -eq 0 ] || [ $(vercmp $artixver $archver) -gt 0 ];then
-
                     local ar=$(arch_to_artix_repo "$artixrepo")
                     case $ar in
                         *goblins)
@@ -125,6 +124,21 @@ show_artix_table(){
     done
 }
 
+show_deps(){
+    local src="$1"
+    source $src/PKGBUILD 2>/dev/null
+    [[ $arch == 'any' ]] && CARCH=any
+    local archver=$(get_full_version $pkg)
+    msg "git tree: %s" "$git_tree_arch"
+    msg2 "Package Name: %s" "$pkg"
+    msg2 "Arch Version: %s" "$archver"
+    msg2 "arch: %s" "$CARCH"
+    [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
+    [[ -n ${checkdepends[@]} ]] && msg2 "checkdepends: %s" "${checkdepends[*]}"
+    [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
+    [[ -n ${optdepends[@]} ]] && msg2 "optdepends: %s" "${optdepends[@]}"
+}
+
 from_arch(){
     local pkg="$1" src= dest=
     local git_tree_arch=$(find_tree "${tree_dir_arch}" "$pkg")
@@ -136,14 +150,7 @@ from_arch(){
 
     cd ${tree_dir_arch}/$git_tree_arch
 
-    source $src/PKGBUILD 2>/dev/null
-    local archver=$(get_full_version $pkg)
-
-    msg "Package: %s" "$pkg"
-    msg2 "Arch Version: %s" "$archver"
-    [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
-    [[ -n ${checkdepends[@]} ]] && msg2 "checkdepends: %s" "${checkdepends[*]}"
-    [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
+    show_deps "$src"
 
     if [[ -d $dest ]];then
         cd ${tree_dir_artix}/$git_tree_artix
@@ -176,19 +183,7 @@ view_build(){
     [[ -z $git_tree_arch ]] && die "Package '%s' does not exist!" "$pkg"
     src=${tree_dir_arch}/$git_tree_arch/$pkg/trunk
 
-    cd ${tree_dir_arch}/$git_tree_arch
-
-    source $src/PKGBUILD 2>/dev/null
-    [[ $arch == 'any' ]] && CARCH=any
-    local archver=$(get_full_version $pkg)
-
-    msg "Package: %s" "$pkg"
-    msg2 "Arch Version: %s" "$archver"
-    msg2 "arch: %s" "$CARCH"
-    [[ -n ${makedepends[@]} ]] && msg2 "makedepends: %s" "${makedepends[*]}"
-    [[ -n ${checkdepends[@]} ]] && msg2 "checkdepends: %s" "${checkdepends[*]}"
-    [[ -n ${depends[@]} ]] && msg2 "depends: %s" "${depends[*]}"
-    [[ -n ${optdepends[@]} ]] && msg2 "optdepends: %s" "${optdepends[@]}"
+    show_deps "$src"
 }
 
 sync_repos(){
