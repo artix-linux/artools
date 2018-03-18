@@ -50,7 +50,8 @@ add_to_repo(){
                 signfile ${pkgfile}
             fi
             ln -sf ${pkgfile}{,.sig} $repo_path/
-            repo-add -R $repo_path/$repo.db.tar.xz $pkgfile
+            cd $repo_path
+            repo-add -R $repo.db.tar.xz ${pkgfile##*/}
         fi
     done
 }
