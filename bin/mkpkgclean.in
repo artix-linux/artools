@@ -43,6 +43,8 @@ display_settings(){
 
     msg "ARGS:"
     msg2 "paccache_args: %s" "${paccache_args[*]}"
+
+    paccache "${paccache_args[@]}"
 }
 
 load_user_info
@@ -52,6 +54,7 @@ load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.co
 load_vars /etc/makepkg.conf
 
 clean=false
+pretend=false
 repository=''
 storage_dir=''
 paccache_args=(-v)
