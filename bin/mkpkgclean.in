@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+version=@version@
+
+LIBDIR='@libdir@'
+SYSCONFDIR='@sysconfdir@'
+
+[[ -r ${LIBDIR}/util-msg.sh ]] && source ${LIBDIR}/util-msg.sh
+import ${LIBDIR}/util.sh
+
+prepare_clean(){
+    if [[ -n ${repository} ]];then
+        storage_dir=${repos_root}/${repository}/os/${target_arch}
+        paccache_args+=(-c "${storage_dir}" -k 1)
+    else
+        if [[ -n ${PKGDEST} ]];then
+            storage_dir=${PKGDEST}
+            paccache_args+=(-c "${storage_dir}" -k 4)
+        else
+            die "PKGDEST not set in makepkg.conf!"
+        fi
+    fi
+}
+
+display_settings(){
+    show_version
+    show_config
+
+    msg "OPTIONS:"
+    msg2 "repository: %s" "${repository}"
+
+    msg "PATH:"
+    msg2 "storage_dir: %s" "${storage_dir}"
+
+    msg "ARGS:"
+    msg2 "paccache_args: %s" "${paccache_args[*]}"
+}
+
+load_user_info
+
+load_config "${AT_USERCONFDIR}/artools.conf" || load_config "${SYSCONFDIR}/artools.conf"
+load_vars "${PAC_USERCONFDIR}/makepkg.conf" || load_vars "$USER_HOME/.makepkg.conf"
+load_vars /etc/makepkg.conf
+
+clean=false
+repository=''
+storage_dir=''
+paccache_args=(-v)
+
+usage() {
+    echo "Usage: ${0##*/} [options]"
+    echo "    -d <dir>           Directory [default:${repository}]"
+    echo '    -c                 Clean up'
+    echo '    -q                 Query settings and pretend cleaning'
+    echo '    -h                 This help'
+    echo ''
+    echo ''
+    exit $1
+}
+
+orig_argv=("$0" "$@")
+
+opts='d:cqh'
+
+while getopts "${opts}" arg; do
+    case "${arg}" in
+        d) repository="$OPTARG" ;;
+        c) clean=true ; paccache_args+=(-r) ;;
+        q) pretend=true; paccache_args+=(-d) ;;
+        h|?) usage 0 ;;
+        *) echo "invalid argument '${arg}'"; usage 1 ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+prepare_clean
+
+${pretend} && display_settings && exit 1
+
+${clean} && paccache "${paccache_args[@]}"
