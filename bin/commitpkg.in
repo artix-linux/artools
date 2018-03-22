@@ -78,8 +78,9 @@ symlink_commit_pkg(){
             local action='move'
             local dest=${target_repo}-$CARCH
 
+            [[ -d repos/$dest ]] && git rm -r repos/$dest
+            [[ ! -d repos ]] && mkdir repos
             cd repos
-                [[ -d $dest ]] && git rm -r $dest
                 git mv ${source_repo}-$CARCH $dest
             cd ..
         fi
