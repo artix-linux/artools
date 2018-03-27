@@ -57,13 +57,13 @@ show_version_table(){
         for pkg_path in ${git[@]}; do
             local artixrepo=$(find_repo "$pkg_path")
             if [[ -d $pkg_path/repos/$artixrepo ]];then
-                source $pkg_path/trunk/PKGBUILD 2>/dev/null
+                source $pkg_path/repos/$artixrepo/PKGBUILD 2>/dev/null
                 local pkg=${pkg_path##*/}
                 local artixver=$(get_full_version $pkg)
                 local src=$(get_import_path "$tree" "$pkg")
                 local archrepo=$(find_repo "$src/$pkg")
                 if [[ -d $src/$pkg/repos/$archrepo ]];then
-                    source $src/$pkg/trunk/PKGBUILD 2>/dev/null
+                    source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
                     local archver=$(get_full_version $pkg)
                 fi
                 if [ $(vercmp $artixver $archver) -lt 0 ];then
