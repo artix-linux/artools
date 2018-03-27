@@ -68,6 +68,11 @@ patch_pkg(){
                 updpkgsums
             cd ../..
         ;;
+        gstreamer|gst-plugins-*)
+            sed -e 's|https://www.archlinux.org/|https://www.artixlinux.org/|' \
+                -e 's|(Arch Linux)|(Artix Linux)|' \
+                -i $pkg/trunk/PKGBUILD
+        ;;
     esac
 }
 
@@ -119,7 +124,7 @@ is_valid_repo(){
 }
 
 find_repo(){
-    local pkg="$1" repo=
+    local pkg="$1" unstable="${2:-true}" repo=
 
     if [[ -d $pkg/repos/core-x86_64 ]];then
         repo=core-x86_64
@@ -175,18 +180,19 @@ find_repo(){
         repo=multilib-staging-x86_64
     fi
 
-    if [[ -d $pkg/repos/gnome-unstable-x86_64 ]];then
-        repo=gnome-unstable-x86_64
-    elif [[ -d $pkg/repos/gnome-unstable-any ]];then
-        repo=gnome-unstable-any
-    fi
+    if $unstable;then
+        if [[ -d $pkg/repos/gnome-unstable-x86_64 ]];then
+            repo=gnome-unstable-x86_64
+        elif [[ -d $pkg/repos/gnome-unstable-any ]];then
+            repo=gnome-unstable-any
+        fi
 
-    if [[ -d $pkg/repos/kde-unstable-x86_64 ]];then
-        repo=kde-unstable-x86_64
-    elif [[ -d $pkg/repos/kde-unstable-any ]];then
-        repo=kde-unstable-any
+        if [[ -d $pkg/repos/kde-unstable-x86_64 ]];then
+            repo=kde-unstable-x86_64
+        elif [[ -d $pkg/repos/kde-unstable-any ]];then
+            repo=kde-unstable-any
+        fi
     fi
-
     echo $repo
 }
 

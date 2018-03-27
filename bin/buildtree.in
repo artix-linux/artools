@@ -55,13 +55,13 @@ show_version_table(){
     for tree in packages packages-galaxy;do
         local git=$(find ${tree_dir_artix}/$tree/ -mindepth 1 -maxdepth 1 -type d)
         for pkg_path in ${git[@]}; do
-            local artixrepo=$(find_repo "$pkg_path")
+            local artixrepo=$(find_repo "$pkg_path" "${unstable}")
             if [[ -d $pkg_path/repos/$artixrepo ]];then
                 source $pkg_path/repos/$artixrepo/PKGBUILD 2>/dev/null
                 local pkg=${pkg_path##*/}
                 local artixver=$(get_full_version $pkg)
                 local src=$(get_import_path "$tree" "$pkg")
-                local archrepo=$(find_repo "$src/$pkg")
+                local archrepo=$(find_repo "$src/$pkg" "${unstable}")
                 if [[ -d $src/$pkg/repos/$archrepo ]];then
                     source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
                     local archver=$(get_full_version $pkg)
@@ -87,13 +87,13 @@ show_artix_table(){
     for tree in packages packages-galaxy;do
         local git=$(find ${tree_dir_artix}/$tree/ -mindepth 1 -maxdepth 1 -type d)
         for pkg_path in ${git[@]}; do
-            local artixrepo=$(find_repo "$pkg_path")
+            local artixrepo=$(find_repo "$pkg_path" "${unstable}")
             if [[ -d $pkg_path/repos/$artixrepo ]];then
                 source $pkg_path/repos/$artixrepo/PKGBUILD 2>/dev/null
                 local pkg=${pkg_path##*/}
                 local artixver=$(get_full_version $pkg)
                 local src=$(get_import_path "$tree" "$pkg")
-                local archrepo=$(find_repo "$src/$pkg")
+                local archrepo=$(find_repo "$src/$pkg" "${unstable}")
                 if [[ -d $src/$pkg/repos/$archrepo ]];then
                     source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
                     local archver=$(get_full_version $pkg)
@@ -223,6 +223,7 @@ pretend=false
 sync=false
 sync_arch=true
 compare=false
+unstable=true
 upgrades=true
 downgrades=false
 artix=false
@@ -238,6 +239,7 @@ usage() {
     echo "    -s            Clone or pull repos"
     echo "    -z            Don't clone or pull arch repos"
     echo '    -c            Compare packages'
+    echo '    -x            Compare packages without unstable kde and gnome'
     echo '    -u            Show upgrade packages'
     echo '    -d            Show downgrade packages'
     echo '    -a            Show artix specific packages'
@@ -252,7 +254,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:csudaizvqh'
+opts='p:csudaizxvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -265,6 +267,7 @@ while getopts "${opts}" arg; do
         a) artix=true ;;
         i) import=true ;;
         v) view=true ;;
+        x) unstable=false ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;
