@@ -223,7 +223,7 @@ pretend=false
 sync=false
 sync_arch=true
 compare=false
-unstable=true
+unstable=false
 upgrades=true
 downgrades=false
 artix=false
@@ -239,7 +239,7 @@ usage() {
     echo "    -s            Clone or pull repos"
     echo "    -z            Don't clone or pull arch repos"
     echo '    -c            Compare packages'
-    echo '    -x            Compare packages without unstable kde and gnome'
+    echo '    -x            Compare packages including unstable kde and gnome'
     echo '    -u            Show upgrade packages'
     echo '    -d            Show downgrade packages'
     echo '    -a            Show artix specific packages'
@@ -267,7 +267,7 @@ while getopts "${opts}" arg; do
         a) artix=true ;;
         i) import=true ;;
         v) view=true ;;
-        x) unstable=false ;;
+        x) unstable=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
         *) echo "invalid argument '${arg}'"; usage 1 ;;

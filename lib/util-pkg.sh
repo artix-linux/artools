@@ -124,7 +124,7 @@ is_valid_repo(){
 }
 
 find_repo(){
-    local pkg="$1" unstable="${2:-true}" repo=
+    local pkg="$1" unstable="$2" repo=
 
     if [[ -d $pkg/repos/core-x86_64 ]];then
         repo=core-x86_64
