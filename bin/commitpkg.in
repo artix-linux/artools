@@ -76,13 +76,14 @@ symlink_commit_pkg(){
             cp trunk/* repos/$dest/
         else
             local action='move'
-            local dest=${target_repo}-$CARCH
+            local src=${source_repo}-$CARCH dest=${target_repo}-$CARCH
 
             [[ -d repos/$dest ]] && git rm -r repos/$dest
             [[ ! -d repos ]] && mkdir repos
-            cd repos
-                git mv ${source_repo}-$CARCH $dest
-            cd ..
+            [[ ! -d repos/$dest ]] && mkdir repos/$dest
+
+            cp repos/$src/* repos/$dest/
+            git rm -r repos/$src
         fi
 
         msg "Action: [%s] -> [%s] '%s' %s" "${source_repo}" "${target_repo}" "${package}-$ver" "${action}"
