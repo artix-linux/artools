@@ -143,7 +143,15 @@ from_arch(){
     local pkg="$1" src= dest=
     local git_tree_arch=$(find_tree "${tree_dir_arch}" "$pkg")
     [[ -z $git_tree_arch ]] && die "Package '%s' does not exist!" "$pkg"
-    src=${tree_dir_arch}/$git_tree_arch/$pkg/trunk
+
+    local pkg_path=${tree_dir_arch}/$git_tree_arch/$pkg
+    local repo=$(find_repo "$pkg_path" "${unstable}")
+#     info "repo: %s" "$repo"
+
+    src=$pkg_path/repos/$repo
+    if $trunk;then
+        src=$pkg_path/trunk
+    fi
 
     local git_tree_artix=$(find_tree "${tree_dir_artix}" "$pkg")
     dest=${tree_dir_artix}/$git_tree_artix/$pkg/trunk
@@ -229,6 +237,7 @@ downgrades=false
 artix=false
 import=false
 view=false
+trunk=false
 package=''
 
 rsync_args=(-aWxvci --progress --delete-before --no-R --no-implied-dirs)
@@ -240,10 +249,11 @@ usage() {
     echo "    -z            Don't clone or pull arch repos"
     echo '    -c            Compare packages'
     echo '    -x            Compare packages including unstable kde and gnome'
-    echo '    -u            Show upgrade packages'
+    echo '    -u            Do not show upgrade packages'
     echo '    -d            Show downgrade packages'
     echo '    -a            Show artix specific packages'
-    echo '    -i            Import a package from arch'
+    echo '    -i            Import a package from arch repos'
+    echo '    -t            Import a package from arch trunk'
     echo '    -v            View package depends'
     echo '    -q            Query settings'
     echo '    -h            This help'
@@ -254,7 +264,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:csudaizxvqh'
+opts='p:csudaiztxvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -266,6 +276,7 @@ while getopts "${opts}" arg; do
         d) downgrades=true ;;
         a) artix=true ;;
         i) import=true ;;
+        t) trunk=true ;;
         v) view=true ;;
         x) unstable=true ;;
         q) pretend=true ;;
