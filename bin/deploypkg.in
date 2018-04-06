@@ -18,7 +18,7 @@ SYSCONFDIR='@sysconfdir@'
 import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
 
-del_from_repo(){
+update_repo(){
     local repo="$1" pkgfile ver ext=db.tar.xz
     local repo_path=${repos_root}/$repo/os/${target_arch} packages=()
     source PKGBUILD
@@ -26,36 +26,28 @@ del_from_repo(){
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version "$name")
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
-            info "Found: %s" "${pkgfile##*/}"
-            packages+=("$name")
-            [[ -e $repo_path/${pkgfile##*/} ]] && rm -v $repo_path/${pkgfile##*/}
-            [[ -e $repo_path/${pkgfile##*/}.sig ]] && rm -v $repo_path/${pkgfile##*/}.sig
-        fi
-    done
-    cd $repo_path
-    repo-remove -R $repo.$ext ${packages[@]}
-}
-
-add_to_repo(){
-    local repo="$1" pkgfile ver ext=db.tar.xz
-    local repo_path=${repos_root}/$repo/os/${target_arch} packages=()
-    source PKGBUILD
-    for name in ${pkgname[@]};do
-        [[ $arch == any ]] && CARCH=any
-        ver=$(get_full_version "$name")
-        if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
-            info "Found: %s" "${pkgfile##*/}"
-            checkpkg ${pkgfile##*/}
-            if ${sign_pkg};then
-                [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
-                signfile ${pkgfile}
+            local pkg=${pkgfile##*/}
+            info "Found: %s" "$pkg"
+            if ${add_pkg};then
+                local action='add'
+                packages+=("$pkg")
+#                 checkpkg $pkg
+                if ${sign_pkg};then
+                    [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
+                    signfile ${pkgfile}
+                fi
+                ln -sf ${pkgfile}{,.sig} $repo_path/
+            elif ${del_pkg};then
+                local action='remove'
+                packages+=("$name")
+                [[ -e $repo_path/$pkg ]] && rm $repo_path/$pkg
+                [[ -e $repo_path/$pkg.sig ]] && rm $repo_path/$pkg.sig
             fi
-            ln -sf ${pkgfile}{,.sig} $repo_path/
-            packages+=("${pkgfile##*/}")
         fi
     done
     cd $repo_path
-    repo-add -R $repo.$ext ${packages[@]}
+    repo-$action -R $repo.$ext ${packages[@]}
+    return 0
 }
 
 display_settings(){
@@ -86,9 +78,9 @@ sign_pkg=false
 usage() {
     echo "Usage: ${0##*/} [options]"
     echo "    -d                 Destination repository [default:${repository}]"
-    echo '    -a                 Add package to repository'
-    echo '    -r                 Remove package from repository'
-    echo '    -s                 Sign package'
+    echo '    -a                 Add package(s) to repository'
+    echo '    -r                 Remove package(s) from repository'
+    echo '    -s                 Sign package(s)'
     echo '    -q                 Query settings and pretend upload'
     echo '    -h                 This help'
     echo ''
@@ -103,8 +95,8 @@ opts='d:arsqh'
 while getopts "${opts}" arg; do
     case "${arg}" in
         d) repository="$OPTARG" ;;
-        a) add_pkg=true ;;
-        r) del_pkg=true ;;
+        a) add_pkg=true; del_pkg=false ;;
+        r) del_pkg=true; add_pkg=false ;;
         s) sign_pkg=true ;;
         q) pretend=true ;;
         h|?) usage 0 ;;
@@ -118,8 +110,4 @@ prepare_dir "${repos_root}"
 
 ${pretend} && display_settings && exit 1
 
-${del_pkg} && del_from_repo "${repository}"
-
-${add_pkg} && add_to_repo "${repository}"
-
-exit 0
+update_repo "${repository}"
