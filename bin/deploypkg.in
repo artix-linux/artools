@@ -19,41 +19,42 @@ import ${LIBDIR}/util.sh
 import ${LIBDIR}/util-pkg.sh
 
 del_from_repo(){
-    local ver
-    local repo="$1"
-    local repo_path=${repos_root}/$repo/os/${target_arch}
+    local repo="$1" pkgfile ver
+    local repo_path=${repos_root}/$repo/os/${target_arch} packages=()
     source PKGBUILD
     for name in ${pkgname[@]};do
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH");then
-            info "pkgfile: %s" "${pkgfile##*/}"
-            repo-remove -R $repo_path/$repo.db.tar.xz $name
+            info "Found: %s" "${pkgfile##*/}"
+            packages+=("$name")
             [[ -e $repo_path/${pkgfile##*/} ]] && rm -v $repo_path/${pkgfile##*/}
             [[ -e $repo_path/${pkgfile##*/}.sig ]] && rm -v $repo_path/${pkgfile##*/}.sig
         fi
     done
+    repo-remove -R $repo_path/$repo.db.tar.xz ${packages[@]}
 }
 
 add_to_repo(){
-    local ver pkgfile=
-    local repo="$1"
-    local repo_path=${repos_root}/$repo/os/${target_arch}
+    local repo="$1" pkgfile ver
+    local repo_path=${repos_root}/$repo/os/${target_arch} packages=()
     source PKGBUILD
     for name in ${pkgname[@]};do
         [[ $arch == any ]] && CARCH=any
         ver=$(get_full_version $name)
         if pkgfile=$(find_cached_package "$name" "$ver" "$CARCH"); then
-            info "pkgfile: %s" "${pkgfile##*/}"
+            info "Found: %s" "${pkgfile##*/}"
+#             checkpkg ${pkgfile##*/}
             if ${sign_pkg};then
                 [[ -e ${pkgfile}.sig ]] && rm ${pkgfile}.sig
                 signfile ${pkgfile}
             fi
             ln -sf ${pkgfile}{,.sig} $repo_path/
-            cd $repo_path
-            repo-add -R $repo.db.tar.xz ${pkgfile##*/}
+            packages+=("${pkgfile##*/}")
         fi
     done
+    cd $repo_path
+    repo-add -R $repo.db.tar.xz ${packages[@]}
 }
 
 display_settings(){
