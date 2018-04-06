@@ -124,72 +124,72 @@ is_valid_repo(){
 }
 
 find_repo(){
-    local pkg="$1" unstable="$2" repo=
+    local pkg="$1" incl="$2" repo=
 
-    if [[ -d $pkg/repos/core-x86_64 ]];then
+    if [[ -f $pkg/repos/core-x86_64/PKGBUILD ]];then
         repo=core-x86_64
-    elif [[ -d $pkg/repos/core-any ]];then
+    elif [[ -f $pkg/repos/core-any/PKGBUILD ]];then
         repo=core-any
     fi
 
-    if [[ -d $pkg/repos/extra-x86_64 ]];then
+    if [[ -f $pkg/repos/extra-x86_64/PKGBUILD ]];then
         repo=extra-x86_64
-    elif [[ -d $pkg/repos/extra-any ]];then
+    elif [[ -f $pkg/repos/extra-any/PKGBUILD ]];then
         repo=extra-any
     fi
 
-    if [[ -d $pkg/repos/testing-x86_64 ]];then
+    if [[ -f $pkg/repos/testing-x86_64/PKGBUILD ]];then
         repo=testing-x86_64
-    elif [[ -d $pkg/repos/testing-any ]];then
+    elif [[ -f $pkg/repos/testing-any/PKGBUILD ]];then
         repo=testing-any
     fi
 
-    if [[ -d $pkg/repos/staging-x86_64 ]];then
+    if [[ -f $pkg/repos/staging-x86_64/PKGBUILD ]];then
         repo=staging-x86_64
-    elif [[ -d $pkg/repos/staging-any ]];then
+    elif [[ -f $pkg/repos/staging-any/PKGBUILD ]];then
         repo=staging-any
     fi
 
-    if [[ -d $pkg/repos/community-x86_64 ]];then
+    if [[ -f $pkg/repos/community-x86_64/PKGBUILD ]];then
         repo=community-x86_64
-    elif [[ -d $pkg/repos/community-any ]];then
+    elif [[ -f $pkg/repos/community-any/PKGBUILD ]];then
         repo=community-any
     fi
 
-    if [[ -d $pkg/repos/community-testing-x86_64 ]];then
+    if [[ -f $pkg/repos/community-testing-x86_64/PKGBUILD ]];then
         repo=community-testing-x86_64
-    elif [[ -d $pkg/repos/community-testing-any ]];then
+    elif [[ -f $pkg/repos/community-testing-any/PKGBUILD ]];then
         repo=community-testing-any
     fi
 
-    if [[ -d $pkg/repos/community-staging-x86_64 ]];then
+    if [[ -f $pkg/repos/community-staging-x86_64/PKGBUILD ]];then
         repo=community-staging-x86_64
-    elif [[ -d $pkg/repos/community-staging-any ]];then
+    elif [[ -f $pkg/repos/community-staging-any/PKGBUILD ]];then
         repo=community-staging-any
     fi
 
-    if [[ -d $pkg/repos/multilib-x86_64 ]];then
+    if [[ -f $pkg/repos/multilib-x86_64/PKGBUILD ]];then
         repo=multilib-x86_64
     fi
 
-    if [[ -d $pkg/repos/multilib-testing-x86_64 ]];then
+    if [[ -f $pkg/repos/multilib-testing-x86_64/PKGBUILD ]];then
         repo=multilib-testing-x86_64
     fi
 
-    if [[ -d $pkg/repos/multilib-staging-x86_64 ]];then
+    if [[ -f $pkg/repos/multilib-staging-x86_64/PKGBUILD ]];then
         repo=multilib-staging-x86_64
     fi
 
-    if $unstable;then
-        if [[ -d $pkg/repos/gnome-unstable-x86_64 ]];then
+    if $incl;then
+        if [[ -f $pkg/repos/gnome-unstable-x86_64/PKGBUILD ]];then
             repo=gnome-unstable-x86_64
-        elif [[ -d $pkg/repos/gnome-unstable-any ]];then
+        elif [[ -f $pkg/repos/gnome-unstable-any/PKGBUILD ]];then
             repo=gnome-unstable-any
         fi
 
-        if [[ -d $pkg/repos/kde-unstable-x86_64 ]];then
+        if [[ -f $pkg/repos/kde-unstable-x86_64/PKGBUILD ]];then
             repo=kde-unstable-x86_64
-        elif [[ -d $pkg/repos/kde-unstable-any ]];then
+        elif [[ -f $pkg/repos/kde-unstable-any/PKGBUILD ]];then
             repo=kde-unstable-any
         fi
     fi
