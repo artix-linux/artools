@@ -63,6 +63,10 @@ BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
 
+BIN_ISO_SYMS = \
+	buildiso-gremlins \
+	buildiso-goblins
+
 LIBS_ISO = \
 	$(wildcard lib/util-iso*.sh)
 
@@ -163,7 +167,7 @@ install_iso:
 	install -dm0755 $(DESTDIR)$(PREFIX)/bin
 	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
-	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
+	for l in ${BIN_ISO_SYMS}; do ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/$$l; done
 
 	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
 	install -m0644 ${LIBS_ISO} $(DESTDIR)$(PREFIX)/lib/artools
@@ -202,7 +206,7 @@ uninstall_isobase:
 
 uninstall_iso:
 	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
+	for l in ${BIN_ISO_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
 	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
 	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
