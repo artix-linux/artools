@@ -1,6 +1,6 @@
-Version=0.7
+VERSION=0.7
 
-Chroot_version=0.7
+CHROOT_VERSION=0.7
 
 PREFIX = /usr/local
 SYSCONFDIR = /etc
@@ -101,11 +101,11 @@ LIVE_ETC_SUDOERS = \
 
 all: $(BIN_BASE) $(BIN_PKG) $(BIN_ISO)
 
-edit = sed -e "s|@datadir[@]|$(DESTDIR)$(PREFIX)/share/artools|g" \
-	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/artools|g" \
-	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/artools|g" \
-	-e "s|@version@|${Version}|" \
-	-e "s|@chroot_version@|${Chroot_version}|"
+edit = sed -e "s|@datadir[@]|$(PREFIX)/share/artools|g" \
+	-e "s|@sysconfdir[@]|$(SYSCONFDIR)/artools|g" \
+	-e "s|@libdir[@]|$(PREFIX)/lib/artools|g" \
+	-e "s|@version@|${VERSION}|" \
+	-e "s|@chroot_version@|${CHROOT_VERSION}|"
 
 %: %.in Makefile
 	@echo "GEN $@"
@@ -184,35 +184,35 @@ install_iso:
 	install -m0644 ${SHARED_ISO} $(DESTDIR)$(PREFIX)/share/artools
 
 uninstall_base:
-	for f in ${SYSCONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/$$f; done
-	for f in ${BIN_BASE}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	for f in ${SHARED_BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
-	for f in ${LIBS_BASE}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
+	for f in $(notdir ${SYSCONF}); do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/$$f; done
+	for f in $(notdir ${BIN_BASE}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
+	for f in $(notdir ${SHARED_BASE}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+	for f in $(notdir ${LIBS_BASE}); do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_pkg:
-	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
+	for f in $(notdir ${BIN_PKG}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
-	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
-	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
-	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
-	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
+	for l in $(notdir ${COMMITPKG_SYMS}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
+	for f in $(notdir ${SHARED_PKG}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+	for f in $(notdir ${PATCHES}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
+	for f in $(notdir ${LIBS_PKG}); do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
 
 uninstall_isobase:
-	for f in ${BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/$$f; done
-	for f in ${LIVE_ETC}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/$$f; done
-	for f in ${LIVE_ETC_DEFAULT}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default/$$f; done
-	for f in ${LIVE_ETC_PAM}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d/$$f; done
-	for f in ${LIVE_ETC_SUDOERS}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d/$$f; done
+	for f in $(notdir ${BASE}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/$$f; done
+	for f in $(notdir ${LIVE_ETC}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/$$f; done
+	for f in $(notdir ${LIVE_ETC_DEFAULT}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default/$$f; done
+	for f in $(notdir ${LIVE_ETC_PAM}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d/$$f; done
+	for f in $(notdir ${LIVE_ETC_SUDOERS}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d/$$f; done
 
 uninstall_iso:
-	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	for l in ${BIN_ISO_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
-	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+	for f in $(notdir ${BIN_ISO}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
+	for l in $(notdir ${BIN_ISO_SYMS}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
+	for f in $(notdir ${SHARED_ISO}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 
-	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
-	for f in ${CPIOHOOKS}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks/$$f; done
-	for f in ${CPIOINST}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
-	for f in ${CPIO}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
+	for f in $(notdir ${LIBS_ISO}); do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
+	for f in $(notdir ${CPIOHOOKS}); do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks/$$f; done
+	for f in $(notdir ${CPIOINST}); do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
+	for f in $(notdir ${CPIO}); do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
 
 install: install_base install_pkg install_iso install_isobase
 
