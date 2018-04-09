@@ -1,4 +1,4 @@
-VERSION=0.7
+VERSION=0.8
 
 CHROOT_VERSION=0.7
 
@@ -192,7 +192,7 @@ uninstall_base:
 uninstall_pkg:
 	for f in $(notdir ${BIN_PKG}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
 	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
-	for l in $(notdir ${COMMITPKG_SYMS}); do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
+	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
 	for f in $(notdir ${SHARED_PKG}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
 	for f in $(notdir ${PATCHES}); do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
 	for f in $(notdir ${LIBS_PKG}); do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
@@ -219,7 +219,7 @@ install: install_base install_pkg install_iso install_isobase
 uninstall: uninstall_base uninstall_pkg uninstall_iso uninstall_isobase
 
 dist:
-	git archive --format=tar --prefix=artools-$(Version)/ $(Version) | gzip -9 > artools-$(Version).tar.gz
-	gpg --detach-sign --use-agent artools-$(Version).tar.gz
+	git archive --format=tar --prefix=artools-$(VERSION)/ $(VERSION) | gzip -9 > artools-$(VERSION).tar.gz
+	gpg --detach-sign --use-agent artools-$(VERSION).tar.gz
 
 .PHONY: all clean install uninstall dist
