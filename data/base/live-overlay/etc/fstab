@@ -2,4 +2,4 @@
 # /etc/fstab: static file system information
 #
 # <file system>        <dir>         <type>    <options>          <dump> <pass>
-/dev/mapper/root-image /             auto      defaults           0      0
+/dev/mapper/rootfs /             auto      defaults           0      0
