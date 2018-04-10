@@ -9,6 +9,9 @@ BINDIR = $(PREFIX)/bin
 LIBDIR = $(PREFIX)/lib
 DATADIR = $(PREFIX)/share
 
+DIRMODE = -dm0755
+FILEMODE = -m0644
+
 WITH-ISO = yes
 WITH-PKG = yes
 
@@ -133,84 +136,86 @@ clean:
 	rm -f $(BIN_BASE) ${BIN_PKG} ${BIN_ISO}
 
 install_base:
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
-	install -m0644 ${SYSCONF} $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
+	install $(FILEMODE) ${SYSCONF} $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(BINDIR)
-	install -m0755 ${BIN_BASE} $(DESTDIR)$(BINDIR)
+	install $(DIRMODE) $(DESTDIR)$(BINDIR)
+	install $(FILEMODE) ${BIN_BASE} $(DESTDIR)$(BINDIR)
 
-	install -dm0755 $(DESTDIR)$(LIBDIR)/$(TOOLS)
-	install -m0644 ${LIBS_BASE} $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(FILEMODE) ${LIBS_BASE} $(DESTDIR)$(LIBDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(DATADIR)/$(TOOLS)
-	install -m0644 ${SHARED_BASE} $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(FILEMODE) ${SHARED_BASE} $(DESTDIR)$(DATADIR)/$(TOOLS)
 
 install_pkg:
-	install -dm0755 $(DESTDIR)$(BINDIR)
-	install -m0755 ${BIN_PKG} $(DESTDIR)$(BINDIR)
+	install $(DIRMODE) $(DESTDIR)$(BINDIR)
+	install $(FILEMODE) ${BIN_PKG} $(DESTDIR)$(BINDIR)
 
 	ln -sf find-libdeps $(DESTDIR)$(BINDIR)/find-libprovides
 
 	for l in ${COMMITPKG_SYMS}; do ln -sf commitpkg $(DESTDIR)$(BINDIR)/$$l; done
 
-	install -dm0755 $(DESTDIR)$(LIBDIR)/$(TOOLS)
-	install -m0644 ${LIBS_PKG} $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(FILEMODE) ${LIBS_PKG} $(DESTDIR)$(LIBDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(DATADIR)/$(TOOLS)
-	install -m0644 ${SHARED_PKG} $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(FILEMODE) ${SHARED_PKG} $(DESTDIR)$(DATADIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
-	install -m0644 ${PATCHES} $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
+	install $(FILEMODE) ${PATCHES} $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
 
 install_isobase:
-	install -dm0755 $(DESTDIR)$(PROFDIR)
-	install -m0644 ${BASE} $(DESTDIR)$(PROFDIR)
+	install $(DIRMODE) $(DESTDIR)$(PROFDIR)
+	install $(FILEMODE) ${BASE} $(DESTDIR)$(PROFDIR)
 
-	install -dm0755 $(DESTDIR)$(OVERLAYDIR)
-	install -m0644 ${LIVE_ETC} $(DESTDIR)$(OVERLAYDIR)
+	install $(DIRMODE) $(DESTDIR)$(OVERLAYDIR)
+	install $(FILEMODE) ${LIVE_ETC} $(DESTDIR)$(OVERLAYDIR)
 
-	install -dm0755 $(DESTDIR)$(OVERLAYDIR)/default
-	install -m0644 ${LIVE_ETC_DEFAULT} $(DESTDIR)$(OVERLAYDIR)/default
+	install $(DIRMODE) $(DESTDIR)$(OVERLAYDIR)/default
+	install $(FILEMODE) ${LIVE_ETC_DEFAULT} $(DESTDIR)$(OVERLAYDIR)/default
 
-	install -dm0755 $(DESTDIR)$(OVERLAYDIR)/pam.d
-	install -m0644 ${LIVE_ETC_PAM} $(DESTDIR)$(OVERLAYDIR)/pam.d
+	install $(DIRMODE) $(DESTDIR)$(OVERLAYDIR)/pam.d
+	install $(FILEMODE) ${LIVE_ETC_PAM} $(DESTDIR)$(OVERLAYDIR)/pam.d
 
-	install -dm0755 $(DESTDIR)$(OVERLAYDIR)/sudoers.d
-	install -m0644 ${LIVE_ETC_SUDOERS} $(DESTDIR)$(OVERLAYDIR)/sudoers.d
+	install $(DIRMODE) $(DESTDIR)$(OVERLAYDIR)/sudoers.d
+	install $(FILEMODE) ${LIVE_ETC_SUDOERS} $(DESTDIR)$(OVERLAYDIR)/sudoers.d
 
 install_iso:
-	install -dm0755 $(DESTDIR)$(BINDIR)
-	install -m0755 ${BIN_ISO} $(DESTDIR)$(BINDIR)
+	install $(DIRMODE) $(DESTDIR)$(BINDIR)
+	install $(FILEMODE) ${BIN_ISO} $(DESTDIR)$(BINDIR)
 
 	for l in ${BIN_ISO_SYMS}; do ln -sf buildiso $(DESTDIR)$(BINDIR)/$$l; done
 
-	install -dm0755 $(DESTDIR)$(LIBDIR)/$(TOOLS)
-	install -m0644 ${LIBS_ISO} $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(FILEMODE) ${LIBS_ISO} $(DESTDIR)$(LIBDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-	install -m0755 ${CPIOHOOKS} $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(FILEMODE) ${SHARED_ISO} $(DESTDIR)$(DATADIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install -m0755 ${CPIOINST} $(DESTDIR)$(SYSCONFDIR)/initcpio/install
+	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
+	install $(FILEMODE) ${CPIOHOOKS} $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
 
-	install -m0755 ${CPIO} $(DESTDIR)$(SYSCONFDIR)/initcpio
-
-	install -dm0755 $(DESTDIR)$(DATADIR)/$(TOOLS)
-	install -m0644 ${SHARED_ISO} $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/install
+	install $(FILEMODE) ${CPIOINST} $(DESTDIR)$(SYSCONFDIR)/initcpio/install
+	install $(FILEMODE) ${CPIO} $(DESTDIR)$(SYSCONFDIR)/initcpio
 
 uninstall_base:
 	for f in $(notdir ${SYSCONF}); do rm -f $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)/$$f; done
 	for f in $(notdir ${BIN_BASE}); do rm -f $(DESTDIR)$(BINDIR)/$$f; done
-	for f in $(notdir ${SHARED_BASE}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 	for f in $(notdir ${LIBS_BASE}); do rm -f $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir ${SHARED_BASE}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
+	rm -rf --one-file-system $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
+	rm -rf --one-file-system $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	rm -rf --one-file-system $(DESTDIR)$(DATADIR)/$(TOOLS)
 
 uninstall_pkg:
 	for f in $(notdir ${BIN_PKG}); do rm -f $(DESTDIR)$(BINDIR)/$$f; done
 	rm -f $(DESTDIR)$(BINDIR)/find-libprovides
 	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(BINDIR)/$$l; done
-	for f in $(notdir ${SHARED_PKG}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
-	for f in $(notdir ${PATCHES}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/patches/$$f; done
 	for f in $(notdir ${LIBS_PKG}); do rm -f $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir ${PATCHES}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/patches/$$f; done
+	for f in $(notdir ${SHARED_PKG}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
 uninstall_isobase:
 	for f in $(notdir ${BASE}); do rm -f $(DESTDIR)$(PROFDIR)/$$f; done
@@ -222,16 +227,12 @@ uninstall_isobase:
 uninstall_iso:
 	for f in $(notdir ${BIN_ISO}); do rm -f $(DESTDIR)$(BINDIR)/$$f; done
 	for l in $(notdir ${BIN_ISO_SYMS}); do rm -f $(DESTDIR)$(BINDIR)/$$l; done
+	for f in $(notdir ${LIBS_ISO}); do rm -f $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
 	for f in $(notdir ${SHARED_ISO}); do rm -f $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
-	for f in $(notdir ${LIBS_ISO}); do rm -f $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
 	for f in $(notdir ${CPIOHOOKS}); do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks/$$f; done
 	for f in $(notdir ${CPIOINST}); do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
 	for f in $(notdir ${CPIO}); do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
-
-install: install_base
-
-uninstall: uninstall_base
 
 ifeq ($(WITH-PKG),yes)
 
@@ -248,6 +249,10 @@ install: install_iso install_isobase
 uninstall: uninstall_iso uninstall_isobase
 
 endif
+
+install: install_base
+
+uninstall: uninstall_base
 
 dist:
 	git archive --format=tar --prefix=$(TOOLS)-$(VERSION)/ $(VERSION) | gzip -9 > $(TOOLS)-$(VERSION).tar.gz
