@@ -13,6 +13,7 @@ WITH-ISO = yes
 WITH-PKG = yes
 
 PROFDIR = $(DATADIR)/$(TOOLS)/iso-profiles/base
+OVERLAYDIR = $(PROFDIR)/live-overlay/etc
 
 SYSCONF = \
 	data/artools.conf
@@ -89,7 +90,7 @@ CPIOINST = \
 	$(wildcard initcpio/install/*)
 
 CPIO = \
-	initcpio/script/artix_shutdown
+	$(wildcard initcpio/script/*)
 
 BASE = \
 	$(wildcard data/base/Packages-*) \
@@ -165,17 +166,17 @@ install_isobase:
 	install -dm0755 $(DESTDIR)$(PROFDIR)
 	install -m0644 ${BASE} $(DESTDIR)$(PROFDIR)
 
-	install -dm0755 $(DESTDIR)$(PROFDIR)/live-overlay/etc
-	install -m0644 ${LIVE_ETC} $(DESTDIR)$(PROFDIR)/live-overlay/etc
+	install -dm0755 $(DESTDIR)$(OVERLAYDIR)
+	install -m0644 ${LIVE_ETC} $(DESTDIR)$(OVERLAYDIR)
 
-	install -dm0755 $(DESTDIR)$(PROFDIR)/live-overlay/etc/default
-	install -m0644 ${LIVE_ETC_DEFAULT} $(DESTDIR)$(PROFDIR)/live-overlay/etc/default
+	install -dm0755 $(DESTDIR)$(OVERLAYDIR)/default
+	install -m0644 ${LIVE_ETC_DEFAULT} $(DESTDIR)$(OVERLAYDIR)/default
 
-	install -dm0755 $(DESTDIR)$(PROFDIR)/live-overlay/etc/pam.d
-	install -m0644 ${LIVE_ETC_PAM} $(DESTDIR)$(PROFDIR)/live-overlay/etc/pam.d
+	install -dm0755 $(DESTDIR)$(OVERLAYDIR)/pam.d
+	install -m0644 ${LIVE_ETC_PAM} $(DESTDIR)$(OVERLAYDIR)/pam.d
 
-	install -dm0755 $(DESTDIR)$(PROFDIR)/live-overlay/etc/sudoers.d
-	install -m0644 ${LIVE_ETC_SUDOERS} $(DESTDIR)$(PROFDIR)/live-overlay/etc/sudoers.d
+	install -dm0755 $(DESTDIR)$(OVERLAYDIR)/sudoers.d
+	install -m0644 ${LIVE_ETC_SUDOERS} $(DESTDIR)$(OVERLAYDIR)/sudoers.d
 
 install_iso:
 	install -dm0755 $(DESTDIR)$(BINDIR)
@@ -213,10 +214,10 @@ uninstall_pkg:
 
 uninstall_isobase:
 	for f in $(notdir ${BASE}); do rm -f $(DESTDIR)$(PROFDIR)/$$f; done
-	for f in $(notdir ${LIVE_ETC}); do rm -f $(DESTDIR)$(PROFDIR)/live-overlay/etc/$$f; done
-	for f in $(notdir ${LIVE_ETC_DEFAULT}); do rm -f $(DESTDIR)$(PROFDIR)/live-overlay/etc/default/$$f; done
-	for f in $(notdir ${LIVE_ETC_PAM}); do rm -f $(DESTDIR)$(PROFDIR)/live-overlay/etc/pam.d/$$f; done
-	for f in $(notdir ${LIVE_ETC_SUDOERS}); do rm -f $(DESTDIR)$(PROFDIR)/live-overlay/etc/sudoers.d/$$f; done
+	for f in $(notdir ${LIVE_ETC}); do rm -f $(DESTDIR)$(OVERLAYDIR)/$$f; done
+	for f in $(notdir ${LIVE_ETC_DEFAULT}); do rm -f $(DESTDIR)$(OVERLAYDIR)/default/$$f; done
+	for f in $(notdir ${LIVE_ETC_PAM}); do rm -f $(DESTDIR)$(OVERLAYDIR)/pam.d/$$f; done
+	for f in $(notdir ${LIVE_ETC_SUDOERS}); do rm -f $(DESTDIR)$(OVERLAYDIR)/sudoers.d/$$f; done
 
 uninstall_iso:
 	for f in $(notdir ${BIN_ISO}); do rm -f $(DESTDIR)$(BINDIR)/$$f; done
