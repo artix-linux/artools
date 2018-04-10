@@ -11,6 +11,7 @@ DATADIR = $(PREFIX)/share
 
 DIRMODE = -dm0755
 FILEMODE = -m0644
+MODE =  -m0755
 
 WITH-ISO = yes
 WITH-PKG = yes
@@ -140,7 +141,7 @@ install_base:
 	install $(FILEMODE) ${SYSCONF} $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
 
 	install $(DIRMODE) $(DESTDIR)$(BINDIR)
-	install $(FILEMODE) ${BIN_BASE} $(DESTDIR)$(BINDIR)
+	install $(MODE) ${BIN_BASE} $(DESTDIR)$(BINDIR)
 
 	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
 	install $(FILEMODE) ${LIBS_BASE} $(DESTDIR)$(LIBDIR)/$(TOOLS)
@@ -150,7 +151,7 @@ install_base:
 
 install_pkg:
 	install $(DIRMODE) $(DESTDIR)$(BINDIR)
-	install $(FILEMODE) ${BIN_PKG} $(DESTDIR)$(BINDIR)
+	install $(MODE) ${BIN_PKG} $(DESTDIR)$(BINDIR)
 
 	ln -sf find-libdeps $(DESTDIR)$(BINDIR)/find-libprovides
 
@@ -183,7 +184,7 @@ install_isobase:
 
 install_iso:
 	install $(DIRMODE) $(DESTDIR)$(BINDIR)
-	install $(FILEMODE) ${BIN_ISO} $(DESTDIR)$(BINDIR)
+	install $(MODE) ${BIN_ISO} $(DESTDIR)$(BINDIR)
 
 	for l in ${BIN_ISO_SYMS}; do ln -sf buildiso $(DESTDIR)$(BINDIR)/$$l; done
 
@@ -194,11 +195,11 @@ install_iso:
 	install $(FILEMODE) ${SHARED_ISO} $(DESTDIR)$(DATADIR)/$(TOOLS)
 
 	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-	install $(FILEMODE) ${CPIOHOOKS} $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
+	install $(MODE) ${CPIOHOOKS} $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
 
 	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install $(FILEMODE) ${CPIOINST} $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install $(FILEMODE) ${CPIO} $(DESTDIR)$(SYSCONFDIR)/initcpio
+	install $(MODE) ${CPIOINST} $(DESTDIR)$(SYSCONFDIR)/initcpio/install
+	install $(MODE) ${CPIO} $(DESTDIR)$(SYSCONFDIR)/initcpio
 
 uninstall_base:
 	for f in $(notdir ${SYSCONF}); do rm -f $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)/$$f; done
