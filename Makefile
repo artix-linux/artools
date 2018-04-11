@@ -164,8 +164,13 @@ install_pkg:
 
 	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
 	install $(FILEMODE) $(PATCHES) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
+install_cpio:
+	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio install
 
-install_iso:
+install_base_profile:
+	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base install
+
+install_iso: install_cpio install_base_profile
 	install $(DIRMODE) $(DESTDIR)$(BINDIR)
 	install $(MODE) $(BIN_ISO) $(DESTDIR)$(BINDIR)
 
@@ -177,11 +182,7 @@ install_iso:
 	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
 	install $(FILEMODE) $(SHARED_ISO) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
-install_cpio:
-	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio install
 
-install_base_profile:
-	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base install
 
 uninstall_base:
 	for f in $(notdir $(SYSCONF)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)/$$f; done
@@ -200,17 +201,17 @@ uninstall_pkg:
 	for f in $(notdir $(PATCHES)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches/$$f; done
 	for f in $(notdir $(SHARED_PKG)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
-uninstall_iso:
-	for f in $(notdir $(BIN_ISO)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
-	for l in $(notdir $(BIN_ISO_SYMS)); do $(RM) $(DESTDIR)$(BINDIR)/$$l; done
-	for f in $(notdir $(LIBS_ISO)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
-	for f in $(notdir $(SHARED_ISO)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
-
 uninstall_cpio:
 	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
 
 uninstall_base_profile:
 	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base uninstall
+
+uninstall_iso: uninstall_cpio uninstall_base_profile
+	for f in $(notdir $(BIN_ISO)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
+	for l in $(notdir $(BIN_ISO_SYMS)); do $(RM) $(DESTDIR)$(BINDIR)/$$l; done
+	for f in $(notdir $(LIBS_ISO)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir $(SHARED_ISO)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
 ifeq ($(WITH-PKG),yes)
 
@@ -222,9 +223,9 @@ endif
 
 ifeq ($(WITH-ISO),yes)
 
-install: install_iso install_cpio install_base_profile
+install: install_iso
 
-uninstall: uninstall_iso uninstall_cpio uninstall_base_profile
+uninstall: uninstall_iso
 
 endif
 
