@@ -11,17 +11,17 @@ CPIO = \
 	$(wildcard script/*)
 
 install_initcpio:
-	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-	install $(MODE) $(CPIOHOOKS) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
+	install $(DIRMODE) $(DESTDIR)$(CPIODIR)/hooks
+	install $(MODE) $(CPIOHOOKS) $(DESTDIR)$(CPIODIR)/hooks
 
-	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install $(MODE) $(CPIOINST) $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install $(MODE) $(CPIO) $(DESTDIR)$(SYSCONFDIR)/initcpio
+	install $(DIRMODE) $(DESTDIR)$(CPIODIR)/install
+	install $(MODE) $(CPIOINST) $(DESTDIR)$(CPIODIR)/install
+	install $(MODE) $(CPIO) $(DESTDIR)$(CPIODIR)
 
 uninstall_initcpio:
-	for f in $(notdir $(CPIOHOOKS)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks/$$f; done
-	for f in $(notdir $(CPIOINST)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
-	for f in $(notdir $(CPIO)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
+	for f in $(notdir $(CPIOHOOKS)); do $(RM) $(DESTDIR)$(CPIODIR)/hooks/$$f; done
+	for f in $(notdir $(CPIOINST)); do $(RM) $(DESTDIR)$(CPIODIR)/install/$$f; done
+	for f in $(notdir $(CPIO)); do $(RM) $(DESTDIR)$(CPIODIR)/$$f; done
 
 install: install_initcpio
 

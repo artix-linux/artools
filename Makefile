@@ -33,6 +33,7 @@ else
 WITH-ISO = yes
 endif
 
+CPIODIR = $(SYSCONFDIR)/initcpio
 PROFDIR = $(DATADIR)/$(TOOLS)/iso-profiles/base
 OVERLAYDIR = $(PROFDIR)/live-overlay/etc
 
@@ -177,7 +178,7 @@ install_iso:
 	install $(FILEMODE) $(SHARED_ISO) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
 install_cpio:
-	make SYSCONFDIR=$(SYSCONFDIR) DESTDIR=$(DESTDIR) -C initcpio install
+	make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio install
 
 install_base_profile:
 	make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base install
@@ -206,7 +207,7 @@ uninstall_iso:
 	for f in $(notdir $(SHARED_ISO)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
 uninstall_cpio:
-	make SYSCONFDIR=$(SYSCONFDIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
+	make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
 
 uninstall_base_profile:
 	make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base uninstall
