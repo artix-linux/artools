@@ -104,15 +104,6 @@ LIBS_ISO = \
 SHARED_ISO = \
 	data/mkinitcpio.conf
 
-CPIOHOOKS = \
-	$(wildcard initcpio/hooks/*)
-
-CPIOINST = \
-	$(wildcard initcpio/install/*)
-
-CPIO = \
-	$(wildcard initcpio/script/*)
-
 ifeq ($(WITH-PKG),yes)
 
 all: $(BIN_PKG)
@@ -185,12 +176,8 @@ install_iso:
 	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
 	install $(FILEMODE) $(SHARED_ISO) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
-	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-	install $(MODE) $(CPIOHOOKS) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-
-	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install $(MODE) $(CPIOINST) $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install $(MODE) $(CPIO) $(DESTDIR)$(SYSCONFDIR)/initcpio
+install_cpio:
+	make SYSCONFDIR=$(SYSCONFDIR) DESTDIR=$(DESTDIR) -C initcpio install
 
 install_base_profile:
 	make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base install
@@ -218,9 +205,8 @@ uninstall_iso:
 	for f in $(notdir $(LIBS_ISO)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
 	for f in $(notdir $(SHARED_ISO)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
-	for f in $(notdir $(CPIOHOOKS)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks/$$f; done
-	for f in $(notdir $(CPIOINST)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
-	for f in $(notdir $(CPIO)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
+uninstall_cpio:
+	make SYSCONFDIR=$(SYSCONFDIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
 
 uninstall_base_profile:
 	make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base uninstall
@@ -235,9 +221,9 @@ endif
 
 ifeq ($(WITH-ISO),yes)
 
-install: install_iso install_base_profile
+install: install_iso install_cpio install_base_profile
 
-uninstall: uninstall_iso uninstall_base_profile
+uninstall: uninstall_iso uninstall_cpio uninstall_base_profile
 
 endif
 
