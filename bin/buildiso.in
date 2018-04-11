@@ -29,7 +29,7 @@ prepare_build(){
     local pacman_conf pac_file="pacman-default.conf"
 
     case "${stablility}" in
-        'gremlins') pac_file="pacman-${stablility}.conf" ;;
+        'gremlins'|'goblins') pac_file="pacman-${stablility}.conf" ;;
     esac
 
     pacman_conf="${DATADIR}/$pac_file"

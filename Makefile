@@ -1,9 +1,41 @@
-Version=0.7
+VERSION=0.8
 
-Chroot_version=0.7
+CHROOT_VERSION=0.7
 
+TOOLS = artools
+ifdef PREFIX
 PREFIX = /usr/local
+endif
 SYSCONFDIR = /etc
+BINDIR = $(PREFIX)/bin
+LIBDIR = $(PREFIX)/lib
+DATADIR = $(PREFIX)/share
+
+DIRMODE = -dm0755
+FILEMODE = -m0644
+MODE =  -m0755
+
+LN = ln -sf
+RM = rm -f
+RMD = rm -fr --one-file-system
+M4 = m4 -P
+CHMODAW = chmod a-w
+CHMODX = chmod +x
+
+ifdef WITH-PKG
+WITH-PKG = no
+else
+WITH-PKG = yes
+endif
+ifdef WITH-ISO
+WITH-ISO = no
+else
+WITH-ISO = yes
+endif
+
+CPIODIR = $(SYSCONFDIR)/initcpio
+PROFDIR = $(DATADIR)/$(TOOLS)/iso-profiles/base
+OVERLAYDIR = $(PROFDIR)/live-overlay/etc
 
 SYSCONF = \
 	data/artools.conf
@@ -63,159 +95,146 @@ BIN_ISO = \
 	bin/buildiso \
 	bin/deployiso
 
+BIN_ISO_SYMS = \
+	buildiso-gremlins \
+	buildiso-goblins
+
 LIBS_ISO = \
 	$(wildcard lib/util-iso*.sh)
 
 SHARED_ISO = \
 	data/mkinitcpio.conf
 
-CPIOHOOKS = \
-	$(wildcard initcpio/hooks/*)
+ifeq ($(WITH-PKG),yes)
 
-CPIOINST = \
-	$(wildcard initcpio/install/*)
+all: $(BIN_PKG)
 
-CPIO = \
-	initcpio/script/artix_shutdown
+endif
 
-BASE = \
-	$(wildcard data/base/Packages-*) \
-	data/base/profile.conf
+ifeq ($(WITH-ISO),yes)
 
-LIVE_ETC = \
-	data/base/live-overlay/etc/issue \
-	data/base/live-overlay/etc/fstab
+all: $(BIN_ISO)
 
-LIVE_ETC_DEFAULT = \
-	$(wildcard data/base/live-overlay/etc/default/*)
+endif
 
-LIVE_ETC_PAM = \
-	$(wildcard data/base/live-overlay/etc/pam.d/*)
+all: $(BIN_BASE)
 
-LIVE_ETC_SUDOERS = \
-	$(wildcard data/base/live-overlay/etc/sudoers.d/*)
-
-all: $(BIN_BASE) $(BIN_PKG) $(BIN_ISO)
-
-edit = sed -e "s|@datadir[@]|$(DESTDIR)$(PREFIX)/share/artools|g" \
-	-e "s|@sysconfdir[@]|$(DESTDIR)$(SYSCONFDIR)/artools|g" \
-	-e "s|@libdir[@]|$(DESTDIR)$(PREFIX)/lib/artools|g" \
-	-e "s|@version@|${Version}|" \
-	-e "s|@chroot_version@|${Chroot_version}|"
+EDIT = sed -e "s|@datadir[@]|$(DATADIR)/$(TOOLS)|g" \
+	-e "s|@sysconfdir[@]|$(SYSCONFDIR)/$(TOOLS)|g" \
+	-e "s|@libdir[@]|$(LIBDIR)/$(TOOLS)|g" \
+	-e "s|@version@|$(VERSION)|" \
+	-e "s|@chroot_version@|$(CHROOT_VERSION)|"
 
 %: %.in Makefile
 	@echo "GEN $@"
 	@$(RM) "$@"
-	@m4 -P $@.in | $(edit) >$@
-	@chmod a-w "$@"
-	@chmod +x "$@"
+	@$(M4) $@.in | $(EDIT) >$@
+	@$(CHMODAW) "$@"
+	@$(CHMODX) "$@"
 
 clean:
-	rm -f $(BIN_BASE) ${BIN_PKG} ${BIN_ISO}
+	$(RM) $(BIN_BASE) $(BIN_PKG) $(BIN_ISO)
 
 install_base:
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/artools
-	install -m0644 ${SYSCONF} $(DESTDIR)$(SYSCONFDIR)/artools
+	install $(DIRMODE) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
+	install $(FILEMODE) $(SYSCONF) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/bin
-	install -m0755 ${BIN_BASE} $(DESTDIR)$(PREFIX)/bin
+	install $(DIRMODE) $(DESTDIR)$(BINDIR)
+	install $(MODE) $(BIN_BASE) $(DESTDIR)$(BINDIR)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
-	install -m0644 ${LIBS_BASE} $(DESTDIR)$(PREFIX)/lib/artools
+	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(FILEMODE) $(LIBS_BASE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
-	install -m0644 ${SHARED_BASE} $(DESTDIR)$(PREFIX)/share/artools
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(FILEMODE) $(SHARED_BASE) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
 install_pkg:
-	install -dm0755 $(DESTDIR)$(PREFIX)/bin
-	install -m0755 ${BIN_PKG} $(DESTDIR)$(PREFIX)/bin
+	install $(DIRMODE) $(DESTDIR)$(BINDIR)
+	install $(MODE) $(BIN_PKG) $(DESTDIR)$(BINDIR)
 
-	ln -sf find-libdeps $(DESTDIR)$(PREFIX)/bin/find-libprovides
+	$(LN) find-libdeps $(DESTDIR)$(BINDIR)/find-libprovides
 
-	for l in ${COMMITPKG_SYMS}; do ln -sf commitpkg $(DESTDIR)$(PREFIX)/bin/$$l; done
+	for l in $(COMMITPKG_SYMS); do $(LN) commitpkg $(DESTDIR)$(BINDIR)/$$l; done
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
-	install -m0644 ${LIBS_PKG} $(DESTDIR)$(PREFIX)/lib/artools
+	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(FILEMODE) $(LIBS_PKG) $(DESTDIR)$(LIBDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
-	install -m0644 ${SHARED_PKG} $(DESTDIR)$(PREFIX)/share/artools
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(FILEMODE) $(SHARED_PKG) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/patches
-	install -m0644 ${PATCHES} $(DESTDIR)$(PREFIX)/share/artools/patches
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
+	install $(FILEMODE) $(PATCHES) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches
+install_cpio:
+	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio install
 
-install_isobase:
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
-	install -m0644 ${BASE} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base
+install_base_profile:
+	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base install
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc
-	install -m0644 ${LIVE_ETC} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc
+install_iso: install_cpio install_base_profile
+	install $(DIRMODE) $(DESTDIR)$(BINDIR)
+	install $(MODE) $(BIN_ISO) $(DESTDIR)$(BINDIR)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default
-	install -m0644 ${LIVE_ETC_DEFAULT} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default
+	for l in $(BIN_ISO_SYMS); do $(LN) buildiso $(DESTDIR)$(BINDIR)/$$l; done
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d
-	install -m0644 ${LIVE_ETC_PAM} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d
+	install $(DIRMODE) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	install $(FILEMODE) $(LIBS_ISO) $(DESTDIR)$(LIBDIR)/$(TOOLS)
 
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d
-	install -m0644 ${LIVE_ETC_SUDOERS} $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d
+	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
+	install $(FILEMODE) $(SHARED_ISO) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
-install_iso:
-	install -dm0755 $(DESTDIR)$(PREFIX)/bin
-	install -m0755 ${BIN_ISO} $(DESTDIR)$(PREFIX)/bin
 
-	ln -sf buildiso $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
-
-	install -dm0755 $(DESTDIR)$(PREFIX)/lib/artools
-	install -m0644 ${LIBS_ISO} $(DESTDIR)$(PREFIX)/lib/artools
-
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-	install -m0755 ${CPIOHOOKS} $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks
-
-	install -dm0755 $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-	install -m0755 ${CPIOINST} $(DESTDIR)$(SYSCONFDIR)/initcpio/install
-
-	install -m0755 ${CPIO} $(DESTDIR)$(SYSCONFDIR)/initcpio
-
-	install -dm0755 $(DESTDIR)$(PREFIX)/share/artools
-	install -m0644 ${SHARED_ISO} $(DESTDIR)$(PREFIX)/share/artools
 
 uninstall_base:
-	for f in ${SYSCONF}; do rm -f $(DESTDIR)$(SYSCONFDIR)/artools/$$f; done
-	for f in ${BIN_BASE}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	for f in ${SHARED_BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
-	for f in ${LIBS_BASE}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
+	for f in $(notdir $(SYSCONF)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir $(BIN_BASE)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
+	for f in $(notdir $(LIBS_BASE)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir $(SHARED_BASE)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
+	$(RMD) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)
+	$(RMD) $(DESTDIR)$(LIBDIR)/$(TOOLS)
+	$(RMD) $(DESTDIR)$(DATADIR)/$(TOOLS)
 
 uninstall_pkg:
-	for f in ${BIN_PKG}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	rm -f $(DESTDIR)$(PREFIX)/bin/find-libprovides
-	for l in ${COMMITPKG_SYMS}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$l; done
-	for f in ${SHARED_PKG}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
-	for f in ${PATCHES}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/patches/$$f; done
-	for f in ${LIBS_PKG}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
+	for f in $(notdir $(BIN_PKG)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
+	$(RM) $(DESTDIR)$(BINDIR)/find-libprovides
+	for l in $(COMMITPKG_SYMS); do $(RM) $(DESTDIR)$(BINDIR)/$$l; done
+	for f in $(notdir $(LIBS_PKG)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir $(PATCHES)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/patches/$$f; done
+	for f in $(notdir $(SHARED_PKG)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
-uninstall_isobase:
-	for f in ${BASE}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/$$f; done
-	for f in ${LIVE_ETC}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/$$f; done
-	for f in ${LIVE_ETC_DEFAULT}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/default/$$f; done
-	for f in ${LIVE_ETC_PAM}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/pam.d/$$f; done
-	for f in ${LIVE_ETC_SUDOERS}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/iso-profiles/base/live-overlay/etc/sudoers.d/$$f; done
+uninstall_cpio:
+	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
 
-uninstall_iso:
-	for f in ${BIN_ISO}; do rm -f $(DESTDIR)$(PREFIX)/bin/$$f; done
-	rm -f $(DESTDIR)$(PREFIX)/bin/buildiso-gremlins
-	for f in ${SHARED_ISO}; do rm -f $(DESTDIR)$(PREFIX)/share/artools/$$f; done
+uninstall_base_profile:
+	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base uninstall
 
-	for f in ${LIBS_ISO}; do rm -f $(DESTDIR)$(PREFIX)/lib/artools/$$f; done
-	for f in ${CPIOHOOKS}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/hooks/$$f; done
-	for f in ${CPIOINST}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/install/$$f; done
-	for f in ${CPIO}; do rm -f $(DESTDIR)$(SYSCONFDIR)/initcpio/$$f; done
+uninstall_iso: uninstall_cpio uninstall_base_profile
+	for f in $(notdir $(BIN_ISO)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
+	for l in $(notdir $(BIN_ISO_SYMS)); do $(RM) $(DESTDIR)$(BINDIR)/$$l; done
+	for f in $(notdir $(LIBS_ISO)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
+	for f in $(notdir $(SHARED_ISO)); do $(RM) $(DESTDIR)$(DATADIR)/$(TOOLS)/$$f; done
 
-install: install_base install_pkg install_iso install_isobase
+ifeq ($(WITH-PKG),yes)
 
-uninstall: uninstall_base uninstall_pkg uninstall_iso uninstall_isobase
+install: install_pkg
+
+uninstall: uninstall_pkg
+
+endif
+
+ifeq ($(WITH-ISO),yes)
+
+install: install_iso
+
+uninstall: uninstall_iso
+
+endif
+
+install: install_base
+
+uninstall: uninstall_base
 
 dist:
-	git archive --format=tar --prefix=artools-$(Version)/ $(Version) | gzip -9 > artools-$(Version).tar.gz
-	gpg --detach-sign --use-agent artools-$(Version).tar.gz
+	git archive --format=tar --prefix=$(TOOLS)-$(VERSION)/ $(VERSION) | gzip -9 > $(TOOLS)-$(VERSION).tar.gz
+	gpg --detach-sign --use-agent $(TOOLS)-$(VERSION).tar.gz
 
 .PHONY: all clean install uninstall dist
