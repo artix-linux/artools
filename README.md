@@ -4,9 +4,9 @@ artools
 #### Make flags
 
 
-* PREFIX=/usr/local (if defined)
+* PREFIX=/usr/local (default if defined)
 * SYSCONFDIR=/etc
-* WITH-PKG0=yes
+* WITH-PKG=yes
 * WITH-ISO=yes
 
 
