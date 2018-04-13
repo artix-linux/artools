@@ -141,7 +141,7 @@ add_svc_rc(){
 
 add_svc_runit(){
     local mnt="$1" name="$2"
-    if [[ -f $mnt/etc/runit/sv/$name ]]; then
+    if [[ -d $mnt/etc/runit/sv/$name ]]; then
         msg2 "Setting %s ..." "$name"
         chroot $mnt ln -s /etc/runit/sv/$name /etc/runit/runsvdir/default &>/dev/null
     fi
