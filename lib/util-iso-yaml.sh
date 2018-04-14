@@ -89,14 +89,14 @@ write_unpack_conf(){
 }
 
 configure_calamares(){
-    local dest="$1" mods="$1/etc/calamares/modules"
+    local dest="$1" mods="$1/etc/calamares/modules" init="$2"
     if [[ -d $dest/etc/calamares/modules ]];then
         info "Configuring [Calamares]"
         write_netinstall_conf "$mods"
         write_unpack_conf "$mods"
         write_users_conf "$mods"
         write_initcpio_conf "$mods"
-        write_servicescfg_conf "$mods" "${initsys}"
+        write_servicescfg_conf "$mods" "$init"
         write_bootloader_conf "$mods"
         info "Done configuring [Calamares]"
     fi

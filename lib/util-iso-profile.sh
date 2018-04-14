@@ -44,19 +44,25 @@ load_profile(){
     [[ -z ${password} ]] && password="artix"
 
     if [[ -z ${addgroups} ]];then
-        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,audio"
+        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,audio,log"
     fi
 
     if [[ -z ${services[@]} ]];then
         services=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
     fi
 
-    [[ ${displaymanager} != "none" ]] && services+=('xdm')
-    
+    if [[ ${displaymanager} != "none" ]];then
+        if [[ "${initsys}" == 'openrc' ]];then
+            services+=('xdm')
+        else
+            services+=("${displaymanager}")
+        fi
+    fi
+
     if [[ -z ${services_live[@]} ]];then
         services_live=('artix-live' 'pacman-init')
     fi
-    
+
     [[ -z ${netgroups_url} ]] && netgroups_url="https://raw.githubusercontent.com/artix-linux/netgroups/master"
 
     return 0
