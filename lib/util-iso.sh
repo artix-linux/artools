@@ -139,6 +139,14 @@ add_svc_rc(){
     fi
 }
 
+add_svc_runit(){
+    local mnt="$1" name="$2"
+    if [[ -d $mnt/etc/runit/sv/$name ]]; then
+        msg2 "Setting %s ..." "$name"
+        chroot $mnt ln -s /etc/runit/sv/$name /etc/runit/runsvdir/default &>/dev/null
+    fi
+}
+
 set_xdm(){
     if [[ -f $1/etc/conf.d/xdm ]];then
         local conf='DISPLAYMANAGER="'${displaymanager}'"'
@@ -173,6 +181,14 @@ configure_services(){
                 add_svc_rc "$mnt" "$svc" "default"
             done
         ;;
+        'runit')
+            for svc in ${services[@]}; do
+                add_svc_runit "$mnt" "$svc"
+            done
+            for svc in ${services_live[@]}; do
+                add_svc_runit "$mnt" "$svc"
+            done
+        ;;
     esac
     info "Done configuring [%s]" "${initsys}"
 }
@@ -180,7 +196,7 @@ configure_services(){
 configure_system(){
     local mnt="$1"
     case ${initsys} in
-        'openrc')
+        'openrc' | 'runit')
             configure_logind "$mnt" "elogind"
         ;;
     esac

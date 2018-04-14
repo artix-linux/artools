@@ -1,6 +1,7 @@
 mkinitcpio-nfs-utils
 nbd
 >openrc artix-live-openrc
+>runit artix-live-runit
 squashfs-tools
 artix-live-portable-efi
 linux-lts-headers
