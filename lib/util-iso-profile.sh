@@ -52,11 +52,10 @@ load_profile(){
     fi
 
     if [[ ${displaymanager} != "none" ]];then
-        if [[ "${initsys}" == 'openrc' ]];then
-            services+=('xdm')
-        else
-            services+=("${displaymanager}")
-        fi
+        case "${initsys}" in
+            'openrc') services+=('xdm') ;;
+            'runit') services+=("${displaymanager}") ;;
+        esac
     fi
 
     if [[ -z ${services_live[@]} ]];then
