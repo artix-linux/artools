@@ -27,14 +27,15 @@ write_bootloader_conf(){
 }
 
 write_servicescfg_conf(){
-    local conf="$1/servicescfg.conf"
+    local conf="$1/servicescfg.conf" init="$2"
     msg2 "Writing %s ..." "${conf##*/}"
     echo '---' >  "$conf"
+    echo "initsys: $init" >> "$conf"
     echo '' >> "$conf"
     echo 'services:' >> "$conf"
     echo '    enabled:' >> "$conf"
-    for s in ${services[@]};do
-        echo "      - name: $s" >> "$conf"
+    for svc in ${services[@]};do
+        echo "      - name: $svc" >> "$conf"
         echo '        runlevel: default' >> "$conf"
     done
 }
@@ -88,16 +89,14 @@ write_unpack_conf(){
 }
 
 configure_calamares(){
-    local dest="$1" mods="$1/etc/calamares/modules"
+    local dest="$1" mods="$1/etc/calamares/modules" init="$2"
     if [[ -d $dest/etc/calamares/modules ]];then
         info "Configuring [Calamares]"
         write_netinstall_conf "$mods"
         write_unpack_conf "$mods"
         write_users_conf "$mods"
         write_initcpio_conf "$mods"
-        case ${initsys} in
-            'openrc') write_servicescfg_conf "$mods" ;;
-        esac
+        write_servicescfg_conf "$mods" "$init"
         write_bootloader_conf "$mods"
         info "Done configuring [Calamares]"
     fi
