@@ -1,0 +1,30 @@
+#!/usr/bin/ash
+
+run_latehook() {
+    local realroot=/new_root
+    local openrc="$realroot/bin/openrc-init"
+    local runit="$realroot/bin/runit-init"
+
+    if [ -x "$runit" ] && [ -x "$openrc" ]; then
+        msg ":: Currently available init:"
+        msg "   - openrc"
+        msg "   - runit"
+        while [ ! -L "$realroot/usr/bin/init" ]; do
+            msg ":: Please select your desired init:"
+            read -r INIT
+            if [ "$INIT" = "runit" ]; then
+                ln -s runit-init "$realroot/usr/bin/init"
+            elif [ "$INIT" = "openrc" ]; then
+                ln -s openrc-init "$realroot/usr/bin/init"
+            else
+                msg "Invalid choice."
+            fi
+        done
+    elif [ -x "$runit" ]; then
+        ln -s runit-init "$realroot/usr/bin/init"
+    elif [ -x "$openrc" ]; then
+        ln -s openrc-init "$realroot/usr/bin/init"
+    fi
+}
+
+# vim: set ft=sh ts=4 sw=4 et:
