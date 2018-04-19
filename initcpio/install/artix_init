@@ -1,0 +1,15 @@
+#!/bin/bash
+
+build() {
+    add_binary ln
+    add_runscript
+}
+
+help() {
+cat<<HELPEOF
+    This hook lets user choose their own init systems if /usr/bin/init
+    is not a symlink.
+HELPEOF
+}
+
+# vim: set ft=sh ts=4 sw=4 et:
