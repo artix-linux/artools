@@ -165,7 +165,7 @@ install_pkg:
 install_cpio:
 	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio install
 
-install_iso: install_cpio install_base_profile
+install_iso: install_cpio
 	install $(DIRMODE) $(DESTDIR)$(BINDIR)
 	install $(MODE) $(BIN_ISO) $(DESTDIR)$(BINDIR)
 
@@ -197,7 +197,7 @@ uninstall_pkg:
 uninstall_cpio:
 	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
 
-uninstall_iso: uninstall_cpio uninstall_base_profile
+uninstall_iso: uninstall_cpio
 	for f in $(notdir $(BIN_ISO)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
 	for l in $(notdir $(BIN_ISO_SYMS)); do $(RM) $(DESTDIR)$(BINDIR)/$$l; done
 	for f in $(notdir $(LIBS_ISO)); do $(RM) $(DESTDIR)$(LIBDIR)/$(TOOLS)/$$f; done
