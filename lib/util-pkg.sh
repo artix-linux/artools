@@ -35,7 +35,7 @@ patch_pkg(){
                 -e '/nscd.service/d' \
                 -i $pkg/trunk/PKGBUILD
         ;;
-        'tp_smapi'|'acpi_call'|'r8168'|'bbswitch')
+        'tp_smapi'|'acpi_call'|'r8168'|'bbswitch'|'broadcom-wl')
             sed -e 's|-ARCH|-ARTIX|g' -i $pkg/trunk/PKGBUILD
         ;;
         'nvidia')
