@@ -34,8 +34,6 @@ WITH-ISO = yes
 endif
 
 CPIODIR = $(SYSCONFDIR)/initcpio
-PROFDIR = $(DATADIR)/$(TOOLS)/iso-profiles/base
-OVERLAYDIR = $(PROFDIR)/live-overlay/etc
 
 SYSCONF = \
 	data/artools.conf
@@ -167,9 +165,6 @@ install_pkg:
 install_cpio:
 	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio install
 
-install_base_profile:
-	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base install
-
 install_iso: install_cpio install_base_profile
 	install $(DIRMODE) $(DESTDIR)$(BINDIR)
 	install $(MODE) $(BIN_ISO) $(DESTDIR)$(BINDIR)
@@ -181,8 +176,6 @@ install_iso: install_cpio install_base_profile
 
 	install $(DIRMODE) $(DESTDIR)$(DATADIR)/$(TOOLS)
 	install $(FILEMODE) $(SHARED_ISO) $(DESTDIR)$(DATADIR)/$(TOOLS)
-
-
 
 uninstall_base:
 	for f in $(notdir $(SYSCONF)); do $(RM) $(DESTDIR)$(SYSCONFDIR)/$(TOOLS)/$$f; done
@@ -203,9 +196,6 @@ uninstall_pkg:
 
 uninstall_cpio:
 	+make CPIODIR=$(CPIODIR) DESTDIR=$(DESTDIR) -C initcpio uninstall
-
-uninstall_base_profile:
-	+make OVERLAYDIR=$(OVERLAYDIR) PROFDIR=$(PROFDIR) DESTDIR=$(DESTDIR) -C data/base uninstall
 
 uninstall_iso: uninstall_cpio uninstall_base_profile
 	for f in $(notdir $(BIN_ISO)); do $(RM) $(DESTDIR)$(BINDIR)/$$f; done
