@@ -44,11 +44,11 @@ load_profile(){
     [[ -z ${password} ]] && password="artix"
 
     if [[ -z ${addgroups} ]];then
-        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,audio,log"
+        addgroups="video,power,storage,optical,network,lp,scanner,wheel,users,log"
     fi
 
     if [[ -z ${services[@]} ]];then
-        services=('acpid' 'bluetooth' 'cronie' 'cupsd' 'dbus' 'syslog-ng' 'NetworkManager')
+        services=('acpid' 'bluetooth' 'cronie' 'cupsd' 'syslog-ng' 'NetworkManager')
     fi
 
     if [[ ${displaymanager} != "none" ]];then
