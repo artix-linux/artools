@@ -8,25 +8,30 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-load_profile(){
-    local prof="$1"
-    local profdir="${DATADIR}/iso-profiles/$prof"
-    [[ "$prof" != 'base' ]] && profdir=${workspace_dir}/iso-profiles/$prof
+init_profile(){
+    local profdir="$1" base="${DATADIR}/iso-profiles/base"
 
-    root_list="${DATADIR}/iso-profiles/base/Packages-Root"
+    root_list="$base/Packages-Root"
+    root_overlay="$base/root-overlay"
+    live_list="$base/Packages-Live"
+    live_overlay="$base/live-overlay"
+
     [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
-
-    root_overlay="${DATADIR}/iso-profiles/base/root-overlay"
     [[ -d "$profdir/root-overlay" ]] && root_overlay="$profdir/root-overlay"
 
     [[ -f "$profdir/Packages-Desktop" ]] && desktop_list="$profdir/Packages-Desktop"
     [[ -d "$profdir/desktop-overlay" ]] && desktop_overlay="$profdir/desktop-overlay"
 
-    live_list="${DATADIR}/iso-profiles/base/Packages-Live"
     [[ -f "$profdir/Packages-Live" ]] && live_list="$profdir/Packages-Live"
-
-    live_overlay="${DATADIR}/iso-profiles/base/live-overlay"
     [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
+}
+
+load_profile(){
+    local prof="$1"
+    local profdir="${DATADIR}/iso-profiles/$prof"
+    [[ -d ${workspace_dir}/iso-profiles/$prof ]] && profdir=${workspace_dir}/iso-profiles/$prof
+
+    init_profile "$profdir"
 
     [[ -f $profdir/profile.conf ]] || return 1
 
