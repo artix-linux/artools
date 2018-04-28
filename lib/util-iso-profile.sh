@@ -9,33 +9,33 @@
 # GNU General Public License for more details.
 
 init_profile(){
-    local profdir="$1" base="${DATADIR}/iso-profiles/base"
+    local profdir="$1" prof="$2"
 
-    root_list="$base/Packages-Root"
-    root_overlay="$base/root-overlay"
-    live_list="$base/Packages-Live"
-    live_overlay="$base/live-overlay"
+    root_list="$profdir/base/Packages-Root"
+    root_overlay="$profdir/base/root-overlay"
+    live_list="$profdir/base/Packages-Live"
+    live_overlay="$profdir/base/live-overlay"
 
-    [[ -f "$profdir/Packages-Root" ]] && root_list="$profdir/Packages-Root"
-    [[ -d "$profdir/root-overlay" ]] && root_overlay="$profdir/root-overlay"
+    [[ -f "$profdir/$prof/Packages-Root" ]] && root_list="$profdir/$prof/Packages-Root"
+    [[ -d "$profdir/$prof/root-overlay" ]] && root_overlay="$profdir/$prof/root-overlay"
 
-    [[ -f "$profdir/Packages-Desktop" ]] && desktop_list="$profdir/Packages-Desktop"
-    [[ -d "$profdir/desktop-overlay" ]] && desktop_overlay="$profdir/desktop-overlay"
+    [[ -f "$profdir/$prof/Packages-Desktop" ]] && desktop_list="$profdir/$prof/Packages-Desktop"
+    [[ -d "$profdir/$prof/desktop-overlay" ]] && desktop_overlay="$profdir/$prof/desktop-overlay"
 
-    [[ -f "$profdir/Packages-Live" ]] && live_list="$profdir/Packages-Live"
-    [[ -d "$profdir/live-overlay" ]] && live_overlay="$profdir/live-overlay"
+    [[ -f "$profdir/$prof/Packages-Live" ]] && live_list="$profdir/$prof/Packages-Live"
+    [[ -d "$profdir/$prof/live-overlay" ]] && live_overlay="$profdir/$prof/live-overlay"
 }
 
 load_profile(){
     local prof="$1"
-    local profdir="${DATADIR}/iso-profiles/$prof"
-    [[ -d ${workspace_dir}/iso-profiles/$prof ]] && profdir=${workspace_dir}/iso-profiles/$prof
+    local profdir="${DATADIR}/iso-profiles"
+    [[ -d ${workspace_dir}/iso-profiles ]] && profdir=${workspace_dir}/iso-profiles
 
-    init_profile "$profdir"
+    init_profile "$profdir" "$prof"
 
-    [[ -f $profdir/profile.conf ]] || return 1
+    [[ -f $profdir/$prof/profile.conf ]] || return 1
 
-    [[ -r $profdir/profile.conf ]] && source $profdir/profile.conf
+    [[ -r $profdir/$prof/profile.conf ]] && source $profdir/$prof/profile.conf
 
     [[ -z ${displaymanager} ]] && displaymanager="none"
 
