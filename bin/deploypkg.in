@@ -46,7 +46,7 @@ update_repo(){
         fi
     done
     cd $repo_path
-    repo-$action -R $repo.$ext ${packages[@]}
+    [[ -n $action ]] && repo-$action -R $repo.$ext ${packages[@]}
     return 0
 }
 
