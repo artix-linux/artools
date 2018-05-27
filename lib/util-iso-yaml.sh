@@ -27,10 +27,22 @@ write_bootloader_conf(){
 }
 
 write_servicescfg_conf(){
-    local conf="$1/servicescfg.conf" init="$2"
+    local conf="$1/servicescfg.conf"
     msg2 "Writing %s ..." "${conf##*/}"
     echo '---' >  "$conf"
-    echo "initsys: $init" >> "$conf"
+    echo '' >> "$conf"
+    echo 'services:' >> "$conf"
+    echo '    enabled:' >> "$conf"
+    for svc in ${services[@]};do
+        echo "      - name: $svc" >> "$conf"
+        echo '        runlevel: default' >> "$conf"
+    done
+}
+
+write_runitcfg_conf(){
+    local conf="$1/runitcfg.conf"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo '---' >  "$conf"
     echo '' >> "$conf"
     echo 'services:' >> "$conf"
     echo '    enabled:' >> "$conf"
@@ -45,6 +57,13 @@ write_initcpio_conf(){
     msg2 "Writing %s ..." "${conf##*/}"
     echo "---" > "$conf"
     echo "kernel: ${kernel}" >> "$conf"
+}
+
+write_postcfg_conf(){
+    local conf="$1/postcfg.conf" initsys="$2"
+    msg2 "Writing %s ..." "${conf##*/}"
+    echo "---" > "$conf"
+    echo "initsys: ${initsys}" >> "$conf"
 }
 
 write_users_conf(){
@@ -96,8 +115,12 @@ configure_calamares(){
         write_unpack_conf "$mods"
         write_users_conf "$mods"
         write_initcpio_conf "$mods"
-        write_servicescfg_conf "$mods" "$init"
+        case $init in
+            openrc) write_servicescfg_conf "$mods" ;;
+            runit) write_runitcfg_conf "$mods" ;;
+        esac
         write_bootloader_conf "$mods"
+        write_postcfg_conf "$mods" "$init"
         info "Done configuring [Calamares]"
     fi
 }
