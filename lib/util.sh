@@ -47,11 +47,6 @@ get_osname(){
     echo "${NAME}"
 }
 
-get_osid(){
-    source /usr/lib/os-release
-    echo "${ID}"
-}
-
 init_artools_base(){
 
     target_arch=$(uname -m)
@@ -89,15 +84,9 @@ init_artools_iso(){
 
     [[ -z ${iso_version} ]] && iso_version=$(date +%Y%m%d)
 
-    iso_name=$(get_osid)
-
     iso_label="ARTIX_$(date +%Y%m)"
 
     [[ -z ${initsys} ]] && initsys="openrc"
-
-    [[ -z ${kernel} ]] && kernel="linux"
-
-    [[ -z ${kernel_args} ]] && kernel_args=""
 
     [[ -z ${gpgkey} ]] && gpgkey=''
 

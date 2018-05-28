@@ -67,8 +67,6 @@ load_profile(){
         services_live=('artix-live' 'pacman-init')
     fi
 
-    [[ -z ${netgroups_url} ]] && netgroups_url="https://raw.githubusercontent.com/artix-linux/netgroups/master"
-
     return 0
 }
 
@@ -93,7 +91,7 @@ write_live_session_conf(){
 }
 
 load_pkgs(){
-    local pkglist="$1" init="$2" _kv="$3"
+    local pkglist="$1" init="$2"
     info "Loading Packages: [%s] ..." "${pkglist##*/}"
 
     local _init="s|>$init||g"
@@ -104,7 +102,6 @@ load_pkgs(){
     esac
 
     local _blacklist="s|>blacklist.*||g" \
-        _kernel="s|KERNEL|$_kv|g" \
         _space="s| ||g" \
         _clean=':a;N;$!ba;s/\n/ /g' \
         _com_rm="s|#.*||g"
@@ -116,6 +113,5 @@ load_pkgs(){
             | sed "$_init" \
             | sed "$_init_rm1" \
             | sed "$_init_rm2" \
-            | sed "$_kernel" \
             | sed "$_clean"))
 }

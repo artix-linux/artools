@@ -288,7 +288,7 @@ make_sfs() {
         error "The path %s does not exist" "${src}"
         retrun 1
     fi
-    local timer=$(get_timer) dest=${iso_root}/${iso_name}/${target_arch}
+    local timer=$(get_timer) dest=${iso_root}/artix/${target_arch}
     local name=${1##*/}
     local sfs="${dest}/${name}.sfs"
     mkdir -p ${dest}
@@ -401,8 +401,7 @@ make_iso() {
 }
 
 gen_iso_fn(){
-    local vars=() name
-    vars+=("${iso_name}")
+    local vars=("artix") name
     vars+=("${profile}")
     [[ ${initsys} == 'runit' ]] && vars+=("${initsys}")
     vars+=("${iso_version}")
@@ -522,7 +521,7 @@ make_grub(){
 
         prepare_grub "${work_dir}/rootfs" "${work_dir}/livefs" "${iso_root}"
 
-        configure_grub "${iso_root}/boot/grub/kernels.cfg"
+        configure_grub "${iso_root}"
 
         : > ${work_dir}/grub.lock
         msg "Done [/iso/boot/grub]"
@@ -538,14 +537,14 @@ compress_images(){
 
 prepare_images(){
     local timer=$(get_timer)
-    load_pkgs "${root_list}" "${initsys}" "${kernel}"
+    load_pkgs "${root_list}" "${initsys}"
     run_safe "make_rootfs"
     if [[ -f "${desktop_list}" ]] ; then
-        load_pkgs "${desktop_list}" "${initsys}" "${kernel}"
+        load_pkgs "${desktop_list}" "${initsys}"
         run_safe "make_desktopfs"
     fi
     if [[ -f ${live_list} ]]; then
-        load_pkgs "${live_list}" "${initsys}" "${kernel}"
+        load_pkgs "${live_list}" "${initsys}"
         run_safe "make_livefs"
     fi
     run_safe "make_bootfs"

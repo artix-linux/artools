@@ -19,7 +19,7 @@ prepare_initcpio(){
 
 prepare_initramfs(){
     local mnt="$1"
-    cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-${iso_name}.conf
+    cp ${DATADIR}/mkinitcpio.conf $mnt/etc/mkinitcpio-artix.conf
     if [[ -n ${gpgkey} ]]; then
         user_run "gpg --export ${gpgkey} >${AT_USERCONFDIR}/gpgkey"
         exec 17<>${AT_USERCONFDIR}/gpgkey
@@ -27,7 +27,7 @@ prepare_initramfs(){
     local _kernel=$(cat $mnt/usr/lib/modules/*/version)
     ARTIX_GNUPG_FD=${gpgkey:+17} chroot-run $mnt \
         /usr/bin/mkinitcpio -k ${_kernel} \
-        -c /etc/mkinitcpio-${iso_name}.conf \
+        -c /etc/mkinitcpio-artix.conf \
         -g /boot/initramfs.img
 
     if [[ -n ${gpgkey} ]]; then
@@ -47,13 +47,8 @@ prepare_boot_extras(){
 }
 
 configure_grub(){
-    local conf="$1"
-
-    sed -e "s|@arch@|${target_arch}|g" \
-        -e "s|@iso_label@|${iso_label}|" \
-        -e "s|@iso_name@|${iso_name}|g" \
-        -e "s|@kernel_args@|${kernel_args}|g" \
-        -i $conf
+    local conf="$1/boot/grub/kernels.cfg"
+    sed -e "s|@iso_label@|${iso_label}|" -i $conf
 }
 
 prepare_grub(){
@@ -93,7 +88,7 @@ prepare_grub(){
     grub-mkimage -d ${grub}/${platform} -o ${efi}/${img} -O ${platform} -p ${prefix} iso9660
 
     prepare_dir ${grub}/themes
-    cp -r ${theme}/themes/${iso_name} ${grub}/themes/
+    cp -r ${theme}/themes/artix ${grub}/themes/
     cp ${data}/unicode.pf2 ${grub}
     cp -r ${theme}/{locales,tz} ${grub}
 

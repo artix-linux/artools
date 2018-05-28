@@ -24,8 +24,6 @@ prepare_build(){
 
     load_profile "${profile}"
 
-    netgroups=${netgroups_url}/netgroups-${initsys}.yaml
-
     local pacman_conf pac_file="pacman-default.conf"
 
     case "${stablility}" in
@@ -53,8 +51,6 @@ show_profile(){
     if ${verbose};then
         msg2 "autologin: %s" "${autologin}"
 
-        msg2 "netgroups: %s" "${netgroups}"
-
         msg2 "hostname: %s" "${hostname}"
         msg2 "username: %s" "${username}"
         msg2 "password: %s" "${password}"
@@ -72,7 +68,6 @@ display_settings(){
     msg "OPTIONS:"
     msg2 "profile: %s" "${profile}"
     msg2 "initsys: %s" "${initsys}"
-    msg2 "kernel: %s" "${kernel}"
     [[ -n ${gpgkey} ]] && msg2 "gpgkey: %s" "${gpgkey}"
     msg2 "stablility: %s" "${stablility}"
 
@@ -146,8 +141,6 @@ usage() {
     echo "                       [default: ${chroots_iso}]"
     echo '    -t <dir>           Target directory'
     echo "                       [default: ${iso_pool}]"
-    echo '    -k <name>          Kernel to use'
-    echo "                       [default: ${kernel}]"
     echo '    -i <name>          Init system to use'
     echo "                       [default: ${initsys}]"
     echo '    -g <key>           The gpg key for sfs signing'
@@ -167,14 +160,13 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:r:t:k:i:g:czxmvqh'
+opts='p:r:t:i:g:czxmvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
         p) profile="$OPTARG" ;;
         r) chroots_iso="$OPTARG" ;;
         t) iso_pool="$OPTARG" ;;
-        k) kernel="$OPTARG" ;;
         i) initsys="$OPTARG" ;;
         g) gpgkey="$OPTARG" ;;
         c) clean_first=false ;;
