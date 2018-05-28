@@ -67,16 +67,8 @@ prepare_grub(){
 
     cat ${grub}/${platform}/cdboot.img ${grub}/${platform}/${img} > ${grub}/${platform}/eltorito.img
 
-    case ${target_arch} in
-        'i686')
-            platform=i386-efi
-            img=bootia32.efi
-        ;;
-        'x86_64')
-            platform=x86_64-efi
-            img=bootx64.efi
-        ;;
-    esac
+    platform=x86_64-efi
+    img=bootx64.efi
 
     prepare_dir ${efi}
     prepare_dir ${grub}/${platform}
