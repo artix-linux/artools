@@ -46,9 +46,6 @@ write_servicescfg_conf(){
         echo "      - name: $svc" >> "$conf"
         echo '        runlevel: default' >> "$conf"
     done
-
-    local name="$init"cfg
-    sed -e "s|openrccfg|$name|" -i "$1"/etc/calamares/settings.conf
 }
 
 write_postcfg_conf(){
@@ -69,6 +66,8 @@ configure_calamares(){
         write_users_conf "$mods"
         write_servicescfg_conf "$mods" "$init"
         write_postcfg_conf "$mods" "$init"
+        local name="$init"cfg
+        sed -e "s|openrccfg|$name|" -i "$1"/etc/calamares/settings.conf
         info "Done configuring [Calamares]"
     fi
 }
