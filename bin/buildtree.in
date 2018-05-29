@@ -67,18 +67,18 @@ show_version_table(){
                     local archver=$(get_full_version $pkg)
                 fi
                 if ${artix};then
-                    if [ $(vercmp $artixver $archver) -eq 0 ] || [ $(vercmp $artixver $archver) -gt 0 ];then
+                    if [ $(vercmp "$artixver" "$archver") -eq 0 ] || [ $(vercmp "$artixver" "$archver") -gt 0 ];then
                         local ar=$(arch_to_artix_repo "$artixrepo")
                         case $ar in
                             *goblins)
-                                if [[ $archrepo == $artixrepo ]];then
+                                if [[ "$archrepo" == "$artixrepo" ]];then
                                     msg_row "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
                                 else
                                     msg_row_notify "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
                                 fi
                             ;;
                             *gremlins)
-                                if [[ $archrepo == $artixrepo ]];then
+                                if [[ "$archrepo" == "$artixrepo" ]];then
                                     msg_row "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
                                 else
                                     msg_row_notify "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
@@ -87,11 +87,11 @@ show_version_table(){
                         esac
                     fi
                 else
-                    if [ $(vercmp $artixver $archver) -lt 0 ];then
+                    if [ $(vercmp "$artixver" "$archver") -lt 0 ];then
                         local ar=$(arch_to_artix_repo "$artixrepo")
                         ${upgrades} && msg_row_upgrade "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
                     fi
-                    if [ $(vercmp $artixver $archver) -gt 0 ];then
+                    if [ $(vercmp "$artixver" "$archver") -gt 0 ];then
                         local ar=$(arch_to_artix_repo "$artixrepo")
                         if [[ -n $archver ]] && [[ -n $archrepo ]];then
                             ${downgrades} && msg_row_downgrade "%-20s %-20s %-25s %-30s %-30s" "${archrepo%-*}" "${ar}" "$pkg" "$archver" "$artixver"
