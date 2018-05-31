@@ -215,6 +215,12 @@ _chrootbuild() {
     locale-gen &> /dev/null
 
     sudo --preserve-env=SOURCE_DATE_EPOCH -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
+
+    ret=$?
+    case $ret in
+        0|14) return 0;;
+        *) return $ret;;
+    esac
 }
 
 _chrootnamcap() {
