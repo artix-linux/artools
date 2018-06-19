@@ -213,6 +213,10 @@ clean_up_image(){
     local path mnt="$1"
     msg2 "Cleaning [%s]" "${mnt##*/}"
 
+    if [[ -f "$mnt/etc/locale.gen.orig" ]];then
+        mv "$mnt/etc/locale.gen.orig" "$mnt/etc/locale.gen"
+        rm "$mnt/etc/locale.conf"
+    fi
     path=$mnt/boot
     if [[ -d "$path" ]]; then
         find "$path" -name 'initramfs*.img' -delete &> /dev/null

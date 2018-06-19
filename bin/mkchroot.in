@@ -102,6 +102,9 @@ basestrap -Gc ${pacman_conf:+-C "$pacman_conf"} "$working_dir" ${cache_dirs[@]/#
 
 echo "$chroot_version" > "$working_dir/.artools"
 
+if [[ ! -f "$working_dir/etc/locale.gen.orig" ]];then
+    mv "$working_dir/etc/locale.gen" "$working_dir/etc/locale.gen.orig"
+fi
 printf '%s.UTF-8 UTF-8\n' en_US de_DE > "$working_dir/etc/locale.gen"
 echo 'LANG=en_US.UTF-8' > "$working_dir/etc/locale.conf"
 

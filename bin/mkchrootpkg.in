@@ -212,7 +212,7 @@ _chrootbuild() {
 
     # workaround meson locale errors
     # supposedly fixed with coming python-3.7
-    locale-gen &> /dev/null
+    #locale-gen &> /dev/null
 
     sudo --preserve-env=SOURCE_DATE_EPOCH -iu builduser bash -c 'cd /startdir; makepkg "$@"' -bash "$@"
 
