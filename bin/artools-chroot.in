@@ -87,7 +87,7 @@ else
     ${pretend} && display_settings && exit 1
 
     chroot_api_mount "${chrootdir}" || die "failed to setup API filesystems in chroot %s" "${chrootdir}"
-    chroot_mount /etc/resolv.conf "${chrootdir}/etc/resolv.conf" --bind
+    chroot_add_resolv_conf "${chrootdir}"
 fi
 
 SHELL=/bin/sh unshare --fork --pid chroot "${chrootdir}" ${run_args[*]}

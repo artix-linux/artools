@@ -27,30 +27,6 @@ subvolume_delete_recursive() {
     return 0
 }
 
-default_locale(){
-    local action="$1" mnt="$2"
-    if [[ $action == "set" ]];then
-        if [[ ! -f "$mnt/etc/locale.gen.bak" ]];then
-            info "Setting locale ..."
-            mv "$mnt/etc/locale.gen" "$mnt/etc/locale.gen.bak"
-            printf '%s.UTF-8 UTF-8\n' en_US de_DE > "$mnt/etc/locale.gen"
-            echo 'LANG=en_US.UTF-8' > "$mnt/etc/locale.conf"
-        fi
-    elif [[ $action == "reset" ]];then
-        if [[ -f "$mnt/etc/locale.gen.bak" ]];then
-            info "Resetting locale ..."
-            mv "$mnt/etc/locale.gen.bak" "$mnt/etc/locale.gen"
-            rm "$mnt/etc/locale.conf"
-        fi
-    fi
-}
-
-default_mirror(){
-    local mnt="$1" mirror="$2"'/$repo/os/$arch'
-    [[ -f $mnt/etc/pacman.d/mirrorlist ]] && mv "$mnt"/etc/pacman.d/mirrorlist "$mnt"/etc/pacman.d/mirrorlist.bak
-    echo "Server = $mirror" > $mnt/etc/pacman.d/mirrorlist
-}
-
 # $1: chroot
 kill_chroot_process(){
     local prefix="$1" flink pid name

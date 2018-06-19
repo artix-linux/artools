@@ -213,7 +213,6 @@ clean_up_image(){
     local path mnt="$1"
     msg2 "Cleaning [%s]" "${mnt##*/}"
 
-    default_locale "reset" "$mnt"
     path=$mnt/boot
     if [[ -d "$path" ]]; then
         find "$path" -name 'initramfs*.img' -delete &> /dev/null

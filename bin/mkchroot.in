@@ -22,9 +22,6 @@ import ${LIBDIR}/util-chroot.sh
 working_dir=''
 files=()
 
-build_locales=false
-keep_mirrors=false
-keep_flag=''
 nosetarch=false
 
 usage() {
@@ -73,9 +70,6 @@ else
     cache_dirs=(${cache_dir})
 fi
 
-basestrap_args=(-Gc ${pacman_conf:+-C "$pacman_conf"})
-[[ -n ${mirror} ]] && basestrap_args+=(-M)
-
 umask 0022
 
 #[[ -e $working_dir ]] && die "Working directory '%s' already exists" "$working_dir"
@@ -104,16 +98,17 @@ while read -r varname; do
     _env+=("$varname=${!varname}")
 done < <(declare -x | sed -r 's/^declare -x ([^=]*)=.*/\1/' | grep -i '_proxy$')
 env -i "${_env[@]}" \
-basestrap "${basestrap_args[@]}" "$working_dir" ${cache_dirs[@]/#/--cachedir=} "$@" || die 'Failed to install all packages'
+basestrap -Gc ${pacman_conf:+-C "$pacman_conf"} "$working_dir" ${cache_dirs[@]/#/--cachedir=} "$@" || die 'Failed to install all packages'
 
 echo "$chroot_version" > "$working_dir/.artools"
 
-default_locale "set" "$working_dir"
+printf '%s.UTF-8 UTF-8\n' en_US de_DE > "$working_dir/etc/locale.gen"
+echo 'LANG=en_US.UTF-8' > "$working_dir/etc/locale.conf"
+
+dbus-uuidgen --ensure "$working_dir"/etc/machine-id
 
 chroot_args=(${pacman_conf:+-C "$pacman_conf"} ${makepkg_conf:+-M "$makepkg_conf"} ${cache_dir:+-c "$cache_dir"})
 ${nosetarch} && chroot_args+=(${nosetarch:+-s})
-
-[[ -n ${mirror} ]] && default_mirror "$working_dir" "$mirror"
 
 exec chroot-run \
     "${chroot_args[@]}" \

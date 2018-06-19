@@ -93,9 +93,9 @@ copy_hostconf () {
 }
 
 chroot_extra_mount() {
-    chroot_mount "/etc/resolv.conf" "$1/etc/resolv.conf" -B
-    chroot_mount "/etc/hosts" "$1/etc/hosts" -B
-    chroot_mount_conditional "[[ -e $1/etc/machine-id ]]" "/etc/machine-id" "$1/etc/machine-id" -B
+    chroot_add_resolv_conf "$1"
+#     chroot_mount "/etc/hosts" "$1/etc/hosts" -B
+#     chroot_mount_conditional "[[ -e $1/etc/machine-id ]]" "/etc/machine-id" "$1/etc/machine-id" -B
     chroot_mount "${cache_dirs[0]}" "$1${cache_dirs[0]}" -B
 
     for cache_dir in ${cache_dirs[@]:1}; do
