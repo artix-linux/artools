@@ -74,7 +74,7 @@ select_os(){
     fi
 }
 
-setup_trap(){
+trap_setup(){
     [[ $(trap -p EXIT) ]] && die 'Error! Attempting to overwrite existing EXIT trap'
     trap "$1" EXIT
 }
@@ -84,6 +84,34 @@ chroot_mount() {
     mount "$@" && CHROOT_ACTIVE_MOUNTS=("$2" "${CHROOT_ACTIVE_MOUNTS[@]}")
 }
 
+chroot_add_resolv_conf() {
+    local chrootdir=$1 resolv_conf=$1/etc/resolv.conf
+
+    [[ -e /etc/resolv.conf ]] || return 0
+
+    # Handle resolv.conf as a symlink to somewhere else.
+    if [[ -L $chrootdir/etc/resolv.conf ]]; then
+        # readlink(1) should always give us *something* since we know at this point
+        # it's a symlink. For simplicity, ignore the case of nested symlinks.
+        resolv_conf=$(readlink "$chrootdir/etc/resolv.conf")
+        if [[ $resolv_conf = /* ]]; then
+            resolv_conf=$chrootdir$resolv_conf
+        else
+            resolv_conf=$chrootdir/etc/$resolv_conf
+        fi
+
+        # ensure file exists to bind mount over
+        if [[ ! -f $resolv_conf ]]; then
+            install -Dm644 /dev/null "$resolv_conf" || return 1
+        fi
+    elif [[ ! -e $chrootdir/etc/resolv.conf ]]; then
+        # The chroot might not have a resolv.conf.
+        return 0
+    fi
+
+    chroot_mount /etc/resolv.conf "$resolv_conf" --bind
+}
+
 chroot_mount_conditional() {
     local cond=$1; shift
     if eval "$cond"; then
@@ -91,7 +119,7 @@ chroot_mount_conditional() {
     fi
 }
 
-setup_chroot(){
+chroot_setup(){
     chroot_mount_conditional "! mountpoint -q '$1'" "$1" "$1" --bind &&
     chroot_mount proc "$1/proc" -t proc -o nosuid,noexec,nodev &&
     chroot_mount sys "$1/sys" -t sysfs -o nosuid,noexec,nodev,ro &&
@@ -108,9 +136,9 @@ mount_os(){
     CHROOT_ACTIVE_PART_MOUNTS=()
     CHROOT_ACTIVE_MOUNTS=()
 
-    setup_trap chroot_part_umount
+    trap_setup chroot_part_umount
 
-    chroot_part_mount $2 $1
+    chroot_part_mount "$2" "$1"
 
     local mounts=$(parse_fstab "$1")
 
@@ -133,23 +161,21 @@ mount_os(){
         ;;
     esac
 
-    setup_chroot "$1"
-    chroot_mount /etc/resolv.conf "$1/etc/resolv.conf" --bind
+    chroot_setup "$1"
+    chroot_add_resolv_conf "$1"
 }
 
 chroot_api_mount() {
     CHROOT_ACTIVE_MOUNTS=()
-
-    setup_trap chroot_api_umount
-
-    setup_chroot "$1"
+    trap_setup chroot_api_umount
+    chroot_setup "$1"
 }
 
 chroot_part_umount() {
-    info "umount: [%s]" "${CHROOT_ACTIVE_PART_MOUNTS[@]}"
-    umount "${CHROOT_ACTIVE_PART_MOUNTS[@]}"
     info "umount: [%s]" "${CHROOT_ACTIVE_MOUNTS[@]}"
     umount "${CHROOT_ACTIVE_MOUNTS[@]}"
+    info "umount: [%s]" "${CHROOT_ACTIVE_PART_MOUNTS[@]}"
+    umount "${CHROOT_ACTIVE_PART_MOUNTS[@]}"
     unset CHROOT_ACTIVE_PART_MOUNTS CHROOT_ACTIVE_MOUNTS
 }
 

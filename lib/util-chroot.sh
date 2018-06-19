@@ -8,26 +8,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-copy_mirrorlist(){
-    cp -a /etc/pacman.d/mirrorlist "$1/etc/pacman.d/"
-}
-
-copy_keyring(){
-    if [[ -d /etc/pacman.d/gnupg ]] && [[ ! -d $1/etc/pacman.d/gnupg ]]; then
-        cp -a /etc/pacman.d/gnupg "$1/etc/pacman.d/"
-    fi
-}
-
-create_min_fs(){
-    msg "Creating install root at %s" "$1"
-    mkdir -m 0755 -p $1/var/{cache/pacman/pkg,lib/pacman,log} $1/{dev,etc}
-    mkdir -m 1777 -p $1/{tmp,run}
-    mkdir -m 0555 -p $1/{sys,proc}
-    if [[ ! -f $1/etc/machine-id ]];then
-        touch $1/etc/machine-id
-    fi
-}
-
 is_btrfs() {
 	[[ -e "$1" && "$(stat -f -c %T "$1")" == btrfs ]]
 }
