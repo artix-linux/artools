@@ -86,7 +86,7 @@ else
 
     ${pretend} && display_settings && exit 1
 
-    chroot_api_efi_mount "${chrootdir}" || die "failed to setup API filesystems in chroot %s" "${chrootdir}"
+    chroot_api_mount "${chrootdir}" || die "failed to setup API filesystems in chroot %s" "${chrootdir}"
     chroot_mount /etc/resolv.conf "${chrootdir}/etc/resolv.conf" --bind
 fi
 
