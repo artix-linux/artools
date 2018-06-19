@@ -105,7 +105,7 @@ echo "$chroot_version" > "$working_dir/.artools"
 printf '%s.UTF-8 UTF-8\n' en_US de_DE > "$working_dir/etc/locale.gen"
 echo 'LANG=en_US.UTF-8' > "$working_dir/etc/locale.conf"
 
-dbus-uuidgen --ensure "$working_dir"/etc/machine-id
+dbus-uuidgen --ensure="$working_dir"/etc/machine-id
 
 chroot_args=(${pacman_conf:+-C "$pacman_conf"} ${makepkg_conf:+-M "$makepkg_conf"} ${cache_dir:+-c "$cache_dir"})
 ${nosetarch} && chroot_args+=(${nosetarch:+-s})
