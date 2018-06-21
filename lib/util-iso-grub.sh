@@ -53,7 +53,7 @@ configure_grub(){
 
 prepare_grub(){
     local platform=i386-pc img='core.img' grub=$3/boot/grub efi=$3/efi/boot \
-        lib=$1/usr/lib/grub prefix=/boot/grub theme=$2/usr/share/grub data=$1/usr/share/grub
+        lib=$1/usr/lib/grub prefix=/boot/grub theme=$2/usr/share/grub
 
     prepare_dir ${grub}/${platform}
 
@@ -81,8 +81,10 @@ prepare_grub(){
 
     prepare_dir ${grub}/themes
     cp -r ${theme}/themes/artix ${grub}/themes/
-    cp ${data}/unicode.pf2 ${grub}
     cp -r ${theme}/{locales,tz} ${grub}
+
+    msg2 "Creating %s ..." "unicode.pf2"
+    grub-mkfont -o ${grub}/unicode.pf2 /usr/share/fonts/misc/unifont.bdf
 
     local size=4M mnt="${mnt_dir}/efiboot" efi_img="$3/efi.img"
     msg2 "Creating fat image of %s ..." "${size}"
