@@ -204,11 +204,11 @@ _chrootbuild() {
     ulimit -c 0
 
     # Work around chroot-run not giving a ctty
-    exec </dev/console
+    #exec </dev/console
 
     . /etc/profile
 
-    export LANG=en_US.UTF-8
+    #export LANG=en_US.UTF-8
 
     # workaround meson locale errors
     # supposedly fixed with coming python-3.7
