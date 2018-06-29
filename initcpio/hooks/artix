@@ -32,6 +32,10 @@ _mnt_dmsnapshot() {
 
     dmsetup create ${dm_snap_name} --table "0 ${ro_dev_size} snapshot ${ro_dev} ${rw_dev} ${cow_persistent} ${cow_chunksize}"
 
+    if [[ "${cow_persistent}" != "P" ]]; then
+        rm -f "/run/artix/cowspace/${cow_directory}/${img_name}.cow"
+    fi
+
     _mnt_dev "/dev/mapper/${dm_snap_name}" "${mnt}" "-w" "defaults"
     echo $(readlink -f /dev/mapper/${dm_snap_name}) >> /run/artix/used_block_devices
 }
