@@ -40,6 +40,7 @@ pull_tree_artix(){
         if [[ -d ${tree} ]];then
             cd ${tree}
                 git config --bool pull.rebase true
+                git config commit.gpgsign true
                 msg "Checking (%s)" "${tree}"
                 pull_tree
             cd ..
