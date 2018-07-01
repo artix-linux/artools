@@ -61,13 +61,13 @@ show_version_table(){
     for tree in packages packages-galaxy;do
         local git=$(find ${tree_dir_artix}/$tree/ -mindepth 1 -maxdepth 1 -type d)
         for pkg_path in ${git[@]}; do
-            local artixrepo=$(find_repo "$pkg_path" "${unstable}")
+            local artixrepo=$(find_repo "$pkg_path" "${unstable}" "${staging}")
             if [[ -d $pkg_path/repos/$artixrepo ]];then
                 source $pkg_path/repos/$artixrepo/PKGBUILD 2>/dev/null
                 local pkg=${pkg_path##*/}
                 local artixver=$(get_full_version $pkg)
                 local src=$(get_import_path "$tree" "$pkg")
-                local archrepo=$(find_repo "$src/$pkg" "${unstable}")
+                local archrepo=$(find_repo "$src/$pkg" "${unstable}" "${staging}")
                 if [[ -d $src/$pkg/repos/$archrepo ]];then
                     source $src/$pkg/repos/$archrepo/PKGBUILD 2>/dev/null
                     local archver=$(get_full_version $pkg)
@@ -201,6 +201,8 @@ display_settings(){
     msg2 "upgrades: %s" "${upgrades}"
     msg2 "downgrades: %s" "${downgrades}"
     msg2 "artix: %s" "${artix}"
+    msg2 "staging: %s" "${staging}"
+    msg2 "unstable: %s" "${unstable}"
     msg2 "import: %s" "${import}"
     msg2 "view: %s" "${view}"
     msg2 "trunk: %s" "${trunk}"
@@ -221,6 +223,7 @@ sync=false
 sync_arch=true
 compare=false
 unstable=false
+staging=true
 upgrades=false
 downgrades=false
 artix=false
@@ -237,10 +240,11 @@ usage() {
     echo "    -s            Clone or pull repos"
     echo "    -z            Don't clone or pull arch repos"
     echo '    -c            Compare packages'
-    echo '    -x            Include unstable kde and gnome'
     echo '    -u            Show upgrade packages'
     echo '    -d            Show downgrade packages'
-    echo '    -a            Show testing and staging packages'
+    echo '    -a            Show testing packages'
+    echo "    -y            Don't inlcude staging packages"
+    echo '    -x            Include unstable kde and gnome'
     echo '    -i            Import a package from arch repos'
     echo '    -t            Import from arch trunk'
     echo '    -v            View package depends'
@@ -253,7 +257,7 @@ usage() {
 
 orig_argv=("$0" "$@")
 
-opts='p:csudaiztxvqh'
+opts='p:csudayiztxvqh'
 
 while getopts "${opts}" arg; do
     case "${arg}" in
@@ -264,6 +268,7 @@ while getopts "${opts}" arg; do
         u) upgrades=true ;;
         d) downgrades=true ;;
         a) artix=true ;;
+        y) staging=false ;;
         i) import=true ;;
         t) trunk=true ;;
         v) view=true ;;

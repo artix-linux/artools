@@ -125,7 +125,7 @@ is_valid_repo(){
 }
 
 find_repo(){
-    local pkg="$1" incl="$2" repo=
+    local pkg="$1" unst="$2" stag="$3" repo=
 
     if [[ -f $pkg/repos/core-x86_64/PKGBUILD ]];then
         repo=core-x86_64
@@ -145,10 +145,12 @@ find_repo(){
         repo=testing-any
     fi
 
-    if [[ -f $pkg/repos/staging-x86_64/PKGBUILD ]];then
-        repo=staging-x86_64
-    elif [[ -f $pkg/repos/staging-any/PKGBUILD ]];then
-        repo=staging-any
+    if $stag;then
+        if [[ -f $pkg/repos/staging-x86_64/PKGBUILD ]];then
+            repo=staging-x86_64
+        elif [[ -f $pkg/repos/staging-any/PKGBUILD ]];then
+            repo=staging-any
+        fi
     fi
 
     if [[ -f $pkg/repos/community-x86_64/PKGBUILD ]];then
@@ -163,10 +165,12 @@ find_repo(){
         repo=community-testing-any
     fi
 
-    if [[ -f $pkg/repos/community-staging-x86_64/PKGBUILD ]];then
-        repo=community-staging-x86_64
-    elif [[ -f $pkg/repos/community-staging-any/PKGBUILD ]];then
-        repo=community-staging-any
+    if $stag;then
+        if [[ -f $pkg/repos/community-staging-x86_64/PKGBUILD ]];then
+            repo=community-staging-x86_64
+        elif [[ -f $pkg/repos/community-staging-any/PKGBUILD ]];then
+            repo=community-staging-any
+        fi
     fi
 
     if [[ -f $pkg/repos/multilib-x86_64/PKGBUILD ]];then
@@ -177,11 +181,13 @@ find_repo(){
         repo=multilib-testing-x86_64
     fi
 
-    if [[ -f $pkg/repos/multilib-staging-x86_64/PKGBUILD ]];then
-        repo=multilib-staging-x86_64
+    if $stag;then
+        if [[ -f $pkg/repos/multilib-staging-x86_64/PKGBUILD ]];then
+            repo=multilib-staging-x86_64
+        fi
     fi
 
-    if $incl;then
+    if $unst;then
         if [[ -f $pkg/repos/gnome-unstable-x86_64/PKGBUILD ]];then
             repo=gnome-unstable-x86_64
         elif [[ -f $pkg/repos/gnome-unstable-any/PKGBUILD ]];then
